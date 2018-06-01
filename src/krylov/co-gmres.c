@@ -239,7 +239,10 @@ hypre_COGMRESSetup( void *cogmres_vdata,
 
   return hypre_error_flag;
 }
-
+HYPRE_Int idx(HYPRE_Int r, HYPRE_Int c, HYPRE_Int n){
+  //n is the # el IN THE COLUMN
+  return c*n+r;
+}
 /*--------------------------------------------------------------------------
  * hypre_COGMRESSolve
  *-------------------------------------------------------------------------*/
@@ -283,7 +286,8 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
   HYPRE_Int        break_value = 0;
   HYPRE_Int	      i, j, k;
   /*KS: rv is the norm history */
-  HYPRE_Real *rs, **hh, *c, *s, *rs_2, *rv, *tmp; 
+  HYPRE_Real *rs, *hh, *c, *s, *rs_2, *rv;
+  //, *tmp; 
   HYPRE_Int        iter; 
   HYPRE_Int        my_id, num_procs;
   HYPRE_Real epsilon, gamma, t, r_norm, b_norm, den_norm, x_norm;
@@ -322,16 +326,18 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
   rs = hypre_CTAllocF(HYPRE_Real,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST);
   c = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
   s = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
-  tmp  = hypre_CTAllocF(HYPRE_Real,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST);
+  //tmp  = hypre_CTAllocF(HYPRE_Real,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST);
   if (rel_change) rs_2 = hypre_CTAllocF(HYPRE_Real,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST); 
 
 
   rv = hypre_CTAllocF(HYPRE_Real, k_dim+1, cogmres_functions, HYPRE_MEMORY_HOST);
-  hh = hypre_CTAllocF(HYPRE_Real*,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST);
-  for (i=0; i < k_dim+1; i++)
-  {	
-    hh[i] = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
-  }
+  //hh = hypre_CTAllocF(HYPRE_Real*,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST);
+  //for (i=0; i < k_dim+1; i++)
+  //{	
+  //hh[i] = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
+  //}
+  //
+  hh = hypre_CTAllocF(HYPRE_Real, (k_dim+1)*k_dim, cogmres_functions, HYPRE_MEMORY_HOST);
 
   (*(cogmres_functions->CopyVector))(b,p[0]);
 
@@ -460,7 +466,7 @@ tol only is checked  */
       hypre_TFreeF(s,cogmres_functions); 
       hypre_TFreeF(rs,cogmres_functions);
       if (rel_change)  hypre_TFreeF(rs_2,cogmres_functions);
-      for (i=0; i < k_dim+1; i++) hypre_TFreeF(hh[i],cogmres_functions);
+      //for (i=0; i < k_dim+1; i++) hypre_TFreeF(hh[i],cogmres_functions);
       hypre_TFreeF(hh,cogmres_functions); 
       return hypre_error_flag;
 
@@ -511,18 +517,19 @@ tol only is checked  */
       //
       //need multiIP here
       /* for (j=0; j<i; j++){
-            hh[j][i-1] = (*(cogmres_functions->InnerProd))(p[j],p[i]);
-            hh[j][i-1] = (2-rv[j])*hh[j][i-1];
+         hh[j][i-1] = (*(cogmres_functions->InnerProd))(p[j],p[i]);
+         hh[j][i-1] = (2-rv[j])*hh[j][i-1];
       //   hypre_printf("BF h[%d][%d] = %16.16f \n", j, i-1, hh[j][i-1]);
       }*/
       // hypre_printf("about to start multi IP \n");  
-      (*(cogmres_functions->MassInnerProd))((void *) p[i], p,(HYPRE_Int) i, tmp);
+      //(*(cogmres_functions->MassInnerProd))((void *) p[i], p,(HYPRE_Int) i, tmp);
+      (*(cogmres_functions->MassInnerProd))((void *) p[i], p,(HYPRE_Int) i, &hh[(i-1)*(k_dim+1)]);
       for (j=0; j<i; j++){
-        hh[j][i-1] = tmp[j];
+        //hh[j][i-1] = tmp[j];
 
-        hh[j][i-1] = (2-rv[j])*hh[j][i-1];
+        //        hh[j][i-1] = (2-rv[j])*hh[j][i-1];
         //   hypre_printf("hh[%d][%d] = %16.16f \n", j, i-1, tmp[j]);
-        tmp[j] = 0.0f;        
+        //tmp[j] = 0.0f;        
 
       }
 
@@ -532,8 +539,12 @@ tol only is checked  */
 
       HYPRE_Real t2 = 0.0;
       for (j=0; j<i; j++){
-        (*(cogmres_functions->Axpy))(-hh[j][i-1],p[j],w);
-        t2 += (hh[j][i-1]*hh[j][i-1]);
+        //(*(cogmres_functions->Axpy))(-hh[j][i-1],p[j],w);
+        //t2 += (hh[j][i-1]*hh[j][i-1]);
+        HYPRE_Int id = idx(j, i-1,k_dim+1);
+        hh[id] = (2-rv[j])*hh[id];
+        (*(cogmres_functions->Axpy))(-hh[id],p[j],w);
+        t2 += (hh[id]*hh[id]);        
         //hypre_printf("adding %f to t2 = %f , current hh[%d][%d] = %f \n", (hh[j][i-1]*hh[j][i-1]), t2, j, i-1, hh[j][i-1]);
       }
       //   H(i+1,i) = sqrt( norm(w) - norm(H(1:i,i))*vs(i) )*sqrt( norm(w) + norm(H(1:i,i))*vs(i) );
@@ -544,7 +555,7 @@ tol only is checked  */
       /*sqrt(t - norm(H(1:i, i)*vs(i)) * sqrt(t + norm(H(1:,i)*vs(i);*/
       t = sqrt( (*(cogmres_functions->InnerProd))(p[i],p[i]) );
       //    hypre_printf("t = %f t2 = %f  \n", t, t2);
-      hh[i][i-1] = sqrt(t-t2)*sqrt(t2+t);	
+      hh[idx(i, i-1,k_dim+1)] = sqrt(t-t2)*sqrt(t2+t);	
 
       //  hypre_printf("h[%d,%d]  = %f \n", i,i-1, hh[i][i-1]);
 
@@ -564,9 +575,9 @@ tol only is checked  */
                    }
                    t = sqrt((*(cogmres_functions->InnerProd))(p[i],p[i]));
                    hh[i][i-1] = t;*/	
-      if (hh[i][i-1] != 0.0)
+      if (hh[idx(i,i-1,k_dim+1)] != 0.0)
       {
-        t = 1.0/hh[i][i-1];
+        t = 1.0/hh[idx(i,i-1,k_dim+1)];
         (*(cogmres_functions->ScaleVector))(t,w);
         (*(cogmres_functions->CopyVector))(w, p[i]);
         rv[i] = sqrt( (*(cogmres_functions->InnerProd))(p[i],p[i]) );
@@ -577,23 +588,40 @@ tol only is checked  */
          update factorization of hh */
       for (j = 1; j < i; j++)
       {
-        t = hh[j-1][i-1];
-        hh[j-1][i-1] = s[j-1]*hh[j][i-1] + c[j-1]*t;
-        hh[j][i-1] = -s[j-1]*t + c[j-1]*hh[j][i-1];
+        /*t = hh[j-1][i-1];
+          hh[j-1][i-1] = s[j-1]*hh[j][i-1] + c[j-1]*t;
+          hh[j][i-1] = -s[j-1]*t + c[j-1]*hh[j][i-1];
+          */     
+        t = hh[idx(j-1,i-1,k_dim+1)];
+        hh[idx(j-1,i-1,k_dim+1)] = s[j-1]*hh[idx(j,i-1,k_dim+1)] + c[j-1]*t;
+        hh[idx(j,i-1, k_dim+1)] = -s[j-1]*t + c[j-1]*hh[idx(j,i-1,k_dim+1)];
+
       }
-      t= hh[i][i-1]*hh[i][i-1];
-      t+= hh[i-1][i-1]*hh[i-1][i-1];
-      gamma = sqrt(t);
-      if (gamma == 0.0) gamma = epsmac;
-      c[i-1] = hh[i-1][i-1]/gamma;
-      s[i-1] = hh[i][i-1]/gamma;
-      rs[i] = -hh[i][i-1]*rs[i-1];
-      rs[i]/=  gamma;
-      rs[i-1] = c[i-1]*rs[i-1];
-      /* determine residual norm */
+      /*   t= hh[i][i-1]*hh[i][i-1];
+           t+= hh[i-1][i-1]*hh[i-1][i-1];
+           gamma = sqrt(t);
+           if (gamma == 0.0) gamma = epsmac;
+           c[i-1] = hh[i-1][i-1]/gamma;
+           s[i-1] = hh[i][i-1]/gamma;
+           rs[i] = -hh[i][i-1]*rs[i-1];
+           rs[i]/=  gamma;
+           rs[i-1] = c[i-1]*rs[i-1];
+      // determine residual norm 
       hh[i-1][i-1] = s[i-1]*hh[i][i-1] + c[i-1]*hh[i-1][i-1];
       r_norm = fabs(rs[i]);
-
+      */
+      t= hh[idx(i, i-1, k_dim+1)]*hh[idx(i,i-1, k_dim+1)];
+      t+= hh[idx(i-1,i-1, k_dim+1)]*hh[idx(i-1,i-1, k_dim+1)];
+      gamma = sqrt(t);
+      if (gamma == 0.0) gamma = epsmac;
+      c[i-1] = hh[idx(i-1,i-1, k_dim+1)]/gamma;
+      s[i-1] = hh[idx(i,i-1, k_dim+1)]/gamma;
+      rs[i] = -hh[idx(i,i-1, k_dim+1)]*rs[i-1];
+      rs[i]/=  gamma;
+      rs[i-1] = c[i-1]*rs[i-1];
+      // determine residual norm 
+      hh[idx(i-1,i-1, k_dim+1)] = s[i-1]*hh[idx(i,i-1, k_dim+1)] + c[i-1]*hh[idx(i-1,i-1, k_dim+1)];
+      r_norm = fabs(rs[i]);
       /* print ? */
       if ( print_level>0 )
       {
@@ -652,18 +680,30 @@ tol only is checked  */
             rs_2[k] = rs[k];
 
           /* solve tri. system*/
-          rs_2[i-1] = rs_2[i-1]/hh[i-1][i-1];
+          /*          rs_2[i-1] = rs_2[i-1]/hh[i-1][i-1];
+                      for (k = i-2; k >= 0; k--)
+                      {
+                      t = 0.0;
+                      for (j = k+1; j < i; j++)
+                      {
+                      t -= hh[k][j]*rs_2[j];
+                      }
+                      t+= rs_2[k];
+                      rs_2[k] = t/hh[k][k];
+                      }*/
+
+
+          rs_2[i-1] = rs_2[i-1]/hh[idx(i-1,i-1, k_dim+1)];
           for (k = i-2; k >= 0; k--)
           {
             t = 0.0;
             for (j = k+1; j < i; j++)
             {
-              t -= hh[k][j]*rs_2[j];
+              t -= hh[idx(k,j, k_dim+1)]*rs_2[j];
             }
             t+= rs_2[k];
-            rs_2[k] = t/hh[k][k];
+            rs_2[k] = t/hh[idx(k,k, k_dim+1)];
           }
-
           (*(cogmres_functions->CopyVector))(p[i-1],w);
           (*(cogmres_functions->ScaleVector))(rs_2[i-1],w);
           for (j = i-2; j >=0; j--)
@@ -746,17 +786,29 @@ tol only is checked  */
     /* now compute solution, first solve upper triangular system */
 
     if (break_value) break;
-
-    rs[i-1] = rs[i-1]/hh[i-1][i-1];
+    /*
+       rs[i-1] = rs[i-1]/hh[i-1][i-1];
+       for (k = i-2; k >= 0; k--)
+       {
+       t = 0.0;
+       for (j = k+1; j < i; j++)
+       {
+       t -= hh[k][j]*rs[j];
+       }
+       t+= rs[k];
+       rs[k] = t/hh[k][k];
+       }
+       */
+    rs[i-1] = rs[i-1]/hh[idx(i-1,i-1, k_dim+1)];
     for (k = i-2; k >= 0; k--)
     {
       t = 0.0;
       for (j = k+1; j < i; j++)
       {
-        t -= hh[k][j]*rs[j];
+        t -= hh[idx(k,j, k_dim+1)]*rs[j];
       }
       t+= rs[k];
-      rs[k] = t/hh[k][k];
+      rs[k] = t/hh[idx(k,k, k_dim+1)];
     }
 
     (*(cogmres_functions->CopyVector))(p[i-1],w);
@@ -904,10 +956,10 @@ tol only is checked  */
   hypre_TFreeF(rs,cogmres_functions);
   if (rel_change)  hypre_TFreeF(rs_2,cogmres_functions);
 
-  for (i=0; i < k_dim+1; i++)
-  {	
-    hypre_TFreeF(hh[i],cogmres_functions);
-  }
+  /* for (i=0; i < k_dim+1; i++)
+     {	
+     hypre_TFreeF(hh[i],cogmres_functions);
+     }*/
   hypre_TFreeF(hh,cogmres_functions); 
 
   return hypre_error_flag;
