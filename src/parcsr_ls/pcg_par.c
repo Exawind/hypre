@@ -167,6 +167,18 @@ hypre_ParKrylovInnerProd( void *x,
                                       (hypre_ParVector *) y ) );
 }
 
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovMassInnerProd // written by KS
+ *--------------------------------------------------------------------------*/
+
+void
+hypre_ParKrylovMassInnerProd( void *x, 
+                          void **y, int k, void  * result )
+{
+   return ( hypre_ParVectorMassInnerProd( (hypre_ParVector *) x,(hypre_ParVector **) y, k, (HYPRE_Real*)result ) );
+}
+
+
 
 /*--------------------------------------------------------------------------
  * hypre_ParKrylovCopyVector

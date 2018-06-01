@@ -12,22 +12,22 @@
 
 /******************************************************************************
  *
- * CO-GMRES gmres
+ * COGMRES gmres
  *
  *****************************************************************************/
 
-#ifndef hypre_KRYLOV_CO-GMRES_HEADER
-#define hypre_KRYLOV_CO-GMRES_HEADER
+#ifndef hypre_KRYLOV_COGMRES_HEADER
+#define hypre_KRYLOV_COGMRES_HEADER
 
 /*--------------------------------------------------------------------------
  *--------------------------------------------------------------------------*/
 
 /**
- * @name Generic CO-GMRES Interface
+ * @name Generic COGMRES Interface
  *
  * A general description of the interface goes here...
  *
- * @memo A generic CO-GMRES linear solver interface
+ * @memo A generic COGMRES linear solver interface
  * @version 0.1
  * @author Jeffrey F. Painter
  **/
@@ -37,18 +37,18 @@
  *--------------------------------------------------------------------------*/
 
 /*--------------------------------------------------------------------------
- * hypre_CO-GMRESData and hypre_CO-GMRESFunctions
+ * hypre_COGMRESData and hypre_COGMRESFunctions
  *--------------------------------------------------------------------------*/
 
 /**
- * @name CO-GMRES structs
+ * @name COGMRES structs
  *
  * Description...
  **/
 /*@{*/
 
 /**
- * The {\tt hypre\_CO-GMRESFunctions} object ...
+ * The {\tt hypre\_COGMRESFunctions} object ...
  **/
 
 typedef struct
@@ -65,6 +65,7 @@ typedef struct
                                    void *x, HYPRE_Complex beta, void *y );
    HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
    HYPRE_Real   (*InnerProd)     ( void *x, void *y );
+   void         (*MassInnerProd) (void *x, void **p, int k, void *result);
    HYPRE_Int    (*CopyVector)    ( void *x, void *y );
    HYPRE_Int    (*ClearVector)   ( void *x );
    HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );
@@ -73,10 +74,12 @@ typedef struct
    HYPRE_Int    (*precond)       ();
    HYPRE_Int    (*precond_setup) ();
 
-} hypre_CO-GMRESFunctions;
+    HYPRE_Int    (*modify_pc)(void *precond_data, HYPRE_Int iteration, HYPRE_Real rel_residual_norm );
+
+} hypre_COGMRESFunctions;
 
 /**
- * The {\tt hypre\_CO-GMRESData} object ...
+ * The {\tt hypre\_COGMRESData} object ...
  **/
 
 typedef struct
@@ -102,7 +105,7 @@ typedef struct
    void    *matvec_data;
    void    *precond_data;
 
-   hypre_CO-GMRESFunctions * functions;
+   hypre_COGMRESFunctions * functions;
 
    /* log info (always logged) */
    HYPRE_Int      num_iterations;
@@ -112,14 +115,14 @@ typedef struct
    HYPRE_Real  *norms;
    char    *log_file_name;
 
-} hypre_CO-GMRESData;
+} hypre_COGMRESData;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @name generic CO-GMRES Solver
+ * @name generic COGMRES Solver
  *
  * Description...
  **/
@@ -131,8 +134,8 @@ extern "C" {
  * @param param [IN] ...
  **/
 
-hypre_CO-GMRESFunctions *
-hypre_CO-GMRESFunctionsCreate(
+hypre_COGMRESFunctions *
+hypre_COGMRESFunctionsCreate(
    void *       (*CAlloc)        ( size_t count, size_t elt_size ),
    HYPRE_Int    (*Free)          ( void *ptr ),
    HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
@@ -145,6 +148,7 @@ hypre_CO-GMRESFunctionsCreate(
                                    void *x, HYPRE_Complex beta, void *y ),
    HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
    HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
+   void         (*MassInnerProd) (void *x, void **p, int k, void *result),
    HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
    HYPRE_Int    (*ClearVector)   ( void *x ),
    HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
@@ -160,7 +164,7 @@ hypre_CO-GMRESFunctionsCreate(
  **/
 
 void *
-hypre_CO-GMRESCreate( hypre_CO-GMRESFunctions *gmres_functions );
+hypre_COGMRESCreate( hypre_COGMRESFunctions *gmres_functions );
 
 #ifdef __cplusplus
 }

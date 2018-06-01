@@ -1,0 +1,1028 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+A	HYPRE_lobpcg.c	/^   void*                         A;$/;"	m	struct:__anon4	file:
+A	bicgstab.h	/^   void  *A;$/;"	m	struct:__anon6
+A	cgnr.h	/^   void    *A;$/;"	m	struct:__anon8
+A	co-gmres.h	/^   void  *A;$/;"	m	struct:__anon32
+A	flexgmres.h	/^   void  *A;$/;"	m	struct:__anon10
+A	gmres.h	/^   void  *A;$/;"	m	struct:__anon12
+A	krylov.h	/^   void    *A;$/;"	m	struct:__anon16
+A	krylov.h	/^   void    *A;$/;"	m	struct:__anon24
+A	krylov.h	/^   void  *A;$/;"	m	struct:__anon14
+A	krylov.h	/^   void  *A;$/;"	m	struct:__anon18
+A	krylov.h	/^   void  *A;$/;"	m	struct:__anon20
+A	krylov.h	/^   void  *A;$/;"	m	struct:__anon22
+A	lgmres.h	/^   void  *A;$/;"	m	struct:__anon26
+A	pcg.h	/^   void    *A;$/;"	m	struct:__anon30
+Axpy	bicgstab.h	/^  HYPRE_Int  (*Axpy)          ( HYPRE_Complex alpha , void *x , void *y );$/;"	m	struct:__anon5
+Axpy	cgnr.h	/^   HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );$/;"	m	struct:__anon7
+Axpy	co-gmres.h	/^   HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );$/;"	m	struct:__anon31
+Axpy	flexgmres.h	/^   HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );$/;"	m	struct:__anon9
+Axpy	gmres.h	/^   HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );$/;"	m	struct:__anon11
+Axpy	krylov.h	/^   HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );$/;"	m	struct:__anon15
+Axpy	krylov.h	/^   HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );$/;"	m	struct:__anon17
+Axpy	krylov.h	/^   HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );$/;"	m	struct:__anon19
+Axpy	krylov.h	/^   HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );$/;"	m	struct:__anon21
+Axpy	krylov.h	/^   HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );$/;"	m	struct:__anon23
+Axpy	krylov.h	/^  HYPRE_Int  (*Axpy)          ( HYPRE_Complex alpha , void *x , void *y );$/;"	m	struct:__anon13
+Axpy	lgmres.h	/^   HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );$/;"	m	struct:__anon25
+Axpy	pcg.h	/^   HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );$/;"	m	struct:__anon29
+B	HYPRE_lobpcg.c	/^   void*                         B;$/;"	m	struct:__anon4	file:
+CAlloc	co-gmres.h	/^   void *       (*CAlloc)        ( size_t count, size_t elt_size );$/;"	m	struct:__anon31
+CAlloc	flexgmres.h	/^   void *       (*CAlloc)        ( size_t count, size_t elt_size );$/;"	m	struct:__anon9
+CAlloc	gmres.h	/^   void *       (*CAlloc)        ( size_t count, size_t elt_size );$/;"	m	struct:__anon11
+CAlloc	krylov.h	/^   void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location );$/;"	m	struct:__anon17
+CAlloc	krylov.h	/^   void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location );$/;"	m	struct:__anon19
+CAlloc	krylov.h	/^   void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location );$/;"	m	struct:__anon21
+CAlloc	krylov.h	/^   void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location );$/;"	m	struct:__anon23
+CAlloc	lgmres.h	/^   void *       (*CAlloc)        ( size_t count, size_t elt_size );$/;"	m	struct:__anon25
+CAlloc	pcg.h	/^   void *       (*CAlloc)        ( size_t count, size_t elt_size );$/;"	m	struct:__anon29
+CINCLUDES	Makefile	/^CINCLUDES = ${INCLUDES} ${MPIINCLUDE}$/;"	m
+C_COMPILE_FLAGS	Makefile	/^C_COMPILE_FLAGS = \\$/;"	m
+ClearVector	bicgstab.h	/^  HYPRE_Int  (*ClearVector)   ( void *x );$/;"	m	struct:__anon5
+ClearVector	cgnr.h	/^   HYPRE_Int    (*ClearVector)   ( void *x );$/;"	m	struct:__anon7
+ClearVector	co-gmres.h	/^   HYPRE_Int    (*ClearVector)   ( void *x );$/;"	m	struct:__anon31
+ClearVector	flexgmres.h	/^   HYPRE_Int    (*ClearVector)   ( void *x );$/;"	m	struct:__anon9
+ClearVector	gmres.h	/^   HYPRE_Int    (*ClearVector)   ( void *x );$/;"	m	struct:__anon11
+ClearVector	krylov.h	/^   HYPRE_Int    (*ClearVector)   ( void *x );$/;"	m	struct:__anon15
+ClearVector	krylov.h	/^   HYPRE_Int    (*ClearVector)   ( void *x );$/;"	m	struct:__anon17
+ClearVector	krylov.h	/^   HYPRE_Int    (*ClearVector)   ( void *x );$/;"	m	struct:__anon19
+ClearVector	krylov.h	/^   HYPRE_Int    (*ClearVector)   ( void *x );$/;"	m	struct:__anon21
+ClearVector	krylov.h	/^   HYPRE_Int    (*ClearVector)   ( void *x );$/;"	m	struct:__anon23
+ClearVector	krylov.h	/^  HYPRE_Int  (*ClearVector)   ( void *x );$/;"	m	struct:__anon13
+ClearVector	lgmres.h	/^   HYPRE_Int    (*ClearVector)   ( void *x );$/;"	m	struct:__anon25
+ClearVector	pcg.h	/^   HYPRE_Int    (*ClearVector)   ( void *x );$/;"	m	struct:__anon29
+CommInfo	bicgstab.h	/^  HYPRE_Int  (*CommInfo)      ( void *A , HYPRE_Int *my_id , HYPRE_Int *num_procs );$/;"	m	struct:__anon5
+CommInfo	cgnr.h	/^   HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,$/;"	m	struct:__anon7
+CommInfo	co-gmres.h	/^   HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,$/;"	m	struct:__anon31
+CommInfo	flexgmres.h	/^   HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,$/;"	m	struct:__anon9
+CommInfo	gmres.h	/^   HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,$/;"	m	struct:__anon11
+CommInfo	krylov.h	/^   HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,$/;"	m	struct:__anon15
+CommInfo	krylov.h	/^   HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,$/;"	m	struct:__anon17
+CommInfo	krylov.h	/^   HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,$/;"	m	struct:__anon19
+CommInfo	krylov.h	/^   HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,$/;"	m	struct:__anon21
+CommInfo	krylov.h	/^   HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,$/;"	m	struct:__anon23
+CommInfo	krylov.h	/^  HYPRE_Int  (*CommInfo)      ( void *A , HYPRE_Int *my_id , HYPRE_Int *num_procs );$/;"	m	struct:__anon13
+CommInfo	lgmres.h	/^   HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,$/;"	m	struct:__anon25
+CommInfo	pcg.h	/^   HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,$/;"	m	struct:__anon29
+CopyVector	bicgstab.h	/^  HYPRE_Int  (*CopyVector)    ( void *x , void *y );$/;"	m	struct:__anon5
+CopyVector	cgnr.h	/^   HYPRE_Int    (*CopyVector)    ( void *x, void *y );$/;"	m	struct:__anon7
+CopyVector	co-gmres.h	/^   HYPRE_Int    (*CopyVector)    ( void *x, void *y );$/;"	m	struct:__anon31
+CopyVector	flexgmres.h	/^   HYPRE_Int    (*CopyVector)    ( void *x, void *y );$/;"	m	struct:__anon9
+CopyVector	gmres.h	/^   HYPRE_Int    (*CopyVector)    ( void *x, void *y );$/;"	m	struct:__anon11
+CopyVector	krylov.h	/^   HYPRE_Int    (*CopyVector)    ( void *x, void *y );$/;"	m	struct:__anon15
+CopyVector	krylov.h	/^   HYPRE_Int    (*CopyVector)    ( void *x, void *y );$/;"	m	struct:__anon17
+CopyVector	krylov.h	/^   HYPRE_Int    (*CopyVector)    ( void *x, void *y );$/;"	m	struct:__anon19
+CopyVector	krylov.h	/^   HYPRE_Int    (*CopyVector)    ( void *x, void *y );$/;"	m	struct:__anon21
+CopyVector	krylov.h	/^   HYPRE_Int    (*CopyVector)    ( void *x, void *y );$/;"	m	struct:__anon23
+CopyVector	krylov.h	/^  HYPRE_Int  (*CopyVector)    ( void *x , void *y );$/;"	m	struct:__anon13
+CopyVector	lgmres.h	/^   HYPRE_Int    (*CopyVector)    ( void *x, void *y );$/;"	m	struct:__anon25
+CopyVector	pcg.h	/^   HYPRE_Int    (*CopyVector)    ( void *x, void *y );$/;"	m	struct:__anon29
+CreateVector	bicgstab.h	/^  void *     (*CreateVector)  ( void *vvector );$/;"	m	struct:__anon5
+CreateVector	cgnr.h	/^   void *       (*CreateVector)  ( void *vector );$/;"	m	struct:__anon7
+CreateVector	co-gmres.h	/^   void *       (*CreateVector)  ( void *vector );$/;"	m	struct:__anon31
+CreateVector	flexgmres.h	/^   void *       (*CreateVector)  ( void *vector );$/;"	m	struct:__anon9
+CreateVector	gmres.h	/^   void *       (*CreateVector)  ( void *vector );$/;"	m	struct:__anon11
+CreateVector	krylov.h	/^   void *       (*CreateVector)  ( void *vector );$/;"	m	struct:__anon15
+CreateVector	krylov.h	/^   void *       (*CreateVector)  ( void *vector );$/;"	m	struct:__anon17
+CreateVector	krylov.h	/^   void *       (*CreateVector)  ( void *vector );$/;"	m	struct:__anon19
+CreateVector	krylov.h	/^   void *       (*CreateVector)  ( void *vector );$/;"	m	struct:__anon21
+CreateVector	krylov.h	/^   void *       (*CreateVector)  ( void *vector );$/;"	m	struct:__anon23
+CreateVector	krylov.h	/^  void *     (*CreateVector)  ( void *vvector );$/;"	m	struct:__anon13
+CreateVector	lgmres.h	/^   void *       (*CreateVector)  ( void *vector );$/;"	m	struct:__anon25
+CreateVector	pcg.h	/^   void *       (*CreateVector)  ( void *vector );$/;"	m	struct:__anon29
+CreateVectorArray	co-gmres.h	/^   void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors );$/;"	m	struct:__anon31
+CreateVectorArray	flexgmres.h	/^   void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors );$/;"	m	struct:__anon9
+CreateVectorArray	gmres.h	/^   void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors );$/;"	m	struct:__anon11
+CreateVectorArray	krylov.h	/^   void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors );$/;"	m	struct:__anon17
+CreateVectorArray	krylov.h	/^   void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors );$/;"	m	struct:__anon19
+CreateVectorArray	krylov.h	/^   void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors );$/;"	m	struct:__anon21
+CreateVectorArray	lgmres.h	/^   void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors );$/;"	m	struct:__anon25
+DestroyVector	bicgstab.h	/^  HYPRE_Int  (*DestroyVector) ( void *vvector );$/;"	m	struct:__anon5
+DestroyVector	cgnr.h	/^   HYPRE_Int    (*DestroyVector) ( void *vector );$/;"	m	struct:__anon7
+DestroyVector	co-gmres.h	/^   HYPRE_Int    (*DestroyVector) ( void *vector );$/;"	m	struct:__anon31
+DestroyVector	flexgmres.h	/^   HYPRE_Int    (*DestroyVector) ( void *vector );$/;"	m	struct:__anon9
+DestroyVector	gmres.h	/^   HYPRE_Int    (*DestroyVector) ( void *vector );$/;"	m	struct:__anon11
+DestroyVector	krylov.h	/^   HYPRE_Int    (*DestroyVector) ( void *vector );$/;"	m	struct:__anon15
+DestroyVector	krylov.h	/^   HYPRE_Int    (*DestroyVector) ( void *vector );$/;"	m	struct:__anon17
+DestroyVector	krylov.h	/^   HYPRE_Int    (*DestroyVector) ( void *vector );$/;"	m	struct:__anon19
+DestroyVector	krylov.h	/^   HYPRE_Int    (*DestroyVector) ( void *vector );$/;"	m	struct:__anon21
+DestroyVector	krylov.h	/^   HYPRE_Int    (*DestroyVector) ( void *vector );$/;"	m	struct:__anon23
+DestroyVector	krylov.h	/^  HYPRE_Int  (*DestroyVector) ( void *vvector );$/;"	m	struct:__anon13
+DestroyVector	lgmres.h	/^   HYPRE_Int    (*DestroyVector) ( void *vector );$/;"	m	struct:__anon25
+DestroyVector	pcg.h	/^   HYPRE_Int    (*DestroyVector) ( void *vector );$/;"	m	struct:__anon29
+FILES	Makefile	/^FILES =\\$/;"	m
+Free	co-gmres.h	/^   HYPRE_Int    (*Free)          ( void *ptr );$/;"	m	struct:__anon31
+Free	flexgmres.h	/^   HYPRE_Int    (*Free)          ( void *ptr );$/;"	m	struct:__anon9
+Free	gmres.h	/^   HYPRE_Int    (*Free)          ( void *ptr );$/;"	m	struct:__anon11
+Free	krylov.h	/^   HYPRE_Int    (*Free)          ( void *ptr );$/;"	m	struct:__anon17
+Free	krylov.h	/^   HYPRE_Int    (*Free)          ( void *ptr );$/;"	m	struct:__anon19
+Free	krylov.h	/^   HYPRE_Int    (*Free)          ( void *ptr );$/;"	m	struct:__anon21
+Free	krylov.h	/^   HYPRE_Int    (*Free)          ( void *ptr );$/;"	m	struct:__anon23
+Free	lgmres.h	/^   HYPRE_Int    (*Free)          ( void *ptr );$/;"	m	struct:__anon25
+Free	pcg.h	/^   HYPRE_Int    (*Free)          ( void *ptr );$/;"	m	struct:__anon29
+GMRESData	co-gmres.h	/^} hypre_CO-GMRESData;$/;"	t	typeref:struct:__anon32
+GMRESFunctions	co-gmres.h	/^} hypre_CO-GMRESFunctions;$/;"	t	typeref:struct:__anon31
+HEADERS	Makefile	/^HEADERS =\\$/;"	m
+HYPRE_BiCGSTABDestroy	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABDestroy( HYPRE_Solver solver )$/;"	f
+HYPRE_BiCGSTABGetFinalRelativeResidualNorm	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABGetFinalRelativeResidualNorm( HYPRE_Solver  solver,$/;"	f
+HYPRE_BiCGSTABGetNumIterations	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABGetNumIterations( HYPRE_Solver  solver,$/;"	f
+HYPRE_BiCGSTABGetPrecond	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABGetPrecond( HYPRE_Solver  solver,$/;"	f
+HYPRE_BiCGSTABGetResidual	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABGetResidual( HYPRE_Solver  solver,$/;"	f
+HYPRE_BiCGSTABSetAbsoluteTol	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABSetAbsoluteTol( HYPRE_Solver solver,$/;"	f
+HYPRE_BiCGSTABSetConvergenceFactorTol	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABSetConvergenceFactorTol( HYPRE_Solver solver,$/;"	f
+HYPRE_BiCGSTABSetLogging	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABSetLogging( HYPRE_Solver solver,$/;"	f
+HYPRE_BiCGSTABSetMaxIter	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABSetMaxIter( HYPRE_Solver solver,$/;"	f
+HYPRE_BiCGSTABSetMinIter	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABSetMinIter( HYPRE_Solver solver,$/;"	f
+HYPRE_BiCGSTABSetPrecond	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABSetPrecond( HYPRE_Solver         solver,$/;"	f
+HYPRE_BiCGSTABSetPrintLevel	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABSetPrintLevel( HYPRE_Solver solver,$/;"	f
+HYPRE_BiCGSTABSetStopCrit	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABSetStopCrit( HYPRE_Solver solver,$/;"	f
+HYPRE_BiCGSTABSetTol	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABSetTol( HYPRE_Solver solver,$/;"	f
+HYPRE_BiCGSTABSetup	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABSetup( HYPRE_Solver solver,$/;"	f
+HYPRE_BiCGSTABSolve	HYPRE_bicgstab.c	/^HYPRE_BiCGSTABSolve( HYPRE_Solver solver,$/;"	f
+HYPRE_CGNRDestroy	HYPRE_cgnr.c	/^HYPRE_CGNRDestroy( HYPRE_Solver solver )$/;"	f
+HYPRE_CGNRGetFinalRelativeResidualNorm	HYPRE_cgnr.c	/^HYPRE_CGNRGetFinalRelativeResidualNorm( HYPRE_Solver  solver,$/;"	f
+HYPRE_CGNRGetNumIterations	HYPRE_cgnr.c	/^HYPRE_CGNRGetNumIterations( HYPRE_Solver  solver,$/;"	f
+HYPRE_CGNRGetPrecond	HYPRE_cgnr.c	/^HYPRE_CGNRGetPrecond( HYPRE_Solver   solver,$/;"	f
+HYPRE_CGNRSetLogging	HYPRE_cgnr.c	/^HYPRE_CGNRSetLogging( HYPRE_Solver solver,$/;"	f
+HYPRE_CGNRSetMaxIter	HYPRE_cgnr.c	/^HYPRE_CGNRSetMaxIter( HYPRE_Solver solver,$/;"	f
+HYPRE_CGNRSetMinIter	HYPRE_cgnr.c	/^HYPRE_CGNRSetMinIter( HYPRE_Solver solver,$/;"	f
+HYPRE_CGNRSetPrecond	HYPRE_cgnr.c	/^HYPRE_CGNRSetPrecond( HYPRE_Solver         solver,$/;"	f
+HYPRE_CGNRSetStopCrit	HYPRE_cgnr.c	/^HYPRE_CGNRSetStopCrit( HYPRE_Solver solver,$/;"	f
+HYPRE_CGNRSetTol	HYPRE_cgnr.c	/^HYPRE_CGNRSetTol( HYPRE_Solver solver,$/;"	f
+HYPRE_CGNRSetup	HYPRE_cgnr.c	/^HYPRE_CGNRSetup( HYPRE_Solver solver,$/;"	f
+HYPRE_CGNRSolve	HYPRE_cgnr.c	/^HYPRE_CGNRSolve( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESGetAbsoluteTol	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESGetAbsoluteTol( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESGetConverged	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESGetConverged( HYPRE_Solver  solver,$/;"	f
+HYPRE_FlexGMRESGetConvergenceFactorTol	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESGetConvergenceFactorTol( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESGetFinalRelativeResidualNorm	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESGetFinalRelativeResidualNorm( HYPRE_Solver  solver,$/;"	f
+HYPRE_FlexGMRESGetKDim	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESGetKDim( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESGetLogging	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESGetLogging( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESGetMaxIter	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESGetMaxIter( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESGetMinIter	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESGetMinIter( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESGetNumIterations	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESGetNumIterations( HYPRE_Solver  solver,$/;"	f
+HYPRE_FlexGMRESGetPrecond	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESGetPrecond( HYPRE_Solver  solver,$/;"	f
+HYPRE_FlexGMRESGetPrintLevel	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESGetPrintLevel( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESGetResidual	HYPRE_flexgmres.c	/^HYPRE_Int HYPRE_FlexGMRESGetResidual( HYPRE_Solver solver, void **residual )$/;"	f
+HYPRE_FlexGMRESGetTol	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESGetTol( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESSetAbsoluteTol	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESSetAbsoluteTol( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESSetConvergenceFactorTol	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESSetConvergenceFactorTol( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESSetKDim	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESSetKDim( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESSetLogging	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESSetLogging( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESSetMaxIter	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESSetMaxIter( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESSetMinIter	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESSetMinIter( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESSetModifyPC	HYPRE_flexgmres.c	/^HYPRE_Int HYPRE_FlexGMRESSetModifyPC( HYPRE_Solver  solver,$/;"	f
+HYPRE_FlexGMRESSetPrecond	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESSetPrecond( HYPRE_Solver          solver,$/;"	f
+HYPRE_FlexGMRESSetPrintLevel	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESSetPrintLevel( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESSetTol	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESSetTol( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESSetup	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESSetup( HYPRE_Solver solver,$/;"	f
+HYPRE_FlexGMRESSolve	HYPRE_flexgmres.c	/^HYPRE_FlexGMRESSolve( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESGetAbsoluteTol	HYPRE_gmres.c	/^HYPRE_GMRESGetAbsoluteTol( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESGetConverged	HYPRE_gmres.c	/^HYPRE_GMRESGetConverged( HYPRE_Solver  solver,$/;"	f
+HYPRE_GMRESGetConvergenceFactorTol	HYPRE_gmres.c	/^HYPRE_GMRESGetConvergenceFactorTol( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESGetFinalRelativeResidualNorm	HYPRE_gmres.c	/^HYPRE_GMRESGetFinalRelativeResidualNorm( HYPRE_Solver  solver,$/;"	f
+HYPRE_GMRESGetKDim	HYPRE_gmres.c	/^HYPRE_GMRESGetKDim( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESGetLogging	HYPRE_gmres.c	/^HYPRE_GMRESGetLogging( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESGetMaxIter	HYPRE_gmres.c	/^HYPRE_GMRESGetMaxIter( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESGetMinIter	HYPRE_gmres.c	/^HYPRE_GMRESGetMinIter( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESGetNumIterations	HYPRE_gmres.c	/^HYPRE_GMRESGetNumIterations( HYPRE_Solver  solver,$/;"	f
+HYPRE_GMRESGetPrecond	HYPRE_gmres.c	/^HYPRE_GMRESGetPrecond( HYPRE_Solver  solver,$/;"	f
+HYPRE_GMRESGetPrintLevel	HYPRE_gmres.c	/^HYPRE_GMRESGetPrintLevel( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESGetRelChange	HYPRE_gmres.c	/^HYPRE_GMRESGetRelChange( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESGetResidual	HYPRE_gmres.c	/^HYPRE_Int HYPRE_GMRESGetResidual( HYPRE_Solver solver, void **residual )$/;"	f
+HYPRE_GMRESGetSkipRealResidualCheck	HYPRE_gmres.c	/^HYPRE_GMRESGetSkipRealResidualCheck( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESGetStopCrit	HYPRE_gmres.c	/^HYPRE_GMRESGetStopCrit( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESGetTol	HYPRE_gmres.c	/^HYPRE_GMRESGetTol( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESSetAbsoluteTol	HYPRE_gmres.c	/^HYPRE_GMRESSetAbsoluteTol( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESSetConvergenceFactorTol	HYPRE_gmres.c	/^HYPRE_GMRESSetConvergenceFactorTol( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESSetKDim	HYPRE_gmres.c	/^HYPRE_GMRESSetKDim( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESSetLogging	HYPRE_gmres.c	/^HYPRE_GMRESSetLogging( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESSetMaxIter	HYPRE_gmres.c	/^HYPRE_GMRESSetMaxIter( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESSetMinIter	HYPRE_gmres.c	/^HYPRE_GMRESSetMinIter( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESSetPrecond	HYPRE_gmres.c	/^HYPRE_GMRESSetPrecond( HYPRE_Solver          solver,$/;"	f
+HYPRE_GMRESSetPrintLevel	HYPRE_gmres.c	/^HYPRE_GMRESSetPrintLevel( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESSetRelChange	HYPRE_gmres.c	/^HYPRE_GMRESSetRelChange( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESSetSkipRealResidualCheck	HYPRE_gmres.c	/^HYPRE_GMRESSetSkipRealResidualCheck( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESSetStopCrit	HYPRE_gmres.c	/^HYPRE_GMRESSetStopCrit( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESSetTol	HYPRE_gmres.c	/^HYPRE_GMRESSetTol( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESSetup	HYPRE_gmres.c	/^HYPRE_GMRESSetup( HYPRE_Solver solver,$/;"	f
+HYPRE_GMRESSolve	HYPRE_gmres.c	/^HYPRE_GMRESSolve( HYPRE_Solver solver,$/;"	f
+HYPRE_KRYLOV_HEADER	HYPRE_krylov.h	14;"	d
+HYPRE_LGMRESGetAbsoluteTol	HYPRE_lgmres.c	/^HYPRE_LGMRESGetAbsoluteTol( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESGetAugDim	HYPRE_lgmres.c	/^HYPRE_LGMRESGetAugDim( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESGetConverged	HYPRE_lgmres.c	/^HYPRE_LGMRESGetConverged( HYPRE_Solver  solver,$/;"	f
+HYPRE_LGMRESGetConvergenceFactorTol	HYPRE_lgmres.c	/^HYPRE_LGMRESGetConvergenceFactorTol( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESGetFinalRelativeResidualNorm	HYPRE_lgmres.c	/^HYPRE_LGMRESGetFinalRelativeResidualNorm( HYPRE_Solver  solver,$/;"	f
+HYPRE_LGMRESGetKDim	HYPRE_lgmres.c	/^HYPRE_LGMRESGetKDim( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESGetLogging	HYPRE_lgmres.c	/^HYPRE_LGMRESGetLogging( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESGetMaxIter	HYPRE_lgmres.c	/^HYPRE_LGMRESGetMaxIter( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESGetMinIter	HYPRE_lgmres.c	/^HYPRE_LGMRESGetMinIter( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESGetNumIterations	HYPRE_lgmres.c	/^HYPRE_LGMRESGetNumIterations( HYPRE_Solver  solver,$/;"	f
+HYPRE_LGMRESGetPrecond	HYPRE_lgmres.c	/^HYPRE_LGMRESGetPrecond( HYPRE_Solver  solver,$/;"	f
+HYPRE_LGMRESGetPrintLevel	HYPRE_lgmres.c	/^HYPRE_LGMRESGetPrintLevel( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESGetResidual	HYPRE_lgmres.c	/^HYPRE_Int HYPRE_LGMRESGetResidual( HYPRE_Solver solver, void **residual )$/;"	f
+HYPRE_LGMRESGetTol	HYPRE_lgmres.c	/^HYPRE_LGMRESGetTol( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESSetAbsoluteTol	HYPRE_lgmres.c	/^HYPRE_LGMRESSetAbsoluteTol( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESSetAugDim	HYPRE_lgmres.c	/^HYPRE_LGMRESSetAugDim( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESSetConvergenceFactorTol	HYPRE_lgmres.c	/^HYPRE_LGMRESSetConvergenceFactorTol( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESSetKDim	HYPRE_lgmres.c	/^HYPRE_LGMRESSetKDim( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESSetLogging	HYPRE_lgmres.c	/^HYPRE_LGMRESSetLogging( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESSetMaxIter	HYPRE_lgmres.c	/^HYPRE_LGMRESSetMaxIter( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESSetMinIter	HYPRE_lgmres.c	/^HYPRE_LGMRESSetMinIter( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESSetPrecond	HYPRE_lgmres.c	/^HYPRE_LGMRESSetPrecond( HYPRE_Solver          solver,$/;"	f
+HYPRE_LGMRESSetPrintLevel	HYPRE_lgmres.c	/^HYPRE_LGMRESSetPrintLevel( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESSetTol	HYPRE_lgmres.c	/^HYPRE_LGMRESSetTol( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESSetup	HYPRE_lgmres.c	/^HYPRE_LGMRESSetup( HYPRE_Solver solver,$/;"	f
+HYPRE_LGMRESSolve	HYPRE_lgmres.c	/^HYPRE_LGMRESSolve( HYPRE_Solver solver,$/;"	f
+HYPRE_LOBPCGCreate	HYPRE_lobpcg.c	/^HYPRE_LOBPCGCreate( mv_InterfaceInterpreter* ii, HYPRE_MatvecFunctions* mv, $/;"	f
+HYPRE_LOBPCGDestroy	HYPRE_lobpcg.c	/^HYPRE_LOBPCGDestroy( HYPRE_Solver solver )$/;"	f
+HYPRE_LOBPCGEigenvaluesHistory	HYPRE_lobpcg.c	/^HYPRE_LOBPCGEigenvaluesHistory( HYPRE_Solver solver )$/;"	f
+HYPRE_LOBPCGGetPrecond	HYPRE_lobpcg.c	/^HYPRE_LOBPCGGetPrecond( HYPRE_Solver  solver,$/;"	f
+HYPRE_LOBPCGIterations	HYPRE_lobpcg.c	/^HYPRE_LOBPCGIterations( HYPRE_Solver solver )$/;"	f
+HYPRE_LOBPCGResidualNorms	HYPRE_lobpcg.c	/^HYPRE_LOBPCGResidualNorms( HYPRE_Solver solver )$/;"	f
+HYPRE_LOBPCGResidualNormsHistory	HYPRE_lobpcg.c	/^HYPRE_LOBPCGResidualNormsHistory( HYPRE_Solver solver )$/;"	f
+HYPRE_LOBPCGSetMaxIter	HYPRE_lobpcg.c	/^HYPRE_LOBPCGSetMaxIter( HYPRE_Solver solver, HYPRE_Int max_iter )$/;"	f
+HYPRE_LOBPCGSetPrecond	HYPRE_lobpcg.c	/^HYPRE_LOBPCGSetPrecond( HYPRE_Solver         solver,$/;"	f
+HYPRE_LOBPCGSetPrecondUsageMode	HYPRE_lobpcg.c	/^HYPRE_LOBPCGSetPrecondUsageMode( HYPRE_Solver solver, HYPRE_Int mode )$/;"	f
+HYPRE_LOBPCGSetPrintLevel	HYPRE_lobpcg.c	/^HYPRE_LOBPCGSetPrintLevel( HYPRE_Solver solver, HYPRE_Int level )$/;"	f
+HYPRE_LOBPCGSetRTol	HYPRE_lobpcg.c	/^HYPRE_LOBPCGSetRTol( HYPRE_Solver solver, HYPRE_Real tol )$/;"	f
+HYPRE_LOBPCGSetTol	HYPRE_lobpcg.c	/^HYPRE_LOBPCGSetTol( HYPRE_Solver solver, HYPRE_Real tol )$/;"	f
+HYPRE_LOBPCGSetup	HYPRE_lobpcg.c	/^HYPRE_LOBPCGSetup( HYPRE_Solver solver,$/;"	f
+HYPRE_LOBPCGSetupB	HYPRE_lobpcg.c	/^HYPRE_LOBPCGSetupB( HYPRE_Solver solver,$/;"	f
+HYPRE_LOBPCGSetupT	HYPRE_lobpcg.c	/^HYPRE_LOBPCGSetupT( HYPRE_Solver solver,$/;"	f
+HYPRE_LOBPCGSolve	HYPRE_lobpcg.c	/^HYPRE_LOBPCGSolve( HYPRE_Solver solver, mv_MultiVectorPtr con, $/;"	f
+HYPRE_MATRIX_STRUCT	HYPRE_krylov.h	54;"	d
+HYPRE_MATRIX_STRUCT	HYPRE_lobpcg.h	59;"	d
+HYPRE_MATVEC_FUNCTIONS	HYPRE_MatvecFunctions.h	14;"	d
+HYPRE_MODIFYPC	HYPRE_krylov.h	77;"	d
+HYPRE_Matrix	HYPRE_krylov.h	/^typedef struct hypre_Matrix_struct *HYPRE_Matrix;$/;"	t	typeref:struct:hypre_Matrix_struct
+HYPRE_Matrix	HYPRE_lobpcg.h	/^   typedef struct hypre_Matrix_struct *HYPRE_Matrix;$/;"	t	typeref:struct:hypre_Matrix_struct
+HYPRE_MatvecFunctions	HYPRE_MatvecFunctions.h	/^} HYPRE_MatvecFunctions;$/;"	t	typeref:struct:__anon1
+HYPRE_PCGGetAbsoluteTol	HYPRE_pcg.c	/^HYPRE_PCGGetAbsoluteTol( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetAbsoluteTolFactor	HYPRE_pcg.c	/^HYPRE_PCGGetAbsoluteTolFactor( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetConverged	HYPRE_pcg.c	/^HYPRE_PCGGetConverged( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetConvergenceFactorTol	HYPRE_pcg.c	/^HYPRE_PCGGetConvergenceFactorTol( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetFinalRelativeResidualNorm	HYPRE_pcg.c	/^HYPRE_PCGGetFinalRelativeResidualNorm( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetLogging	HYPRE_pcg.c	/^HYPRE_PCGGetLogging( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGGetMaxIter	HYPRE_pcg.c	/^HYPRE_PCGGetMaxIter( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetNumIterations	HYPRE_pcg.c	/^HYPRE_PCGGetNumIterations( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetPrecond	HYPRE_pcg.c	/^HYPRE_PCGGetPrecond( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetPrintLevel	HYPRE_pcg.c	/^HYPRE_PCGGetPrintLevel( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetRecomputeResidual	HYPRE_pcg.c	/^HYPRE_PCGGetRecomputeResidual( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetRecomputeResidualP	HYPRE_pcg.c	/^HYPRE_PCGGetRecomputeResidualP( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetRelChange	HYPRE_pcg.c	/^HYPRE_PCGGetRelChange( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetResidual	HYPRE_pcg.c	/^HYPRE_Int HYPRE_PCGGetResidual( HYPRE_Solver   solver,$/;"	f
+HYPRE_PCGGetResidualTol	HYPRE_pcg.c	/^HYPRE_PCGGetResidualTol( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetStopCrit	HYPRE_pcg.c	/^HYPRE_PCGGetStopCrit( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetTol	HYPRE_pcg.c	/^HYPRE_PCGGetTol( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGGetTwoNorm	HYPRE_pcg.c	/^HYPRE_PCGGetTwoNorm( HYPRE_Solver  solver,$/;"	f
+HYPRE_PCGSetAbsoluteTol	HYPRE_pcg.c	/^HYPRE_PCGSetAbsoluteTol( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSetAbsoluteTolFactor	HYPRE_pcg.c	/^HYPRE_PCGSetAbsoluteTolFactor( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSetConvergenceFactorTol	HYPRE_pcg.c	/^HYPRE_PCGSetConvergenceFactorTol( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSetLogging	HYPRE_pcg.c	/^HYPRE_PCGSetLogging( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSetMaxIter	HYPRE_pcg.c	/^HYPRE_PCGSetMaxIter( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSetPrecond	HYPRE_pcg.c	/^HYPRE_PCGSetPrecond( HYPRE_Solver         solver,$/;"	f
+HYPRE_PCGSetPrintLevel	HYPRE_pcg.c	/^HYPRE_PCGSetPrintLevel( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSetRecomputeResidual	HYPRE_pcg.c	/^HYPRE_PCGSetRecomputeResidual( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSetRecomputeResidualP	HYPRE_pcg.c	/^HYPRE_PCGSetRecomputeResidualP( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSetRelChange	HYPRE_pcg.c	/^HYPRE_PCGSetRelChange( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSetResidualTol	HYPRE_pcg.c	/^HYPRE_PCGSetResidualTol( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSetStopCrit	HYPRE_pcg.c	/^HYPRE_PCGSetStopCrit( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSetTol	HYPRE_pcg.c	/^HYPRE_PCGSetTol( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSetTwoNorm	HYPRE_pcg.c	/^HYPRE_PCGSetTwoNorm( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSetup	HYPRE_pcg.c	/^HYPRE_PCGSetup( HYPRE_Solver solver,$/;"	f
+HYPRE_PCGSolve	HYPRE_pcg.c	/^HYPRE_PCGSolve( HYPRE_Solver solver,$/;"	f
+HYPRE_PtrToModifyPCFcn	HYPRE_krylov.h	/^typedef HYPRE_Int (*HYPRE_PtrToModifyPCFcn)(HYPRE_Solver,$/;"	t
+HYPRE_PtrToSolverFcn	HYPRE_krylov.h	/^typedef HYPRE_Int (*HYPRE_PtrToSolverFcn)(HYPRE_Solver,$/;"	t
+HYPRE_SOLVER_STRUCT	HYPRE_krylov.h	45;"	d
+HYPRE_SOLVER_STRUCT	HYPRE_lobpcg.h	50;"	d
+HYPRE_Solver	HYPRE_krylov.h	/^typedef struct hypre_Solver_struct *HYPRE_Solver;$/;"	t	typeref:struct:hypre_Solver_struct
+HYPRE_Solver	HYPRE_lobpcg.h	/^   typedef struct hypre_Solver_struct *HYPRE_Solver;$/;"	t	typeref:struct:hypre_Solver_struct
+HYPRE_VECTOR_STRUCT	HYPRE_krylov.h	63;"	d
+HYPRE_VECTOR_STRUCT	HYPRE_lobpcg.h	68;"	d
+HYPRE_Vector	HYPRE_krylov.h	/^typedef struct hypre_Vector_struct *HYPRE_Vector;$/;"	t	typeref:struct:hypre_Vector_struct
+HYPRE_Vector	HYPRE_lobpcg.h	/^   typedef struct hypre_Vector_struct *HYPRE_Vector;$/;"	t	typeref:struct:hypre_Vector_struct
+InnerProd	bicgstab.h	/^  HYPRE_Real (*InnerProd)     ( void *x , void *y );$/;"	m	struct:__anon5
+InnerProd	cgnr.h	/^   HYPRE_Real   (*InnerProd)     ( void *x, void *y );$/;"	m	struct:__anon7
+InnerProd	co-gmres.h	/^   HYPRE_Real   (*InnerProd)     ( void *x, void *y );$/;"	m	struct:__anon31
+InnerProd	flexgmres.h	/^   HYPRE_Real   (*InnerProd)     ( void *x, void *y );$/;"	m	struct:__anon9
+InnerProd	gmres.h	/^   HYPRE_Real   (*InnerProd)     ( void *x, void *y );$/;"	m	struct:__anon11
+InnerProd	krylov.h	/^   HYPRE_Real   (*InnerProd)     ( void *x, void *y );$/;"	m	struct:__anon15
+InnerProd	krylov.h	/^   HYPRE_Real   (*InnerProd)     ( void *x, void *y );$/;"	m	struct:__anon17
+InnerProd	krylov.h	/^   HYPRE_Real   (*InnerProd)     ( void *x, void *y );$/;"	m	struct:__anon19
+InnerProd	krylov.h	/^   HYPRE_Real   (*InnerProd)     ( void *x, void *y );$/;"	m	struct:__anon21
+InnerProd	krylov.h	/^   HYPRE_Real   (*InnerProd)     ( void *x, void *y );$/;"	m	struct:__anon23
+InnerProd	krylov.h	/^  HYPRE_Real (*InnerProd)     ( void *x , void *y );$/;"	m	struct:__anon13
+InnerProd	lgmres.h	/^   HYPRE_Real   (*InnerProd)     ( void *x, void *y );$/;"	m	struct:__anon25
+InnerProd	pcg.h	/^   HYPRE_Real   (*InnerProd)     ( void *x, void *y );$/;"	m	struct:__anon29
+LOCALLY_OPTIMAL_BLOCK_PRECONDITIONED_CONJUGATE_GRADIENTS	lobpcg.h	16;"	d
+MatMultiVec	HYPRE_MatvecFunctions.h	/^   HYPRE_Int (*MatMultiVec)        ( void *data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon1
+MatMultiVecCreate	HYPRE_MatvecFunctions.h	/^   void*  (*MatMultiVecCreate)     ( void *A, void *x );$/;"	m	struct:__anon1
+MatMultiVecDestroy	HYPRE_MatvecFunctions.h	/^   HYPRE_Int (*MatMultiVecDestroy) ( void *data );$/;"	m	struct:__anon1
+Matvec	HYPRE_MatvecFunctions.h	/^   HYPRE_Int (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon1
+Matvec	bicgstab.h	/^  HYPRE_Int  (*Matvec)        ( void *matvec_data , HYPRE_Complex alpha , void *A ,$/;"	m	struct:__anon5
+Matvec	cgnr.h	/^   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon7
+Matvec	co-gmres.h	/^   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon31
+Matvec	flexgmres.h	/^   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon9
+Matvec	gmres.h	/^   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon11
+Matvec	krylov.h	/^   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon15
+Matvec	krylov.h	/^   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon17
+Matvec	krylov.h	/^   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon19
+Matvec	krylov.h	/^   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon21
+Matvec	krylov.h	/^   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon23
+Matvec	krylov.h	/^  HYPRE_Int  (*Matvec)        ( void *matvec_data , HYPRE_Complex alpha , void *A ,$/;"	m	struct:__anon13
+Matvec	lgmres.h	/^   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon25
+Matvec	pcg.h	/^   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon29
+MatvecCreate	HYPRE_MatvecFunctions.h	/^   void*  (*MatvecCreate)     ( void *A, void *x );$/;"	m	struct:__anon1
+MatvecCreate	bicgstab.h	/^  void *     (*MatvecCreate)  ( void *A , void *x );$/;"	m	struct:__anon5
+MatvecCreate	cgnr.h	/^   void *       (*MatvecCreate)  ( void *A, void *x );$/;"	m	struct:__anon7
+MatvecCreate	co-gmres.h	/^   void *       (*MatvecCreate)  ( void *A, void *x );$/;"	m	struct:__anon31
+MatvecCreate	flexgmres.h	/^   void *       (*MatvecCreate)  ( void *A, void *x );$/;"	m	struct:__anon9
+MatvecCreate	gmres.h	/^   void *       (*MatvecCreate)  ( void *A, void *x );$/;"	m	struct:__anon11
+MatvecCreate	krylov.h	/^   void *       (*MatvecCreate)  ( void *A, void *x );$/;"	m	struct:__anon15
+MatvecCreate	krylov.h	/^   void *       (*MatvecCreate)  ( void *A, void *x );$/;"	m	struct:__anon17
+MatvecCreate	krylov.h	/^   void *       (*MatvecCreate)  ( void *A, void *x );$/;"	m	struct:__anon19
+MatvecCreate	krylov.h	/^   void *       (*MatvecCreate)  ( void *A, void *x );$/;"	m	struct:__anon21
+MatvecCreate	krylov.h	/^   void *       (*MatvecCreate)  ( void *A, void *x );$/;"	m	struct:__anon23
+MatvecCreate	krylov.h	/^  void *     (*MatvecCreate)  ( void *A , void *x );$/;"	m	struct:__anon13
+MatvecCreate	lgmres.h	/^   void *       (*MatvecCreate)  ( void *A, void *x );$/;"	m	struct:__anon25
+MatvecCreate	pcg.h	/^   void *       (*MatvecCreate)  ( void *A, void *x );$/;"	m	struct:__anon29
+MatvecDestroy	HYPRE_MatvecFunctions.h	/^   HYPRE_Int (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon1
+MatvecDestroy	bicgstab.h	/^  HYPRE_Int  (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon5
+MatvecDestroy	cgnr.h	/^   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon7
+MatvecDestroy	co-gmres.h	/^   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon31
+MatvecDestroy	flexgmres.h	/^   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon9
+MatvecDestroy	gmres.h	/^   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon11
+MatvecDestroy	krylov.h	/^   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon15
+MatvecDestroy	krylov.h	/^   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon17
+MatvecDestroy	krylov.h	/^   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon19
+MatvecDestroy	krylov.h	/^   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon21
+MatvecDestroy	krylov.h	/^   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon23
+MatvecDestroy	krylov.h	/^  HYPRE_Int  (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon13
+MatvecDestroy	lgmres.h	/^   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon25
+MatvecDestroy	pcg.h	/^   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );$/;"	m	struct:__anon29
+MatvecT	cgnr.h	/^   HYPRE_Int    (*MatvecT)       ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon7
+MatvecT	krylov.h	/^   HYPRE_Int    (*MatvecT)       ( void *matvec_data, HYPRE_Complex alpha, void *A,$/;"	m	struct:__anon15
+OBJS	Makefile	/^OBJS = ${FILES:.c=.o}$/;"	m
+PROBLEM_SIZE_TOO_SMALL	lobpcg.h	22;"	d
+Precond	HYPRE_lobpcg.c	/^	HYPRE_Int    (*Precond)(void*,void*,void*,void*);$/;"	m	struct:__anon2	file:
+PrecondSetup	HYPRE_lobpcg.c	/^   HYPRE_Int    (*PrecondSetup)(void*,void*,void*,void*);$/;"	m	struct:__anon2	file:
+REQUESTED_ACCURACY_NOT_ACHIEVED	lobpcg.h	25;"	d
+SONAME	Makefile	/^SONAME = libHYPRE_krylov-${HYPRE_RELEASE_VERSION}.so$/;"	m
+ScaleVector	bicgstab.h	/^  HYPRE_Int  (*ScaleVector)   ( HYPRE_Complex alpha , void *x );$/;"	m	struct:__anon5
+ScaleVector	cgnr.h	/^   HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );$/;"	m	struct:__anon7
+ScaleVector	co-gmres.h	/^   HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );$/;"	m	struct:__anon31
+ScaleVector	flexgmres.h	/^   HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );$/;"	m	struct:__anon9
+ScaleVector	gmres.h	/^   HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );$/;"	m	struct:__anon11
+ScaleVector	krylov.h	/^   HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );$/;"	m	struct:__anon15
+ScaleVector	krylov.h	/^   HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );$/;"	m	struct:__anon17
+ScaleVector	krylov.h	/^   HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );$/;"	m	struct:__anon19
+ScaleVector	krylov.h	/^   HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );$/;"	m	struct:__anon21
+ScaleVector	krylov.h	/^   HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );$/;"	m	struct:__anon23
+ScaleVector	krylov.h	/^  HYPRE_Int  (*ScaleVector)   ( HYPRE_Complex alpha , void *x );$/;"	m	struct:__anon13
+ScaleVector	lgmres.h	/^   HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );$/;"	m	struct:__anon25
+ScaleVector	pcg.h	/^   HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );$/;"	m	struct:__anon29
+T	HYPRE_lobpcg.c	/^   void*                         T;$/;"	m	struct:__anon4	file:
+WRONG_BLOCK_SIZE	lobpcg.h	23;"	d
+WRONG_CONSTRAINTS	lobpcg.h	24;"	d
+a_aug_vecs	krylov.h	/^   void   **a_aug_vecs;$/;"	m	struct:__anon20
+a_aug_vecs	lgmres.h	/^   void   **a_aug_vecs;$/;"	m	struct:__anon26
+a_tol	bicgstab.h	/^   HYPRE_Real   a_tol;$/;"	m	struct:__anon6
+a_tol	co-gmres.h	/^   HYPRE_Real   a_tol;$/;"	m	struct:__anon32
+a_tol	flexgmres.h	/^   HYPRE_Real   a_tol;$/;"	m	struct:__anon10
+a_tol	gmres.h	/^   HYPRE_Real   a_tol;$/;"	m	struct:__anon12
+a_tol	krylov.h	/^   HYPRE_Real   a_tol;$/;"	m	struct:__anon14
+a_tol	krylov.h	/^   HYPRE_Real   a_tol;$/;"	m	struct:__anon18
+a_tol	krylov.h	/^   HYPRE_Real   a_tol;$/;"	m	struct:__anon20
+a_tol	krylov.h	/^   HYPRE_Real   a_tol;$/;"	m	struct:__anon22
+a_tol	krylov.h	/^   HYPRE_Real   a_tol;$/;"	m	struct:__anon24
+a_tol	lgmres.h	/^   HYPRE_Real   a_tol;$/;"	m	struct:__anon26
+a_tol	pcg.h	/^   HYPRE_Real   a_tol;$/;"	m	struct:__anon30
+absolute	lobpcg.h	/^  HYPRE_Real	absolute;$/;"	m	struct:__anon27
+approx_constant	krylov.h	/^   HYPRE_Int      approx_constant;$/;"	m	struct:__anon20
+approx_constant	lgmres.h	/^   HYPRE_Int      approx_constant;$/;"	m	struct:__anon26
+atolf	krylov.h	/^   HYPRE_Real   atolf;$/;"	m	struct:__anon24
+atolf	pcg.h	/^   HYPRE_Real   atolf;$/;"	m	struct:__anon30
+aug_dim	krylov.h	/^   HYPRE_Int      aug_dim;$/;"	m	struct:__anon20
+aug_dim	lgmres.h	/^   HYPRE_Int      aug_dim;$/;"	m	struct:__anon26
+aug_order	krylov.h	/^   HYPRE_Int     *aug_order;$/;"	m	struct:__anon20
+aug_order	lgmres.h	/^   HYPRE_Int     *aug_order;$/;"	m	struct:__anon26
+aug_vecs	krylov.h	/^   void   **aug_vecs;$/;"	m	struct:__anon20
+aug_vecs	lgmres.h	/^   void   **aug_vecs;$/;"	m	struct:__anon26
+cf_tol	bicgstab.h	/^   HYPRE_Real   cf_tol;$/;"	m	struct:__anon6
+cf_tol	co-gmres.h	/^   HYPRE_Real   cf_tol;$/;"	m	struct:__anon32
+cf_tol	flexgmres.h	/^   HYPRE_Real   cf_tol;$/;"	m	struct:__anon10
+cf_tol	gmres.h	/^   HYPRE_Real   cf_tol;$/;"	m	struct:__anon12
+cf_tol	krylov.h	/^   HYPRE_Real   cf_tol;$/;"	m	struct:__anon14
+cf_tol	krylov.h	/^   HYPRE_Real   cf_tol;$/;"	m	struct:__anon18
+cf_tol	krylov.h	/^   HYPRE_Real   cf_tol;$/;"	m	struct:__anon20
+cf_tol	krylov.h	/^   HYPRE_Real   cf_tol;$/;"	m	struct:__anon22
+cf_tol	krylov.h	/^   HYPRE_Real   cf_tol;$/;"	m	struct:__anon24
+cf_tol	lgmres.h	/^   HYPRE_Real   cf_tol;$/;"	m	struct:__anon26
+cf_tol	pcg.h	/^   HYPRE_Real   cf_tol;$/;"	m	struct:__anon30
+converged	bicgstab.h	/^   HYPRE_Int      converged;$/;"	m	struct:__anon6
+converged	co-gmres.h	/^   HYPRE_Int      converged;$/;"	m	struct:__anon32
+converged	flexgmres.h	/^   HYPRE_Int      converged;$/;"	m	struct:__anon10
+converged	gmres.h	/^   HYPRE_Int      converged;$/;"	m	struct:__anon12
+converged	krylov.h	/^   HYPRE_Int      converged;$/;"	m	struct:__anon14
+converged	krylov.h	/^   HYPRE_Int      converged;$/;"	m	struct:__anon18
+converged	krylov.h	/^   HYPRE_Int      converged;$/;"	m	struct:__anon20
+converged	krylov.h	/^   HYPRE_Int      converged;$/;"	m	struct:__anon22
+converged	krylov.h	/^   HYPRE_Int      converged;$/;"	m	struct:__anon24
+converged	lgmres.h	/^   HYPRE_Int      converged;$/;"	m	struct:__anon26
+converged	pcg.h	/^   HYPRE_Int    converged;$/;"	m	struct:__anon30
+dpotrf	lobpcg.h	/^   HYPRE_Int   (*dpotrf) (const char *uplo, HYPRE_Int *n, HYPRE_Real *a, HYPRE_Int *$/;"	m	struct:__anon28
+dpotrf_interface	HYPRE_lobpcg.c	/^static HYPRE_Int dpotrf_interface (const char *uplo, HYPRE_Int *n, HYPRE_Real *a, HYPRE_Int *$/;"	f	file:
+dsygv	lobpcg.h	/^   HYPRE_Int   (*dsygv) (HYPRE_Int *itype, char *jobz, char *uplo, HYPRE_Int *$/;"	m	struct:__anon28
+dsygv_interface	HYPRE_lobpcg.c	/^static HYPRE_Int dsygv_interface (HYPRE_Int *itype, char *jobz, char *uplo, HYPRE_Int *$/;"	f	file:
+eigenvaluesHistory	HYPRE_lobpcg.c	/^   utilities_FortranMatrix*      eigenvaluesHistory;$/;"	m	struct:__anon3	file:
+functions	bicgstab.h	/^   hypre_BiCGSTABFunctions * functions;$/;"	m	struct:__anon6
+functions	cgnr.h	/^   hypre_CGNRFunctions * functions;$/;"	m	struct:__anon8
+functions	flexgmres.h	/^   hypre_FlexGMRESFunctions * functions;$/;"	m	struct:__anon10
+functions	gmres.h	/^   hypre_GMRESFunctions * functions;$/;"	m	struct:__anon12
+functions	krylov.h	/^   hypre_BiCGSTABFunctions * functions;$/;"	m	struct:__anon14
+functions	krylov.h	/^   hypre_CGNRFunctions * functions;$/;"	m	struct:__anon16
+functions	krylov.h	/^   hypre_FlexGMRESFunctions * functions;$/;"	m	struct:__anon22
+functions	krylov.h	/^   hypre_GMRESFunctions * functions;$/;"	m	struct:__anon18
+functions	krylov.h	/^   hypre_LGMRESFunctions * functions;$/;"	m	struct:__anon20
+functions	krylov.h	/^   hypre_PCGFunctions * functions;$/;"	m	struct:__anon24
+functions	lgmres.h	/^   hypre_LGMRESFunctions * functions;$/;"	m	struct:__anon26
+functions	pcg.h	/^   hypre_PCGFunctions * functions;$/;"	m	struct:__anon30
+hypre_BiCGSTABCreate	bicgstab.c	/^hypre_BiCGSTABCreate( hypre_BiCGSTABFunctions * bicgstab_functions )$/;"	f
+hypre_BiCGSTABData	bicgstab.h	/^} hypre_BiCGSTABData;$/;"	t	typeref:struct:__anon6
+hypre_BiCGSTABData	krylov.h	/^} hypre_BiCGSTABData;$/;"	t	typeref:struct:__anon14
+hypre_BiCGSTABDestroy	bicgstab.c	/^hypre_BiCGSTABDestroy( void *bicgstab_vdata )$/;"	f
+hypre_BiCGSTABFunctions	bicgstab.h	/^} hypre_BiCGSTABFunctions;$/;"	t	typeref:struct:__anon5
+hypre_BiCGSTABFunctions	krylov.h	/^} hypre_BiCGSTABFunctions;$/;"	t	typeref:struct:__anon13
+hypre_BiCGSTABFunctionsCreate	bicgstab.c	/^hypre_BiCGSTABFunctionsCreate($/;"	f
+hypre_BiCGSTABGetConverged	bicgstab.c	/^hypre_BiCGSTABGetConverged( void *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABGetFinalRelativeResidualNorm	bicgstab.c	/^hypre_BiCGSTABGetFinalRelativeResidualNorm( void   *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABGetNumIterations	bicgstab.c	/^hypre_BiCGSTABGetNumIterations( void *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABGetPrecond	bicgstab.c	/^hypre_BiCGSTABGetPrecond( void         *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABGetResidual	bicgstab.c	/^hypre_BiCGSTABGetResidual( void   *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABSetAbsoluteTol	bicgstab.c	/^hypre_BiCGSTABSetAbsoluteTol( void   *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABSetConvergenceFactorTol	bicgstab.c	/^hypre_BiCGSTABSetConvergenceFactorTol( void   *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABSetLogging	bicgstab.c	/^hypre_BiCGSTABSetLogging( void *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABSetMaxIter	bicgstab.c	/^hypre_BiCGSTABSetMaxIter( void *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABSetMinIter	bicgstab.c	/^hypre_BiCGSTABSetMinIter( void *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABSetPrecond	bicgstab.c	/^hypre_BiCGSTABSetPrecond( void  *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABSetPrintLevel	bicgstab.c	/^hypre_BiCGSTABSetPrintLevel( void *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABSetStopCrit	bicgstab.c	/^hypre_BiCGSTABSetStopCrit( void   *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABSetTol	bicgstab.c	/^hypre_BiCGSTABSetTol( void   *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABSetup	bicgstab.c	/^hypre_BiCGSTABSetup( void *bicgstab_vdata,$/;"	f
+hypre_BiCGSTABSolve	bicgstab.c	/^hypre_BiCGSTABSolve(void  *bicgstab_vdata,$/;"	f
+hypre_CGNRCreate	cgnr.c	/^hypre_CGNRCreate( hypre_CGNRFunctions *cgnr_functions )$/;"	f
+hypre_CGNRData	cgnr.h	/^} hypre_CGNRData;$/;"	t	typeref:struct:__anon8
+hypre_CGNRData	krylov.h	/^} hypre_CGNRData;$/;"	t	typeref:struct:__anon16
+hypre_CGNRDestroy	cgnr.c	/^hypre_CGNRDestroy( void *cgnr_vdata )$/;"	f
+hypre_CGNRFunctions	cgnr.h	/^} hypre_CGNRFunctions;$/;"	t	typeref:struct:__anon7
+hypre_CGNRFunctions	krylov.h	/^} hypre_CGNRFunctions;$/;"	t	typeref:struct:__anon15
+hypre_CGNRFunctionsCreate	cgnr.c	/^hypre_CGNRFunctionsCreate($/;"	f
+hypre_CGNRGetFinalRelativeResidualNorm	cgnr.c	/^hypre_CGNRGetFinalRelativeResidualNorm( void   *cgnr_vdata,$/;"	f
+hypre_CGNRGetNumIterations	cgnr.c	/^hypre_CGNRGetNumIterations( void *cgnr_vdata,$/;"	f
+hypre_CGNRGetPrecond	cgnr.c	/^hypre_CGNRGetPrecond( void         *cgnr_vdata,$/;"	f
+hypre_CGNRSetLogging	cgnr.c	/^hypre_CGNRSetLogging( void *cgnr_vdata,$/;"	f
+hypre_CGNRSetMaxIter	cgnr.c	/^hypre_CGNRSetMaxIter( void *cgnr_vdata,$/;"	f
+hypre_CGNRSetMinIter	cgnr.c	/^hypre_CGNRSetMinIter( void *cgnr_vdata,$/;"	f
+hypre_CGNRSetPrecond	cgnr.c	/^hypre_CGNRSetPrecond(void  *cgnr_vdata,$/;"	f
+hypre_CGNRSetStopCrit	cgnr.c	/^hypre_CGNRSetStopCrit( void *cgnr_vdata,$/;"	f
+hypre_CGNRSetTol	cgnr.c	/^hypre_CGNRSetTol(void   *cgnr_vdata,$/;"	f
+hypre_CGNRSetup	cgnr.c	/^hypre_CGNRSetup(void *cgnr_vdata,$/;"	f
+hypre_CGNRSolve	cgnr.c	/^hypre_CGNRSolve(void *cgnr_vdata,$/;"	f
+hypre_COGMRESCreate	co-gmres.c	/^hypre_COGMRESCreate( hypre_COGMRESFunctions *cogmres_functions )$/;"	f
+hypre_COGMRESDestroy	co-gmres.c	/^hypre_COGMRESDestroy( void *cogmres_vdata )$/;"	f
+hypre_COGMRESFunctionsCreate	co-gmres.c	/^hypre_COGMRESFunctionsCreate($/;"	f
+hypre_COGMRESGetAbsoluteTol	co-gmres.c	/^hypre_COGMRESGetAbsoluteTol( void   *cogmres_vdata,$/;"	f
+hypre_COGMRESGetConverged	co-gmres.c	/^hypre_COGMRESGetConverged( void *cogmres_vdata,$/;"	f
+hypre_COGMRESGetConvergenceFactorTol	co-gmres.c	/^hypre_COGMRESGetConvergenceFactorTol( void   *cogmres_vdata,$/;"	f
+hypre_COGMRESGetFinalRelativeResidualNorm	co-gmres.c	/^hypre_COGMRESGetFinalRelativeResidualNorm( void   *cogmres_vdata,$/;"	f
+hypre_COGMRESGetKDim	co-gmres.c	/^hypre_COGMRESGetKDim( void   *cogmres_vdata,$/;"	f
+hypre_COGMRESGetLogging	co-gmres.c	/^hypre_COGMRESGetLogging( void *cogmres_vdata,$/;"	f
+hypre_COGMRESGetMaxIter	co-gmres.c	/^hypre_COGMRESGetMaxIter( void *cogmres_vdata,$/;"	f
+hypre_COGMRESGetMinIter	co-gmres.c	/^hypre_COGMRESGetMinIter( void *cogmres_vdata,$/;"	f
+hypre_COGMRESGetNumIterations	co-gmres.c	/^hypre_COGMRESGetNumIterations( void *cogmres_vdata,$/;"	f
+hypre_COGMRESGetPrecond	co-gmres.c	/^hypre_COGMRESGetPrecond( void         *cogmres_vdata,$/;"	f
+hypre_COGMRESGetPrintLevel	co-gmres.c	/^hypre_COGMRESGetPrintLevel( void *cogmres_vdata,$/;"	f
+hypre_COGMRESGetRelChange	co-gmres.c	/^hypre_COGMRESGetRelChange( void *cogmres_vdata,$/;"	f
+hypre_COGMRESGetResidual	co-gmres.c	/^HYPRE_Int hypre_COGMRESGetResidual( void *cogmres_vdata, void **residual )$/;"	f
+hypre_COGMRESGetSkipRealResidualCheck	co-gmres.c	/^hypre_COGMRESGetSkipRealResidualCheck( void *cogmres_vdata,$/;"	f
+hypre_COGMRESGetStopCrit	co-gmres.c	/^hypre_COGMRESGetStopCrit( void   *cogmres_vdata,$/;"	f
+hypre_COGMRESGetTol	co-gmres.c	/^hypre_COGMRESGetTol( void   *cogmres_vdata,$/;"	f
+hypre_COGMRESSetAbsoluteTol	co-gmres.c	/^hypre_COGMRESSetAbsoluteTol( void   *cogmres_vdata,$/;"	f
+hypre_COGMRESSetConvergenceFactorTol	co-gmres.c	/^hypre_COGMRESSetConvergenceFactorTol( void   *cogmres_vdata,$/;"	f
+hypre_COGMRESSetKDim	co-gmres.c	/^hypre_COGMRESSetKDim( void   *cogmres_vdata,$/;"	f
+hypre_COGMRESSetLogging	co-gmres.c	/^hypre_COGMRESSetLogging( void *cogmres_vdata,$/;"	f
+hypre_COGMRESSetMaxIter	co-gmres.c	/^hypre_COGMRESSetMaxIter( void *cogmres_vdata,$/;"	f
+hypre_COGMRESSetMinIter	co-gmres.c	/^hypre_COGMRESSetMinIter( void *cogmres_vdata,$/;"	f
+hypre_COGMRESSetPrecond	co-gmres.c	/^hypre_COGMRESSetPrecond( void  *cogmres_vdata,$/;"	f
+hypre_COGMRESSetPrintLevel	co-gmres.c	/^hypre_COGMRESSetPrintLevel( void *cogmres_vdata,$/;"	f
+hypre_COGMRESSetRelChange	co-gmres.c	/^hypre_COGMRESSetRelChange( void *cogmres_vdata,$/;"	f
+hypre_COGMRESSetSkipRealResidualCheck	co-gmres.c	/^hypre_COGMRESSetSkipRealResidualCheck( void *cogmres_vdata,$/;"	f
+hypre_COGMRESSetStopCrit	co-gmres.c	/^hypre_COGMRESSetStopCrit( void   *cogmres_vdata,$/;"	f
+hypre_COGMRESSetTol	co-gmres.c	/^hypre_COGMRESSetTol( void   *cogmres_vdata,$/;"	f
+hypre_COGMRESSetup	co-gmres.c	/^hypre_COGMRESSetup( void *cogmres_vdata,$/;"	f
+hypre_COGMRESSolve	co-gmres.c	/^hypre_COGMRESSolve(void  *cogmres_vdata,$/;"	f
+hypre_CTAllocF	krylov.h	24;"	d
+hypre_FlexGMRESCreate	flexgmres.c	/^hypre_FlexGMRESCreate( hypre_FlexGMRESFunctions *fgmres_functions )$/;"	f
+hypre_FlexGMRESData	flexgmres.h	/^} hypre_FlexGMRESData;$/;"	t	typeref:struct:__anon10
+hypre_FlexGMRESData	krylov.h	/^} hypre_FlexGMRESData;$/;"	t	typeref:struct:__anon22
+hypre_FlexGMRESDestroy	flexgmres.c	/^hypre_FlexGMRESDestroy( void *fgmres_vdata )$/;"	f
+hypre_FlexGMRESFunctions	flexgmres.h	/^} hypre_FlexGMRESFunctions;$/;"	t	typeref:struct:__anon9
+hypre_FlexGMRESFunctions	krylov.h	/^} hypre_FlexGMRESFunctions;$/;"	t	typeref:struct:__anon21
+hypre_FlexGMRESFunctionsCreate	flexgmres.c	/^hypre_FlexGMRESFunctionsCreate($/;"	f
+hypre_FlexGMRESGetAbsoluteTol	flexgmres.c	/^hypre_FlexGMRESGetAbsoluteTol( void   *fgmres_vdata,$/;"	f
+hypre_FlexGMRESGetConverged	flexgmres.c	/^hypre_FlexGMRESGetConverged( void *fgmres_vdata,$/;"	f
+hypre_FlexGMRESGetConvergenceFactorTol	flexgmres.c	/^hypre_FlexGMRESGetConvergenceFactorTol( void   *fgmres_vdata,$/;"	f
+hypre_FlexGMRESGetFinalRelativeResidualNorm	flexgmres.c	/^hypre_FlexGMRESGetFinalRelativeResidualNorm( void   *fgmres_vdata,$/;"	f
+hypre_FlexGMRESGetKDim	flexgmres.c	/^hypre_FlexGMRESGetKDim( void   *fgmres_vdata,$/;"	f
+hypre_FlexGMRESGetLogging	flexgmres.c	/^hypre_FlexGMRESGetLogging( void *fgmres_vdata,$/;"	f
+hypre_FlexGMRESGetMaxIter	flexgmres.c	/^hypre_FlexGMRESGetMaxIter( void *fgmres_vdata,$/;"	f
+hypre_FlexGMRESGetMinIter	flexgmres.c	/^hypre_FlexGMRESGetMinIter( void *fgmres_vdata,$/;"	f
+hypre_FlexGMRESGetNumIterations	flexgmres.c	/^hypre_FlexGMRESGetNumIterations( void *fgmres_vdata,$/;"	f
+hypre_FlexGMRESGetPrecond	flexgmres.c	/^hypre_FlexGMRESGetPrecond( void         *fgmres_vdata,$/;"	f
+hypre_FlexGMRESGetPrintLevel	flexgmres.c	/^hypre_FlexGMRESGetPrintLevel( void *fgmres_vdata,$/;"	f
+hypre_FlexGMRESGetResidual	flexgmres.c	/^HYPRE_Int hypre_FlexGMRESGetResidual( void *fgmres_vdata, void **residual )$/;"	f
+hypre_FlexGMRESGetStopCrit	flexgmres.c	/^hypre_FlexGMRESGetStopCrit( void   *fgmres_vdata,$/;"	f
+hypre_FlexGMRESGetTol	flexgmres.c	/^hypre_FlexGMRESGetTol( void   *fgmres_vdata,$/;"	f
+hypre_FlexGMRESModifyPCDefault	flexgmres.c	/^HYPRE_Int hypre_FlexGMRESModifyPCDefault(void *precond_data, HYPRE_Int iteration, $/;"	f
+hypre_FlexGMRESSetAbsoluteTol	flexgmres.c	/^hypre_FlexGMRESSetAbsoluteTol( void   *fgmres_vdata,$/;"	f
+hypre_FlexGMRESSetConvergenceFactorTol	flexgmres.c	/^hypre_FlexGMRESSetConvergenceFactorTol( void   *fgmres_vdata,$/;"	f
+hypre_FlexGMRESSetKDim	flexgmres.c	/^hypre_FlexGMRESSetKDim( void   *fgmres_vdata,$/;"	f
+hypre_FlexGMRESSetLogging	flexgmres.c	/^hypre_FlexGMRESSetLogging( void *fgmres_vdata,$/;"	f
+hypre_FlexGMRESSetMaxIter	flexgmres.c	/^hypre_FlexGMRESSetMaxIter( void *fgmres_vdata,$/;"	f
+hypre_FlexGMRESSetMinIter	flexgmres.c	/^hypre_FlexGMRESSetMinIter( void *fgmres_vdata,$/;"	f
+hypre_FlexGMRESSetModifyPC	flexgmres.c	/^HYPRE_Int hypre_FlexGMRESSetModifyPC(void *fgmres_vdata, $/;"	f
+hypre_FlexGMRESSetPrecond	flexgmres.c	/^hypre_FlexGMRESSetPrecond( void  *fgmres_vdata,$/;"	f
+hypre_FlexGMRESSetPrintLevel	flexgmres.c	/^hypre_FlexGMRESSetPrintLevel( void *fgmres_vdata,$/;"	f
+hypre_FlexGMRESSetStopCrit	flexgmres.c	/^hypre_FlexGMRESSetStopCrit( void   *fgmres_vdata,$/;"	f
+hypre_FlexGMRESSetTol	flexgmres.c	/^hypre_FlexGMRESSetTol( void   *fgmres_vdata,$/;"	f
+hypre_FlexGMRESSetup	flexgmres.c	/^hypre_FlexGMRESSetup( void *fgmres_vdata,$/;"	f
+hypre_FlexGMRESSolve	flexgmres.c	/^hypre_FlexGMRESSolve(void  *fgmres_vdata,$/;"	f
+hypre_GMRESCreate	gmres.c	/^hypre_GMRESCreate( hypre_GMRESFunctions *gmres_functions )$/;"	f
+hypre_GMRESData	gmres.h	/^} hypre_GMRESData;$/;"	t	typeref:struct:__anon12
+hypre_GMRESData	krylov.h	/^} hypre_GMRESData;$/;"	t	typeref:struct:__anon18
+hypre_GMRESDestroy	gmres.c	/^hypre_GMRESDestroy( void *gmres_vdata )$/;"	f
+hypre_GMRESFunctions	gmres.h	/^} hypre_GMRESFunctions;$/;"	t	typeref:struct:__anon11
+hypre_GMRESFunctions	krylov.h	/^} hypre_GMRESFunctions;$/;"	t	typeref:struct:__anon17
+hypre_GMRESFunctionsCreate	gmres.c	/^hypre_GMRESFunctionsCreate($/;"	f
+hypre_GMRESGetAbsoluteTol	gmres.c	/^hypre_GMRESGetAbsoluteTol( void   *gmres_vdata,$/;"	f
+hypre_GMRESGetConverged	gmres.c	/^hypre_GMRESGetConverged( void *gmres_vdata,$/;"	f
+hypre_GMRESGetConvergenceFactorTol	gmres.c	/^hypre_GMRESGetConvergenceFactorTol( void   *gmres_vdata,$/;"	f
+hypre_GMRESGetFinalRelativeResidualNorm	gmres.c	/^hypre_GMRESGetFinalRelativeResidualNorm( void   *gmres_vdata,$/;"	f
+hypre_GMRESGetKDim	gmres.c	/^hypre_GMRESGetKDim( void   *gmres_vdata,$/;"	f
+hypre_GMRESGetLogging	gmres.c	/^hypre_GMRESGetLogging( void *gmres_vdata,$/;"	f
+hypre_GMRESGetMaxIter	gmres.c	/^hypre_GMRESGetMaxIter( void *gmres_vdata,$/;"	f
+hypre_GMRESGetMinIter	gmres.c	/^hypre_GMRESGetMinIter( void *gmres_vdata,$/;"	f
+hypre_GMRESGetNumIterations	gmres.c	/^hypre_GMRESGetNumIterations( void *gmres_vdata,$/;"	f
+hypre_GMRESGetPrecond	gmres.c	/^hypre_GMRESGetPrecond( void         *gmres_vdata,$/;"	f
+hypre_GMRESGetPrintLevel	gmres.c	/^hypre_GMRESGetPrintLevel( void *gmres_vdata,$/;"	f
+hypre_GMRESGetRelChange	gmres.c	/^hypre_GMRESGetRelChange( void *gmres_vdata,$/;"	f
+hypre_GMRESGetResidual	gmres.c	/^HYPRE_Int hypre_GMRESGetResidual( void *gmres_vdata, void **residual )$/;"	f
+hypre_GMRESGetSkipRealResidualCheck	gmres.c	/^hypre_GMRESGetSkipRealResidualCheck( void *gmres_vdata,$/;"	f
+hypre_GMRESGetStopCrit	gmres.c	/^hypre_GMRESGetStopCrit( void   *gmres_vdata,$/;"	f
+hypre_GMRESGetTol	gmres.c	/^hypre_GMRESGetTol( void   *gmres_vdata,$/;"	f
+hypre_GMRESSetAbsoluteTol	gmres.c	/^hypre_GMRESSetAbsoluteTol( void   *gmres_vdata,$/;"	f
+hypre_GMRESSetConvergenceFactorTol	gmres.c	/^hypre_GMRESSetConvergenceFactorTol( void   *gmres_vdata,$/;"	f
+hypre_GMRESSetKDim	gmres.c	/^hypre_GMRESSetKDim( void   *gmres_vdata,$/;"	f
+hypre_GMRESSetLogging	gmres.c	/^hypre_GMRESSetLogging( void *gmres_vdata,$/;"	f
+hypre_GMRESSetMaxIter	gmres.c	/^hypre_GMRESSetMaxIter( void *gmres_vdata,$/;"	f
+hypre_GMRESSetMinIter	gmres.c	/^hypre_GMRESSetMinIter( void *gmres_vdata,$/;"	f
+hypre_GMRESSetPrecond	gmres.c	/^hypre_GMRESSetPrecond( void  *gmres_vdata,$/;"	f
+hypre_GMRESSetPrintLevel	gmres.c	/^hypre_GMRESSetPrintLevel( void *gmres_vdata,$/;"	f
+hypre_GMRESSetRelChange	gmres.c	/^hypre_GMRESSetRelChange( void *gmres_vdata,$/;"	f
+hypre_GMRESSetSkipRealResidualCheck	gmres.c	/^hypre_GMRESSetSkipRealResidualCheck( void *gmres_vdata,$/;"	f
+hypre_GMRESSetStopCrit	gmres.c	/^hypre_GMRESSetStopCrit( void   *gmres_vdata,$/;"	f
+hypre_GMRESSetTol	gmres.c	/^hypre_GMRESSetTol( void   *gmres_vdata,$/;"	f
+hypre_GMRESSetup	gmres.c	/^hypre_GMRESSetup( void *gmres_vdata,$/;"	f
+hypre_GMRESSolve	gmres.c	/^hypre_GMRESSolve(void  *gmres_vdata,$/;"	f
+hypre_KRYLOV_BiCGSTAB_HEADER	bicgstab.h	20;"	d
+hypre_KRYLOV_BiCGSTAB_HEADER	krylov.h	52;"	d
+hypre_KRYLOV_CGNR_HEADER	cgnr.h	20;"	d
+hypre_KRYLOV_CGNR_HEADER	krylov.h	237;"	d
+hypre_KRYLOV_CO	co-gmres.h	20;"	d
+hypre_KRYLOV_FLEXGMRES_HEADER	flexgmres.h	20;"	d
+hypre_KRYLOV_FLEXGMRES_HEADER	krylov.h	742;"	d
+hypre_KRYLOV_GMRES_HEADER	gmres.h	20;"	d
+hypre_KRYLOV_GMRES_HEADER	krylov.h	400;"	d
+hypre_KRYLOV_HEADER	krylov.h	16;"	d
+hypre_KRYLOV_LGMRES_HEADER	krylov.h	569;"	d
+hypre_KRYLOV_LGMRES_HEADER	lgmres.h	20;"	d
+hypre_KRYLOV_PCG_HEADER	krylov.h	911;"	d
+hypre_KRYLOV_PCG_HEADER	pcg.h	20;"	d
+hypre_LGMRESCreate	lgmres.c	/^hypre_LGMRESCreate( hypre_LGMRESFunctions *lgmres_functions )$/;"	f
+hypre_LGMRESData	krylov.h	/^} hypre_LGMRESData;$/;"	t	typeref:struct:__anon20
+hypre_LGMRESData	lgmres.h	/^} hypre_LGMRESData;$/;"	t	typeref:struct:__anon26
+hypre_LGMRESDestroy	lgmres.c	/^hypre_LGMRESDestroy( void *lgmres_vdata )$/;"	f
+hypre_LGMRESFunctions	krylov.h	/^} hypre_LGMRESFunctions;$/;"	t	typeref:struct:__anon19
+hypre_LGMRESFunctions	lgmres.h	/^} hypre_LGMRESFunctions;$/;"	t	typeref:struct:__anon25
+hypre_LGMRESFunctionsCreate	lgmres.c	/^hypre_LGMRESFunctionsCreate($/;"	f
+hypre_LGMRESGetAbsoluteTol	lgmres.c	/^hypre_LGMRESGetAbsoluteTol( void   *lgmres_vdata,$/;"	f
+hypre_LGMRESGetAugDim	lgmres.c	/^hypre_LGMRESGetAugDim( void   *lgmres_vdata,$/;"	f
+hypre_LGMRESGetConverged	lgmres.c	/^hypre_LGMRESGetConverged( void *lgmres_vdata,$/;"	f
+hypre_LGMRESGetConvergenceFactorTol	lgmres.c	/^hypre_LGMRESGetConvergenceFactorTol( void   *lgmres_vdata,$/;"	f
+hypre_LGMRESGetFinalRelativeResidualNorm	lgmres.c	/^hypre_LGMRESGetFinalRelativeResidualNorm( void   *lgmres_vdata,$/;"	f
+hypre_LGMRESGetKDim	lgmres.c	/^hypre_LGMRESGetKDim( void   *lgmres_vdata,$/;"	f
+hypre_LGMRESGetLogging	lgmres.c	/^hypre_LGMRESGetLogging( void *lgmres_vdata,$/;"	f
+hypre_LGMRESGetMaxIter	lgmres.c	/^hypre_LGMRESGetMaxIter( void *lgmres_vdata,$/;"	f
+hypre_LGMRESGetMinIter	lgmres.c	/^hypre_LGMRESGetMinIter( void *lgmres_vdata,$/;"	f
+hypre_LGMRESGetNumIterations	lgmres.c	/^hypre_LGMRESGetNumIterations( void *lgmres_vdata,$/;"	f
+hypre_LGMRESGetPrecond	lgmres.c	/^hypre_LGMRESGetPrecond( void         *lgmres_vdata,$/;"	f
+hypre_LGMRESGetPrintLevel	lgmres.c	/^hypre_LGMRESGetPrintLevel( void *lgmres_vdata,$/;"	f
+hypre_LGMRESGetResidual	lgmres.c	/^HYPRE_Int hypre_LGMRESGetResidual( void *lgmres_vdata, void **residual )$/;"	f
+hypre_LGMRESGetStopCrit	lgmres.c	/^hypre_LGMRESGetStopCrit( void   *lgmres_vdata,$/;"	f
+hypre_LGMRESGetTol	lgmres.c	/^hypre_LGMRESGetTol( void   *lgmres_vdata,$/;"	f
+hypre_LGMRESSetAbsoluteTol	lgmres.c	/^hypre_LGMRESSetAbsoluteTol( void   *lgmres_vdata,$/;"	f
+hypre_LGMRESSetAugDim	lgmres.c	/^hypre_LGMRESSetAugDim( void   *lgmres_vdata,$/;"	f
+hypre_LGMRESSetConvergenceFactorTol	lgmres.c	/^hypre_LGMRESSetConvergenceFactorTol( void   *lgmres_vdata,$/;"	f
+hypre_LGMRESSetKDim	lgmres.c	/^hypre_LGMRESSetKDim( void   *lgmres_vdata,$/;"	f
+hypre_LGMRESSetLogging	lgmres.c	/^hypre_LGMRESSetLogging( void *lgmres_vdata,$/;"	f
+hypre_LGMRESSetMaxIter	lgmres.c	/^hypre_LGMRESSetMaxIter( void *lgmres_vdata,$/;"	f
+hypre_LGMRESSetMinIter	lgmres.c	/^hypre_LGMRESSetMinIter( void *lgmres_vdata,$/;"	f
+hypre_LGMRESSetPrecond	lgmres.c	/^hypre_LGMRESSetPrecond( void  *lgmres_vdata,$/;"	f
+hypre_LGMRESSetPrintLevel	lgmres.c	/^hypre_LGMRESSetPrintLevel( void *lgmres_vdata,$/;"	f
+hypre_LGMRESSetStopCrit	lgmres.c	/^hypre_LGMRESSetStopCrit( void   *lgmres_vdata,$/;"	f
+hypre_LGMRESSetTol	lgmres.c	/^hypre_LGMRESSetTol( void   *lgmres_vdata,$/;"	f
+hypre_LGMRESSetup	lgmres.c	/^hypre_LGMRESSetup( void *lgmres_vdata,$/;"	f
+hypre_LGMRESSolve	lgmres.c	/^hypre_LGMRESSolve(void  *lgmres_vdata,$/;"	f
+hypre_LOBPCGData	HYPRE_lobpcg.c	/^} hypre_LOBPCGData;$/;"	t	typeref:struct:__anon4	file:
+hypre_LOBPCGDestroy	HYPRE_lobpcg.c	/^hypre_LOBPCGDestroy( void *pcg_vdata )$/;"	f
+hypre_LOBPCGEigenvaluesHistory	HYPRE_lobpcg.c	/^hypre_LOBPCGEigenvaluesHistory( void *vdata )$/;"	f
+hypre_LOBPCGGetPrecond	HYPRE_lobpcg.c	/^hypre_LOBPCGGetPrecond( void         *pcg_vdata,$/;"	f
+hypre_LOBPCGIterations	HYPRE_lobpcg.c	/^hypre_LOBPCGIterations( void* vdata )$/;"	f
+hypre_LOBPCGMultiOperatorA	HYPRE_lobpcg.c	/^hypre_LOBPCGMultiOperatorA( void *data, void * x, void*  y )$/;"	f
+hypre_LOBPCGMultiOperatorB	HYPRE_lobpcg.c	/^hypre_LOBPCGMultiOperatorB( void *data, void * x, void*  y )$/;"	f
+hypre_LOBPCGMultiPreconditioner	HYPRE_lobpcg.c	/^hypre_LOBPCGMultiPreconditioner( void *data, void * x, void*  y )$/;"	f
+hypre_LOBPCGOperatorA	HYPRE_lobpcg.c	/^hypre_LOBPCGOperatorA( void *pcg_vdata, void* x, void* y )$/;"	f
+hypre_LOBPCGOperatorB	HYPRE_lobpcg.c	/^hypre_LOBPCGOperatorB( void *pcg_vdata, void* x, void* y )$/;"	f
+hypre_LOBPCGPrecond	HYPRE_lobpcg.c	/^} hypre_LOBPCGPrecond;$/;"	t	typeref:struct:__anon2	file:
+hypre_LOBPCGPreconditioner	HYPRE_lobpcg.c	/^hypre_LOBPCGPreconditioner( void *vdata, void* x, void* y )$/;"	f
+hypre_LOBPCGResidualNorms	HYPRE_lobpcg.c	/^hypre_LOBPCGResidualNorms( void *vdata )$/;"	f
+hypre_LOBPCGResidualNormsHistory	HYPRE_lobpcg.c	/^hypre_LOBPCGResidualNormsHistory( void *vdata )$/;"	f
+hypre_LOBPCGSetMaxIter	HYPRE_lobpcg.c	/^hypre_LOBPCGSetMaxIter( void* pcg_vdata, HYPRE_Int max_iter  )$/;"	f
+hypre_LOBPCGSetPrecond	HYPRE_lobpcg.c	/^hypre_LOBPCGSetPrecond( void  *pcg_vdata,$/;"	f
+hypre_LOBPCGSetPrecondUsageMode	HYPRE_lobpcg.c	/^hypre_LOBPCGSetPrecondUsageMode( void* pcg_vdata, HYPRE_Int mode  )$/;"	f
+hypre_LOBPCGSetPrintLevel	HYPRE_lobpcg.c	/^hypre_LOBPCGSetPrintLevel( void *pcg_vdata, HYPRE_Int level )$/;"	f
+hypre_LOBPCGSetRTol	HYPRE_lobpcg.c	/^hypre_LOBPCGSetRTol( void* pcg_vdata, HYPRE_Real tol )$/;"	f
+hypre_LOBPCGSetTol	HYPRE_lobpcg.c	/^hypre_LOBPCGSetTol( void* pcg_vdata, HYPRE_Real tol )$/;"	f
+hypre_LOBPCGSetup	HYPRE_lobpcg.c	/^hypre_LOBPCGSetup( void *pcg_vdata, void *A, void *b, void *x )$/;"	f
+hypre_LOBPCGSetupB	HYPRE_lobpcg.c	/^hypre_LOBPCGSetupB( void *pcg_vdata, void *B, void *x )$/;"	f
+hypre_LOBPCGSetupT	HYPRE_lobpcg.c	/^hypre_LOBPCGSetupT( void *pcg_vdata, void *T, void *x )$/;"	f
+hypre_LOBPCGSolve	HYPRE_lobpcg.c	/^hypre_LOBPCGSolve( void *vdata, $/;"	f
+hypre_LOBPCG_SOLVER	HYPRE_lobpcg.h	14;"	d
+hypre_PCGCreate	pcg.c	/^hypre_PCGCreate( hypre_PCGFunctions *pcg_functions )$/;"	f
+hypre_PCGData	krylov.h	/^} hypre_PCGData;$/;"	t	typeref:struct:__anon24
+hypre_PCGData	pcg.h	/^} hypre_PCGData;$/;"	t	typeref:struct:__anon30
+hypre_PCGDataOwnsMatvecData	krylov.h	1041;"	d
+hypre_PCGDataOwnsMatvecData	pcg.h	150;"	d
+hypre_PCGDestroy	pcg.c	/^hypre_PCGDestroy( void *pcg_vdata )$/;"	f
+hypre_PCGFunctions	krylov.h	/^} hypre_PCGFunctions;$/;"	t	typeref:struct:__anon23
+hypre_PCGFunctions	pcg.h	/^} hypre_PCGFunctions;$/;"	t	typeref:struct:__anon29
+hypre_PCGFunctionsCreate	pcg.c	/^hypre_PCGFunctionsCreate($/;"	f
+hypre_PCGGetAbsoluteTol	pcg.c	/^hypre_PCGGetAbsoluteTol( void   *pcg_vdata,$/;"	f
+hypre_PCGGetAbsoluteTolFactor	pcg.c	/^hypre_PCGGetAbsoluteTolFactor( void   *pcg_vdata,$/;"	f
+hypre_PCGGetConverged	pcg.c	/^hypre_PCGGetConverged( void *pcg_vdata,$/;"	f
+hypre_PCGGetConvergenceFactorTol	pcg.c	/^hypre_PCGGetConvergenceFactorTol( void   *pcg_vdata,$/;"	f
+hypre_PCGGetFinalRelativeResidualNorm	pcg.c	/^hypre_PCGGetFinalRelativeResidualNorm( void   *pcg_vdata,$/;"	f
+hypre_PCGGetLogging	pcg.c	/^hypre_PCGGetLogging( void *pcg_vdata,$/;"	f
+hypre_PCGGetMaxIter	pcg.c	/^hypre_PCGGetMaxIter( void *pcg_vdata,$/;"	f
+hypre_PCGGetNumIterations	pcg.c	/^hypre_PCGGetNumIterations( void *pcg_vdata,$/;"	f
+hypre_PCGGetPrecond	pcg.c	/^hypre_PCGGetPrecond( void         *pcg_vdata,$/;"	f
+hypre_PCGGetPrintLevel	pcg.c	/^hypre_PCGGetPrintLevel( void *pcg_vdata,$/;"	f
+hypre_PCGGetRecomputeResidual	pcg.c	/^hypre_PCGGetRecomputeResidual( void *pcg_vdata,$/;"	f
+hypre_PCGGetRecomputeResidualP	pcg.c	/^hypre_PCGGetRecomputeResidualP( void *pcg_vdata,$/;"	f
+hypre_PCGGetRelChange	pcg.c	/^hypre_PCGGetRelChange( void *pcg_vdata,$/;"	f
+hypre_PCGGetResidual	pcg.c	/^HYPRE_Int hypre_PCGGetResidual( void *pcg_vdata, void **residual )$/;"	f
+hypre_PCGGetResidualTol	pcg.c	/^hypre_PCGGetResidualTol( void   *pcg_vdata,$/;"	f
+hypre_PCGGetStopCrit	pcg.c	/^hypre_PCGGetStopCrit( void *pcg_vdata,$/;"	f
+hypre_PCGGetTol	pcg.c	/^hypre_PCGGetTol( void   *pcg_vdata,$/;"	f
+hypre_PCGGetTwoNorm	pcg.c	/^hypre_PCGGetTwoNorm( void *pcg_vdata,$/;"	f
+hypre_PCGPrintLogging	pcg.c	/^hypre_PCGPrintLogging( void *pcg_vdata,$/;"	f
+hypre_PCGSetAbsoluteTol	pcg.c	/^hypre_PCGSetAbsoluteTol( void   *pcg_vdata,$/;"	f
+hypre_PCGSetAbsoluteTolFactor	pcg.c	/^hypre_PCGSetAbsoluteTolFactor( void   *pcg_vdata,$/;"	f
+hypre_PCGSetConvergenceFactorTol	pcg.c	/^hypre_PCGSetConvergenceFactorTol( void   *pcg_vdata,$/;"	f
+hypre_PCGSetLogging	pcg.c	/^hypre_PCGSetLogging( void *pcg_vdata,$/;"	f
+hypre_PCGSetMaxIter	pcg.c	/^hypre_PCGSetMaxIter( void *pcg_vdata,$/;"	f
+hypre_PCGSetPrecond	pcg.c	/^hypre_PCGSetPrecond( void  *pcg_vdata,$/;"	f
+hypre_PCGSetPrintLevel	pcg.c	/^hypre_PCGSetPrintLevel( void *pcg_vdata,$/;"	f
+hypre_PCGSetRecomputeResidual	pcg.c	/^hypre_PCGSetRecomputeResidual( void *pcg_vdata,$/;"	f
+hypre_PCGSetRecomputeResidualP	pcg.c	/^hypre_PCGSetRecomputeResidualP( void *pcg_vdata,$/;"	f
+hypre_PCGSetRelChange	pcg.c	/^hypre_PCGSetRelChange( void *pcg_vdata,$/;"	f
+hypre_PCGSetResidualTol	pcg.c	/^hypre_PCGSetResidualTol( void   *pcg_vdata,$/;"	f
+hypre_PCGSetStopCrit	pcg.c	/^hypre_PCGSetStopCrit( void *pcg_vdata,$/;"	f
+hypre_PCGSetTol	pcg.c	/^hypre_PCGSetTol( void   *pcg_vdata,$/;"	f
+hypre_PCGSetTwoNorm	pcg.c	/^hypre_PCGSetTwoNorm( void *pcg_vdata,$/;"	f
+hypre_PCGSetup	pcg.c	/^hypre_PCGSetup( void *pcg_vdata,$/;"	f
+hypre_PCGSolve	pcg.c	/^hypre_PCGSolve( void *pcg_vdata,$/;"	f
+hypre_TFreeF	krylov.h	27;"	d
+interpreter	HYPRE_lobpcg.c	/^   mv_InterfaceInterpreter*      interpreter;$/;"	m	struct:__anon4	file:
+iterationNumber	HYPRE_lobpcg.c	/^   HYPRE_Int                           iterationNumber;$/;"	m	struct:__anon3	file:
+k_dim	co-gmres.h	/^   HYPRE_Int      k_dim;$/;"	m	struct:__anon32
+k_dim	flexgmres.h	/^   HYPRE_Int      k_dim;$/;"	m	struct:__anon10
+k_dim	gmres.h	/^   HYPRE_Int      k_dim;$/;"	m	struct:__anon12
+k_dim	krylov.h	/^   HYPRE_Int      k_dim;$/;"	m	struct:__anon18
+k_dim	krylov.h	/^   HYPRE_Int      k_dim;$/;"	m	struct:__anon20
+k_dim	krylov.h	/^   HYPRE_Int      k_dim;$/;"	m	struct:__anon22
+k_dim	lgmres.h	/^   HYPRE_Int      k_dim;$/;"	m	struct:__anon26
+lobpcgData	HYPRE_lobpcg.c	/^   lobpcg_Data                   lobpcgData;$/;"	m	struct:__anon4	file:
+lobpcg_BLASLAPACKFunctions	lobpcg.h	/^} lobpcg_BLASLAPACKFunctions;$/;"	t	typeref:struct:__anon28
+lobpcg_Data	HYPRE_lobpcg.c	/^} lobpcg_Data;$/;"	t	typeref:struct:__anon3	file:
+lobpcg_MultiVectorByMatrix	lobpcg.c	/^lobpcg_MultiVectorByMatrix($/;"	f	file:
+lobpcg_MultiVectorByMultiVector	HYPRE_lobpcg.c	/^lobpcg_MultiVectorByMultiVector( mv_MultiVectorPtr x,$/;"	f
+lobpcg_MultiVectorByMultiVector	lobpcg.c	/^lobpcg_MultiVectorByMultiVector($/;"	f	file:
+lobpcg_MultiVectorImplicitQR	lobpcg.c	/^lobpcg_MultiVectorImplicitQR( $/;"	f	file:
+lobpcg_Tolerance	lobpcg.h	/^} lobpcg_Tolerance;$/;"	t	typeref:struct:__anon27
+lobpcg_absoluteTolerance	HYPRE_lobpcg.c	52;"	d	file:
+lobpcg_checkResiduals	lobpcg.c	/^lobpcg_checkResiduals( $/;"	f	file:
+lobpcg_chol	lobpcg.c	/^lobpcg_chol( utilities_FortranMatrix* a, $/;"	f	file:
+lobpcg_clean	HYPRE_lobpcg.c	/^lobpcg_clean( lobpcg_Data* data )$/;"	f
+lobpcg_eigenvaluesHistory	HYPRE_lobpcg.c	58;"	d	file:
+lobpcg_errorMessage	lobpcg.c	/^lobpcg_errorMessage( HYPRE_Int verbosityLevel, const char* message )$/;"	f	file:
+lobpcg_initialize	HYPRE_lobpcg.c	/^lobpcg_initialize( lobpcg_Data* data )$/;"	f
+lobpcg_iterationNumber	HYPRE_lobpcg.c	57;"	d	file:
+lobpcg_maxIterations	HYPRE_lobpcg.c	54;"	d	file:
+lobpcg_precondUsageMode	HYPRE_lobpcg.c	56;"	d	file:
+lobpcg_relativeTolerance	HYPRE_lobpcg.c	53;"	d	file:
+lobpcg_residualNorms	HYPRE_lobpcg.c	59;"	d	file:
+lobpcg_residualNormsHistory	HYPRE_lobpcg.c	60;"	d	file:
+lobpcg_solve	lobpcg.c	/^lobpcg_solve( mv_MultiVectorPtr blockVectorX,$/;"	f
+lobpcg_solveGEVP	lobpcg.c	/^lobpcg_solveGEVP( $/;"	f	file:
+lobpcg_sqrtVector	lobpcg.c	/^lobpcg_sqrtVector( HYPRE_Int n, HYPRE_Int* mask, HYPRE_Real* v ) {$/;"	f	file:
+lobpcg_tolerance	HYPRE_lobpcg.c	51;"	d	file:
+lobpcg_verbosityLevel	HYPRE_lobpcg.c	55;"	d	file:
+log_file_name	bicgstab.h	/^   char    *log_file_name;$/;"	m	struct:__anon6
+log_file_name	cgnr.h	/^   char    *log_file_name;$/;"	m	struct:__anon8
+log_file_name	co-gmres.h	/^   char    *log_file_name;$/;"	m	struct:__anon32
+log_file_name	flexgmres.h	/^   char    *log_file_name;$/;"	m	struct:__anon10
+log_file_name	gmres.h	/^   char    *log_file_name;$/;"	m	struct:__anon12
+log_file_name	krylov.h	/^   char    *log_file_name;$/;"	m	struct:__anon14
+log_file_name	krylov.h	/^   char    *log_file_name;$/;"	m	struct:__anon16
+log_file_name	krylov.h	/^   char    *log_file_name;$/;"	m	struct:__anon18
+log_file_name	krylov.h	/^   char    *log_file_name;$/;"	m	struct:__anon20
+log_file_name	krylov.h	/^   char    *log_file_name;$/;"	m	struct:__anon22
+log_file_name	lgmres.h	/^   char    *log_file_name;$/;"	m	struct:__anon26
+logging	bicgstab.h	/^   HYPRE_Int      logging;$/;"	m	struct:__anon6
+logging	cgnr.h	/^   HYPRE_Int      logging;$/;"	m	struct:__anon8
+logging	co-gmres.h	/^   HYPRE_Int     logging;  \/* extra computations for logging when logging>0 *\/$/;"	m	struct:__anon32
+logging	flexgmres.h	/^   HYPRE_Int     logging;  \/* extra computations for logging when logging>0 *\/$/;"	m	struct:__anon10
+logging	gmres.h	/^   HYPRE_Int     logging;  \/* extra computations for logging when logging>0 *\/$/;"	m	struct:__anon12
+logging	krylov.h	/^   HYPRE_Int      logging;$/;"	m	struct:__anon14
+logging	krylov.h	/^   HYPRE_Int      logging;$/;"	m	struct:__anon16
+logging	krylov.h	/^   HYPRE_Int     logging;  \/* extra computations for logging when logging>0 *\/$/;"	m	struct:__anon18
+logging	krylov.h	/^   HYPRE_Int     logging;  \/* extra computations for logging when logging>0 *\/$/;"	m	struct:__anon20
+logging	krylov.h	/^   HYPRE_Int     logging;  \/* extra computations for logging when logging>0 *\/$/;"	m	struct:__anon22
+logging	krylov.h	/^   HYPRE_Int     logging;  \/* extra computations for logging when logging>0 *\/$/;"	m	struct:__anon24
+logging	lgmres.h	/^   HYPRE_Int     logging;  \/* extra computations for logging when logging>0 *\/$/;"	m	struct:__anon26
+logging	pcg.h	/^   HYPRE_Int    logging;  \/* extra computations for logging when logging>0 *\/$/;"	m	struct:__anon30
+matvecData	HYPRE_lobpcg.c	/^   void*                         matvecData;$/;"	m	struct:__anon4	file:
+matvecDataB	HYPRE_lobpcg.c	/^   void*                         matvecDataB;$/;"	m	struct:__anon4	file:
+matvecDataT	HYPRE_lobpcg.c	/^   void*                         matvecDataT;$/;"	m	struct:__anon4	file:
+matvecFunctions	HYPRE_lobpcg.c	/^   HYPRE_MatvecFunctions*        matvecFunctions;$/;"	m	struct:__anon4	file:
+matvec_data	bicgstab.h	/^   void  *matvec_data;$/;"	m	struct:__anon6
+matvec_data	cgnr.h	/^   void    *matvec_data;$/;"	m	struct:__anon8
+matvec_data	co-gmres.h	/^   void    *matvec_data;$/;"	m	struct:__anon32
+matvec_data	flexgmres.h	/^   void    *matvec_data;$/;"	m	struct:__anon10
+matvec_data	gmres.h	/^   void    *matvec_data;$/;"	m	struct:__anon12
+matvec_data	krylov.h	/^   void    *matvec_data;$/;"	m	struct:__anon16
+matvec_data	krylov.h	/^   void    *matvec_data;$/;"	m	struct:__anon18
+matvec_data	krylov.h	/^   void    *matvec_data;$/;"	m	struct:__anon20
+matvec_data	krylov.h	/^   void    *matvec_data;$/;"	m	struct:__anon22
+matvec_data	krylov.h	/^   void    *matvec_data;$/;"	m	struct:__anon24
+matvec_data	krylov.h	/^   void  *matvec_data;$/;"	m	struct:__anon14
+matvec_data	lgmres.h	/^   void    *matvec_data;$/;"	m	struct:__anon26
+matvec_data	pcg.h	/^   void      *matvec_data;$/;"	m	struct:__anon30
+maxIterations	HYPRE_lobpcg.c	/^   HYPRE_Int                           maxIterations;$/;"	m	struct:__anon3	file:
+max_iter	bicgstab.h	/^   HYPRE_Int      max_iter;$/;"	m	struct:__anon6
+max_iter	cgnr.h	/^   HYPRE_Int      max_iter;$/;"	m	struct:__anon8
+max_iter	co-gmres.h	/^   HYPRE_Int      max_iter;$/;"	m	struct:__anon32
+max_iter	flexgmres.h	/^   HYPRE_Int      max_iter;$/;"	m	struct:__anon10
+max_iter	gmres.h	/^   HYPRE_Int      max_iter;$/;"	m	struct:__anon12
+max_iter	krylov.h	/^   HYPRE_Int      max_iter;$/;"	m	struct:__anon14
+max_iter	krylov.h	/^   HYPRE_Int      max_iter;$/;"	m	struct:__anon16
+max_iter	krylov.h	/^   HYPRE_Int      max_iter;$/;"	m	struct:__anon18
+max_iter	krylov.h	/^   HYPRE_Int      max_iter;$/;"	m	struct:__anon20
+max_iter	krylov.h	/^   HYPRE_Int      max_iter;$/;"	m	struct:__anon22
+max_iter	krylov.h	/^   HYPRE_Int      max_iter;$/;"	m	struct:__anon24
+max_iter	lgmres.h	/^   HYPRE_Int      max_iter;$/;"	m	struct:__anon26
+max_iter	pcg.h	/^   HYPRE_Int    max_iter;$/;"	m	struct:__anon30
+min_iter	bicgstab.h	/^   HYPRE_Int      min_iter;$/;"	m	struct:__anon6
+min_iter	cgnr.h	/^   HYPRE_Int      min_iter;$/;"	m	struct:__anon8
+min_iter	co-gmres.h	/^   HYPRE_Int      min_iter;$/;"	m	struct:__anon32
+min_iter	flexgmres.h	/^   HYPRE_Int      min_iter;$/;"	m	struct:__anon10
+min_iter	gmres.h	/^   HYPRE_Int      min_iter;$/;"	m	struct:__anon12
+min_iter	krylov.h	/^   HYPRE_Int      min_iter;$/;"	m	struct:__anon14
+min_iter	krylov.h	/^   HYPRE_Int      min_iter;$/;"	m	struct:__anon16
+min_iter	krylov.h	/^   HYPRE_Int      min_iter;$/;"	m	struct:__anon18
+min_iter	krylov.h	/^   HYPRE_Int      min_iter;$/;"	m	struct:__anon20
+min_iter	krylov.h	/^   HYPRE_Int      min_iter;$/;"	m	struct:__anon22
+min_iter	lgmres.h	/^   HYPRE_Int      min_iter;$/;"	m	struct:__anon26
+modify_pc	flexgmres.h	/^   HYPRE_Int    (*modify_pc)(void *precond_data, HYPRE_Int iteration, HYPRE_Real rel_residual_norm );$/;"	m	struct:__anon9
+modify_pc	krylov.h	/^   HYPRE_Int    (*modify_pc)( void *precond_data, HYPRE_Int iteration, HYPRE_Real rel_residual_norm);$/;"	m	struct:__anon21
+norms	bicgstab.h	/^   HYPRE_Real  *norms;$/;"	m	struct:__anon6
+norms	cgnr.h	/^   HYPRE_Real  *norms;$/;"	m	struct:__anon8
+norms	co-gmres.h	/^   HYPRE_Real  *norms;$/;"	m	struct:__anon32
+norms	flexgmres.h	/^   HYPRE_Real  *norms;$/;"	m	struct:__anon10
+norms	gmres.h	/^   HYPRE_Real  *norms;$/;"	m	struct:__anon12
+norms	krylov.h	/^   HYPRE_Real  *norms;$/;"	m	struct:__anon14
+norms	krylov.h	/^   HYPRE_Real  *norms;$/;"	m	struct:__anon16
+norms	krylov.h	/^   HYPRE_Real  *norms;$/;"	m	struct:__anon18
+norms	krylov.h	/^   HYPRE_Real  *norms;$/;"	m	struct:__anon20
+norms	krylov.h	/^   HYPRE_Real  *norms;$/;"	m	struct:__anon22
+norms	krylov.h	/^   HYPRE_Real  *norms;$/;"	m	struct:__anon24
+norms	lgmres.h	/^   HYPRE_Real  *norms;$/;"	m	struct:__anon26
+norms	pcg.h	/^   HYPRE_Real  *norms;$/;"	m	struct:__anon30
+num_iterations	bicgstab.h	/^   HYPRE_Int      num_iterations;$/;"	m	struct:__anon6
+num_iterations	cgnr.h	/^   HYPRE_Int      num_iterations;$/;"	m	struct:__anon8
+num_iterations	co-gmres.h	/^   HYPRE_Int      num_iterations;$/;"	m	struct:__anon32
+num_iterations	flexgmres.h	/^   HYPRE_Int      num_iterations;$/;"	m	struct:__anon10
+num_iterations	gmres.h	/^   HYPRE_Int      num_iterations;$/;"	m	struct:__anon12
+num_iterations	krylov.h	/^   HYPRE_Int      num_iterations;$/;"	m	struct:__anon14
+num_iterations	krylov.h	/^   HYPRE_Int      num_iterations;$/;"	m	struct:__anon16
+num_iterations	krylov.h	/^   HYPRE_Int      num_iterations;$/;"	m	struct:__anon18
+num_iterations	krylov.h	/^   HYPRE_Int      num_iterations;$/;"	m	struct:__anon20
+num_iterations	krylov.h	/^   HYPRE_Int      num_iterations;$/;"	m	struct:__anon22
+num_iterations	krylov.h	/^   HYPRE_Int      num_iterations;$/;"	m	struct:__anon24
+num_iterations	lgmres.h	/^   HYPRE_Int      num_iterations;$/;"	m	struct:__anon26
+num_iterations	pcg.h	/^   HYPRE_Int    num_iterations;$/;"	m	struct:__anon30
+owns_matvec_data	krylov.h	/^   HYPRE_Int      owns_matvec_data;  \/* normally 1; if 0, don't delete it *\/$/;"	m	struct:__anon24
+owns_matvec_data	pcg.h	/^   HYPRE_Int  owns_matvec_data;  \/* normally 1; if 0, don't delete it *\/$/;"	m	struct:__anon30
+p	bicgstab.h	/^   void  *p;$/;"	m	struct:__anon6
+p	cgnr.h	/^   void    *p;$/;"	m	struct:__anon8
+p	co-gmres.h	/^   void  **p;$/;"	m	struct:__anon32
+p	flexgmres.h	/^   void  **p;$/;"	m	struct:__anon10
+p	gmres.h	/^   void  **p;$/;"	m	struct:__anon12
+p	krylov.h	/^   void    *p;$/;"	m	struct:__anon16
+p	krylov.h	/^   void    *p;$/;"	m	struct:__anon24
+p	krylov.h	/^   void  **p;$/;"	m	struct:__anon18
+p	krylov.h	/^   void  **p;$/;"	m	struct:__anon20
+p	krylov.h	/^   void  **p;$/;"	m	struct:__anon22
+p	krylov.h	/^   void  *p;$/;"	m	struct:__anon14
+p	lgmres.h	/^   void  **p;$/;"	m	struct:__anon26
+p	pcg.h	/^   void    *p;$/;"	m	struct:__anon30
+pre_vecs	flexgmres.h	/^   void   **pre_vecs;$/;"	m	struct:__anon10
+pre_vecs	krylov.h	/^   void   **pre_vecs;$/;"	m	struct:__anon22
+precond	bicgstab.h	/^	HYPRE_Int  (*precond)       (void *vdata , void *A , void *b , void *x);$/;"	m	struct:__anon5
+precond	cgnr.h	/^   HYPRE_Int    (*precond)       ( void *vdata, void *A, void *b, void *x );$/;"	m	struct:__anon7
+precond	co-gmres.h	/^   HYPRE_Int    (*precond)       ();$/;"	m	struct:__anon31
+precond	flexgmres.h	/^   HYPRE_Int    (*precond)(void *vdata, void *A, void *b, void *x );$/;"	m	struct:__anon9
+precond	gmres.h	/^   HYPRE_Int    (*precond)       ();$/;"	m	struct:__anon11
+precond	krylov.h	/^	HYPRE_Int    (*precond)       (void *vdata , void *A , void *b , void *x);$/;"	m	struct:__anon17
+precond	krylov.h	/^	HYPRE_Int    (*precond)       (void *vdata , void *A , void *b , void *x);$/;"	m	struct:__anon19
+precond	krylov.h	/^	HYPRE_Int    (*precond)(void *vdata , void *A , void *b , void *x);$/;"	m	struct:__anon23
+precond	krylov.h	/^	HYPRE_Int  (*precond)       (void *vdata , void *A , void *b , void *x);$/;"	m	struct:__anon13
+precond	krylov.h	/^   HYPRE_Int    (*precond)       ( void *vdata, void *A, void *b, void *x );$/;"	m	struct:__anon15
+precond	krylov.h	/^   HYPRE_Int    (*precond)(void *vdata, void *A, void *b, void *x );$/;"	m	struct:__anon21
+precond	lgmres.h	/^   HYPRE_Int    (*precond)       ();$/;"	m	struct:__anon25
+precond	pcg.h	/^   HYPRE_Int    (*precond)();$/;"	m	struct:__anon29
+precondData	HYPRE_lobpcg.c	/^   void*                         precondData;$/;"	m	struct:__anon4	file:
+precondFunctions	HYPRE_lobpcg.c	/^   hypre_LOBPCGPrecond           precondFunctions;$/;"	m	struct:__anon4	file:
+precondT	cgnr.h	/^   HYPRE_Int    (*precondT)      ( void *vdata, void *A, void *b, void *x );$/;"	m	struct:__anon7
+precondT	krylov.h	/^   HYPRE_Int    (*precondT)      ( void *vdata, void *A, void *b, void *x );$/;"	m	struct:__anon15
+precondUsageMode	HYPRE_lobpcg.c	/^   HYPRE_Int                           precondUsageMode;$/;"	m	struct:__anon3	file:
+precond_data	bicgstab.h	/^   void    *precond_data;$/;"	m	struct:__anon6
+precond_data	cgnr.h	/^   void    *precond_data;$/;"	m	struct:__anon8
+precond_data	co-gmres.h	/^   void    *precond_data;$/;"	m	struct:__anon32
+precond_data	flexgmres.h	/^   void    *precond_data;$/;"	m	struct:__anon10
+precond_data	gmres.h	/^   void    *precond_data;$/;"	m	struct:__anon12
+precond_data	krylov.h	/^   void    *precond_data;$/;"	m	struct:__anon14
+precond_data	krylov.h	/^   void    *precond_data;$/;"	m	struct:__anon16
+precond_data	krylov.h	/^   void    *precond_data;$/;"	m	struct:__anon18
+precond_data	krylov.h	/^   void    *precond_data;$/;"	m	struct:__anon20
+precond_data	krylov.h	/^   void    *precond_data;$/;"	m	struct:__anon22
+precond_data	krylov.h	/^   void    *precond_data;$/;"	m	struct:__anon24
+precond_data	lgmres.h	/^   void    *precond_data;$/;"	m	struct:__anon26
+precond_data	pcg.h	/^   void      *precond_data;$/;"	m	struct:__anon30
+precond_setup	bicgstab.h	/^	HYPRE_Int  (*precond_setup) (void *vdata , void *A , void *b , void *x);$/;"	m	struct:__anon5
+precond_setup	cgnr.h	/^   HYPRE_Int    (*precond_setup) ( void *vdata, void *A, void *b, void *x );$/;"	m	struct:__anon7
+precond_setup	co-gmres.h	/^   HYPRE_Int    (*precond_setup) ();$/;"	m	struct:__anon31
+precond_setup	flexgmres.h	/^   HYPRE_Int    (*precond_setup)(void *vdata, void *A, void *b, void *x );$/;"	m	struct:__anon9
+precond_setup	gmres.h	/^   HYPRE_Int    (*precond_setup) ();$/;"	m	struct:__anon11
+precond_setup	krylov.h	/^	HYPRE_Int    (*precond_setup) (void *vdata , void *A , void *b , void *x);$/;"	m	struct:__anon17
+precond_setup	krylov.h	/^	HYPRE_Int    (*precond_setup) (void *vdata , void *A , void *b , void *x);$/;"	m	struct:__anon19
+precond_setup	krylov.h	/^	HYPRE_Int    (*precond_setup)(void *vdata , void *A , void *b , void *x);$/;"	m	struct:__anon23
+precond_setup	krylov.h	/^	HYPRE_Int  (*precond_setup) (void *vdata , void *A , void *b , void *x);$/;"	m	struct:__anon13
+precond_setup	krylov.h	/^   HYPRE_Int    (*precond_setup) ( void *vdata, void *A, void *b, void *x );$/;"	m	struct:__anon15
+precond_setup	krylov.h	/^   HYPRE_Int    (*precond_setup)(void *vdata, void *A, void *b, void *x );$/;"	m	struct:__anon21
+precond_setup	lgmres.h	/^   HYPRE_Int    (*precond_setup) ();$/;"	m	struct:__anon25
+precond_setup	pcg.h	/^   HYPRE_Int    (*precond_setup)();$/;"	m	struct:__anon29
+print_level	bicgstab.h	/^   HYPRE_Int      print_level;$/;"	m	struct:__anon6
+print_level	co-gmres.h	/^   HYPRE_Int     print_level; \/* printing when print_level>0 *\/$/;"	m	struct:__anon32
+print_level	flexgmres.h	/^   HYPRE_Int     print_level; \/* printing when print_level>0 *\/$/;"	m	struct:__anon10
+print_level	gmres.h	/^   HYPRE_Int     print_level; \/* printing when print_level>0 *\/$/;"	m	struct:__anon12
+print_level	krylov.h	/^   HYPRE_Int      print_level;$/;"	m	struct:__anon14
+print_level	krylov.h	/^   HYPRE_Int     print_level; \/* printing when print_level>0 *\/$/;"	m	struct:__anon18
+print_level	krylov.h	/^   HYPRE_Int     print_level; \/* printing when print_level>0 *\/$/;"	m	struct:__anon20
+print_level	krylov.h	/^   HYPRE_Int     print_level; \/* printing when print_level>0 *\/$/;"	m	struct:__anon22
+print_level	krylov.h	/^   HYPRE_Int     print_level; \/* printing when print_level>0 *\/$/;"	m	struct:__anon24
+print_level	lgmres.h	/^   HYPRE_Int     print_level; \/* printing when print_level>0 *\/$/;"	m	struct:__anon26
+print_level	pcg.h	/^   HYPRE_Int    print_level; \/* printing when print_level>0 *\/$/;"	m	struct:__anon30
+q	bicgstab.h	/^   void  *q;$/;"	m	struct:__anon6
+q	cgnr.h	/^   void    *q;$/;"	m	struct:__anon8
+q	krylov.h	/^   void    *q;$/;"	m	struct:__anon16
+q	krylov.h	/^   void  *q;$/;"	m	struct:__anon14
+r	bicgstab.h	/^   void  *r;$/;"	m	struct:__anon6
+r	cgnr.h	/^   void    *r;$/;"	m	struct:__anon8
+r	co-gmres.h	/^   void  *r;$/;"	m	struct:__anon32
+r	flexgmres.h	/^   void  *r;$/;"	m	struct:__anon10
+r	gmres.h	/^   void  *r;$/;"	m	struct:__anon12
+r	krylov.h	/^   void    *r; \/* ...contains the residual.  This is currently kept permanently.$/;"	m	struct:__anon24
+r	krylov.h	/^   void    *r;$/;"	m	struct:__anon16
+r	krylov.h	/^   void  *r;$/;"	m	struct:__anon14
+r	krylov.h	/^   void  *r;$/;"	m	struct:__anon18
+r	krylov.h	/^   void  *r;$/;"	m	struct:__anon20
+r	krylov.h	/^   void  *r;$/;"	m	struct:__anon22
+r	lgmres.h	/^   void  *r;$/;"	m	struct:__anon26
+r	pcg.h	/^   void    *r; \/* ...contains the residual.  This is currently kept permanently.$/;"	m	struct:__anon30
+r0	bicgstab.h	/^   void  *r0;$/;"	m	struct:__anon6
+r0	krylov.h	/^   void  *r0;$/;"	m	struct:__anon14
+recompute_residual	krylov.h	/^   HYPRE_Int      recompute_residual;$/;"	m	struct:__anon24
+recompute_residual	pcg.h	/^   HYPRE_Int    recompute_residual;$/;"	m	struct:__anon30
+recompute_residual_p	krylov.h	/^   HYPRE_Int      recompute_residual_p;$/;"	m	struct:__anon24
+recompute_residual_p	pcg.h	/^   HYPRE_Int    recompute_residual_p;$/;"	m	struct:__anon30
+rel_change	co-gmres.h	/^   HYPRE_Int      rel_change;$/;"	m	struct:__anon32
+rel_change	flexgmres.h	/^   HYPRE_Int      rel_change;$/;"	m	struct:__anon10
+rel_change	gmres.h	/^   HYPRE_Int      rel_change;$/;"	m	struct:__anon12
+rel_change	krylov.h	/^   HYPRE_Int      rel_change;$/;"	m	struct:__anon18
+rel_change	krylov.h	/^   HYPRE_Int      rel_change;$/;"	m	struct:__anon20
+rel_change	krylov.h	/^   HYPRE_Int      rel_change;$/;"	m	struct:__anon22
+rel_change	krylov.h	/^   HYPRE_Int      rel_change;$/;"	m	struct:__anon24
+rel_change	lgmres.h	/^   HYPRE_Int      rel_change;$/;"	m	struct:__anon26
+rel_change	pcg.h	/^   HYPRE_Int    rel_change;$/;"	m	struct:__anon30
+rel_norms	krylov.h	/^   HYPRE_Real  *rel_norms;$/;"	m	struct:__anon24
+rel_norms	pcg.h	/^   HYPRE_Real  *rel_norms;$/;"	m	struct:__anon30
+rel_residual_norm	bicgstab.h	/^   HYPRE_Real   rel_residual_norm;$/;"	m	struct:__anon6
+rel_residual_norm	cgnr.h	/^   HYPRE_Real   rel_residual_norm;$/;"	m	struct:__anon8
+rel_residual_norm	co-gmres.h	/^   HYPRE_Real   rel_residual_norm;$/;"	m	struct:__anon32
+rel_residual_norm	flexgmres.h	/^   HYPRE_Real   rel_residual_norm;$/;"	m	struct:__anon10
+rel_residual_norm	gmres.h	/^   HYPRE_Real   rel_residual_norm;$/;"	m	struct:__anon12
+rel_residual_norm	krylov.h	/^   HYPRE_Real   rel_residual_norm;$/;"	m	struct:__anon14
+rel_residual_norm	krylov.h	/^   HYPRE_Real   rel_residual_norm;$/;"	m	struct:__anon16
+rel_residual_norm	krylov.h	/^   HYPRE_Real   rel_residual_norm;$/;"	m	struct:__anon18
+rel_residual_norm	krylov.h	/^   HYPRE_Real   rel_residual_norm;$/;"	m	struct:__anon20
+rel_residual_norm	krylov.h	/^   HYPRE_Real   rel_residual_norm;$/;"	m	struct:__anon22
+rel_residual_norm	krylov.h	/^   HYPRE_Real   rel_residual_norm;$/;"	m	struct:__anon24
+rel_residual_norm	lgmres.h	/^   HYPRE_Real   rel_residual_norm;$/;"	m	struct:__anon26
+rel_residual_norm	pcg.h	/^   HYPRE_Real   rel_residual_norm;$/;"	m	struct:__anon30
+relative	lobpcg.h	/^  HYPRE_Real	relative;$/;"	m	struct:__anon27
+residualNorms	HYPRE_lobpcg.c	/^   utilities_FortranMatrix*      residualNorms;$/;"	m	struct:__anon3	file:
+residualNormsHistory	HYPRE_lobpcg.c	/^   utilities_FortranMatrix*      residualNormsHistory;$/;"	m	struct:__anon3	file:
+rtol	krylov.h	/^   HYPRE_Real   rtol;$/;"	m	struct:__anon24
+rtol	pcg.h	/^   HYPRE_Real   rtol;$/;"	m	struct:__anon30
+s	bicgstab.h	/^   void  *s;$/;"	m	struct:__anon6
+s	krylov.h	/^   void    *s;$/;"	m	struct:__anon24
+s	krylov.h	/^   void  *s;$/;"	m	struct:__anon14
+s	pcg.h	/^   void    *s;$/;"	m	struct:__anon30
+skip_real_r_check	co-gmres.h	/^   HYPRE_Int      skip_real_r_check;$/;"	m	struct:__anon32
+skip_real_r_check	gmres.h	/^   HYPRE_Int      skip_real_r_check;$/;"	m	struct:__anon12
+skip_real_r_check	krylov.h	/^   HYPRE_Int      skip_real_r_check;$/;"	m	struct:__anon18
+stop_crit	bicgstab.h	/^   HYPRE_Int      stop_crit;$/;"	m	struct:__anon6
+stop_crit	cgnr.h	/^   HYPRE_Int      stop_crit;$/;"	m	struct:__anon8
+stop_crit	co-gmres.h	/^   HYPRE_Int      stop_crit;$/;"	m	struct:__anon32
+stop_crit	flexgmres.h	/^   HYPRE_Int      stop_crit;$/;"	m	struct:__anon10
+stop_crit	gmres.h	/^   HYPRE_Int      stop_crit;$/;"	m	struct:__anon12
+stop_crit	krylov.h	/^   HYPRE_Int      stop_crit;$/;"	m	struct:__anon14
+stop_crit	krylov.h	/^   HYPRE_Int      stop_crit;$/;"	m	struct:__anon16
+stop_crit	krylov.h	/^   HYPRE_Int      stop_crit;$/;"	m	struct:__anon18
+stop_crit	krylov.h	/^   HYPRE_Int      stop_crit;$/;"	m	struct:__anon20
+stop_crit	krylov.h	/^   HYPRE_Int      stop_crit;$/;"	m	struct:__anon22
+stop_crit	krylov.h	/^   HYPRE_Int      stop_crit;$/;"	m	struct:__anon24
+stop_crit	lgmres.h	/^   HYPRE_Int      stop_crit;$/;"	m	struct:__anon26
+stop_crit	pcg.h	/^   HYPRE_Int    stop_crit;$/;"	m	struct:__anon30
+t	cgnr.h	/^   void    *t;$/;"	m	struct:__anon8
+t	krylov.h	/^   void    *t;$/;"	m	struct:__anon16
+tol	bicgstab.h	/^   HYPRE_Real   tol;$/;"	m	struct:__anon6
+tol	cgnr.h	/^   HYPRE_Real   tol;$/;"	m	struct:__anon8
+tol	co-gmres.h	/^   HYPRE_Real   tol;$/;"	m	struct:__anon32
+tol	flexgmres.h	/^   HYPRE_Real   tol;$/;"	m	struct:__anon10
+tol	gmres.h	/^   HYPRE_Real   tol;$/;"	m	struct:__anon12
+tol	krylov.h	/^   HYPRE_Real   tol;$/;"	m	struct:__anon14
+tol	krylov.h	/^   HYPRE_Real   tol;$/;"	m	struct:__anon16
+tol	krylov.h	/^   HYPRE_Real   tol;$/;"	m	struct:__anon18
+tol	krylov.h	/^   HYPRE_Real   tol;$/;"	m	struct:__anon20
+tol	krylov.h	/^   HYPRE_Real   tol;$/;"	m	struct:__anon22
+tol	krylov.h	/^   HYPRE_Real   tol;$/;"	m	struct:__anon24
+tol	lgmres.h	/^   HYPRE_Real   tol;$/;"	m	struct:__anon26
+tol	pcg.h	/^   HYPRE_Real   tol;$/;"	m	struct:__anon30
+tolerance	HYPRE_lobpcg.c	/^   lobpcg_Tolerance              tolerance;$/;"	m	struct:__anon3	file:
+two_norm	krylov.h	/^   HYPRE_Int      two_norm;$/;"	m	struct:__anon24
+two_norm	pcg.h	/^   HYPRE_Int    two_norm;$/;"	m	struct:__anon30
+v	bicgstab.h	/^   void  *v;$/;"	m	struct:__anon6
+v	krylov.h	/^   void  *v;$/;"	m	struct:__anon14
+verbosityLevel	HYPRE_lobpcg.c	/^   HYPRE_Int                           verbosityLevel;$/;"	m	struct:__anon3	file:
+w	co-gmres.h	/^   void  *w;$/;"	m	struct:__anon32
+w	flexgmres.h	/^   void  *w;$/;"	m	struct:__anon10
+w	gmres.h	/^   void  *w;$/;"	m	struct:__anon12
+w	krylov.h	/^   void  *w;$/;"	m	struct:__anon18
+w	krylov.h	/^   void  *w;$/;"	m	struct:__anon20
+w	krylov.h	/^   void  *w;$/;"	m	struct:__anon22
+w	lgmres.h	/^   void  *w;$/;"	m	struct:__anon26
+w_2	co-gmres.h	/^   void  *w_2;$/;"	m	struct:__anon32
+w_2	flexgmres.h	/^   void  *w_2;$/;"	m	struct:__anon10
+w_2	gmres.h	/^   void  *w_2;$/;"	m	struct:__anon12
+w_2	krylov.h	/^   void  *w_2;$/;"	m	struct:__anon18
+w_2	krylov.h	/^   void  *w_2;$/;"	m	struct:__anon20
+w_2	krylov.h	/^   void  *w_2;$/;"	m	struct:__anon22
+w_2	lgmres.h	/^   void  *w_2;$/;"	m	struct:__anon26
