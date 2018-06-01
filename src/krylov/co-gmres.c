@@ -45,7 +45,8 @@
       HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
       HYPRE_Int    (*ClearVector)   ( void *x ),
       HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
-      HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
+      HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),      
+      void         (*MassAxpy)      ( HYPRE_Real *alpha, void **x, void *y, HYPRE_Int k),   
       HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
       HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
       )
@@ -69,6 +70,7 @@
   cogmres_functions->ClearVector = ClearVector;
   cogmres_functions->ScaleVector = ScaleVector;
   cogmres_functions->Axpy = Axpy;
+  cogmres_functions->MassAxpy = MassAxpy;
   /* default preconditioner must be set here but can be changed later... */
   cogmres_functions->precond_setup = PrecondSetup;
   cogmres_functions->precond       = Precond;
@@ -542,11 +544,20 @@ tol only is checked  */
         //(*(cogmres_functions->Axpy))(-hh[j][i-1],p[j],w);
         //t2 += (hh[j][i-1]*hh[j][i-1]);
         HYPRE_Int id = idx(j, i-1,k_dim+1);
-        hh[id] = (2-rv[j])*hh[id];
-        (*(cogmres_functions->Axpy))(-hh[id],p[j],w);
+        hh[id] = (-1.0)*(2-rv[j])*hh[id];
+        //(*(cogmres_functions->Axpy))(-hh[id],p[j],w);
         t2 += (hh[id]*hh[id]);        
         //hypre_printf("adding %f to t2 = %f , current hh[%d][%d] = %f \n", (hh[j][i-1]*hh[j][i-1]), t2, j, i-1, hh[j][i-1]);
       }
+        (*(cogmres_functions->MassAxpy))(&hh[(i-1)*(k_dim+1)],p,w, i);
+      for (j=0; j<i; j++){
+       HYPRE_Int id = idx(j, i-1,k_dim+1);
+
+  hh[id] = (-1.0)*hh[id];
+      }
+
+
+//hypre_printf("mass axpy! I should diverge! \n");
       //   H(i+1,i) = sqrt( norm(w) - norm(H(1:i,i))*vs(i) )*sqrt( norm(w) + norm(H(1:i,i))*vs(i) );
 
       // t = norm(w)

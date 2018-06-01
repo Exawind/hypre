@@ -227,6 +227,21 @@ hypre_ParKrylovAxpy( HYPRE_Complex alpha,
 }
 
 /*--------------------------------------------------------------------------
+ * hypre_ParKrylovMassAxpy
+ *--------------------------------------------------------------------------*/
+
+void
+hypre_ParKrylovMassAxpy( HYPRE_Real * alpha,
+                     void   **x,
+                     void   *y ,
+                     HYPRE_Int k){
+   return ( hypre_ParVectorMassAxpy( alpha, (hypre_ParVector **) x,
+                                 (hypre_ParVector *) y ,  k));
+}
+
+
+
+/*--------------------------------------------------------------------------
  * hypre_ParKrylovCommInfo
  *--------------------------------------------------------------------------*/
 

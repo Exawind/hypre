@@ -406,6 +406,32 @@ hypre_ParVectorAxpy( HYPRE_Complex    alpha,
   return hypre_SeqVectorAxpy( alpha, x_local, y_local);
 }
 
+
+/*--------------------------------------------------------------------------
+ * hypre_ParVectorMassAxpy: y = y + a(1) x_1 + a(2)x_2 + ... + a(k)x_k 
+ *--------------------------------------------------------------------------*/
+
+void
+hypre_ParVectorMassAxpy( HYPRE_Real * alpha,
+    hypre_ParVector **x,
+    hypre_ParVector *y ,HYPRE_Int k)
+{
+//now x local is an array of vectors.
+
+ HYPRE_Int i; 
+  hypre_Vector **x_local;
+  x_local = (hypre_Vector**) malloc(k * sizeof(hypre_Vector*));
+  for (i=0; i<k; ++i){
+    x_local[i] = (hypre_Vector*) hypre_ParVectorLocalVector(x[i]);
+  }           
+
+hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
+
+  return hypre_SeqVectorMassAxpy( alpha, x_local, y_local, k);
+}
+
+
+
 /*--------------------------------------------------------------------------
  * hypre_ParVectorInnerProd
  *--------------------------------------------------------------------------*/
@@ -435,10 +461,9 @@ hypre_ParVectorInnerProd( hypre_ParVector *x,
 /* --------
  * hypre_parVectorMassInnerProd: mass inner product; y is multiple vectors.
  */
-  void
-hypre_ParVectorMassInnerProd( hypre_ParVector *x,
-    hypre_ParVector **y, int k, HYPRE_Real *result  )
-{
+void hypre_ParVectorMassInnerProd( hypre_ParVector *x,
+    hypre_ParVector **y, int k, HYPRE_Real *result  ){
+
   MPI_Comm      comm    = hypre_ParVectorComm(x);
   hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
   int i;

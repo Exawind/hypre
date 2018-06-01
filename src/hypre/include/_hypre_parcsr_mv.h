@@ -695,6 +695,8 @@ HYPRE_Int HYPRE_ParVectorInnerProd ( HYPRE_ParVector x , HYPRE_ParVector y , HYP
 // added by KS
 // mass inner product with x being multiple vectors.
 HYPRE_Int HYPRE_ParVectorMassInnerProd ( HYPRE_ParVector x , HYPRE_ParVector y , HYPRE_Real *prod );
+void  HYPRE_ParVectorMassAxpy      ( HYPRE_Real *alpha, HYPRE_ParVector *x, HYPRE_ParVector y, HYPRE_Int k);  
+
 // end of KS code
 
 

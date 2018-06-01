@@ -550,6 +550,77 @@ hypre_SeqVectorAxpy( HYPRE_Complex alpha,
 }
 
 /*--------------------------------------------------------------------------
+ * hypre_SeqVectorMassAxpy
+ *--------------------------------------------------------------------------*/
+
+  void
+hypre_SeqVectorMassAxpy( HYPRE_Real * alpha,
+    hypre_Vector **x,
+    hypre_Vector *y, HYPRE_Int k)
+{
+#ifdef  HYPRE_USE_GPU
+  return hypre_SeqVectorAxpyDevice(alpha,x,y);
+#endif
+#ifdef HYPRE_PROFILE
+  hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
+#endif
+
+  HYPRE_Real *y_data = hypre_VectorData(y);
+  HYPRE_Real **x_data;
+
+  x_data = (HYPRE_Real **) malloc(k * sizeof(HYPRE_Real *));
+
+  HYPRE_Int      i;
+  for (i=0; i<k; ++i){
+    x_data[i] = hypre_VectorData(x[i]);
+  }
+
+  HYPRE_Int      size   = hypre_VectorSize(y);
+
+
+
+  HYPRE_Int      ierr = 0;
+
+  //size *=hypre_VectorNumVectors(x);
+
+#if defined(HYPRE_USING_MAPPED_OPENMP_OFFLOAD)
+  if (!x->mapped) hypre_SeqVectorMapToDevice(x);
+  else SyncVectorToDevice(x);
+  if (!y->mapped) hypre_SeqVectorMapToDevice(y);
+  else SyncVectorToHost(y);
+#endif
+
+#ifdef HYPRE_USE_MANAGED
+  hypre_SeqVectorPrefetchToDevice(x);
+  hypre_SeqVectorPrefetchToDevice(y);
+#endif
+
+#if defined(HYPRE_USING_OPENMP_OFFLOAD)
+#pragma omp target teams  distribute  parallel for private(i) num_teams(NUM_TEAMS) thread_limit(NUM_THREADS) is_device_ptr(y_data,x_data)
+#elif defined(HYPRE_USING_MAPPED_OPENMP_OFFLOAD)
+#pragma omp target teams  distribute  parallel for private(i) num_teams(NUM_TEAMS) thread_limit(NUM_THREADS)
+#elif defined(HYPRE_USING_OPENMP)
+  //printf("AXPY OMP \n");
+#pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
+#endif
+int j;
+  for (i = 0; i < size; i++){
+for (j = 0; j<k; j++){
+    y_data[i] += alpha[j] * x_data[j][i];
+}
+}
+
+#ifdef HYPRE_PROFILE
+  hypre_profile_times[HYPRE_TIMER_ID_BLAS1] += hypre_MPI_Wtime();
+#endif
+#ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD
+  UpdateDRC(y);
+#endif
+  return ierr;
+}
+
+
+/*--------------------------------------------------------------------------
  * hypre_SeqVectorInnerProd
  *--------------------------------------------------------------------------*/
 
@@ -623,7 +694,7 @@ void  hypre_SeqVectorMassInnerProd( hypre_Vector *x,
 
   HYPRE_Real *x_data = hypre_VectorData(x);
   HYPRE_Real **y_data;
-y_data = (HYPRE_Real **) malloc(k * sizeof(HYPRE_Real *));
+  y_data = (HYPRE_Real **) malloc(k * sizeof(HYPRE_Real *));
 
   HYPRE_Int      i;
   for (i=0; i<k; ++i){
