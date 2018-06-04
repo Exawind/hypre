@@ -604,8 +604,9 @@ hypre_SeqVectorMassAxpy( HYPRE_Real * alpha,
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
 int j;
-  for (i = 0; i < size; i++){
 for (j = 0; j<k; j++){
+
+  for (i = 0; i < size; i++){
     y_data[i] += alpha[j] * x_data[j][i];
 }
 }
