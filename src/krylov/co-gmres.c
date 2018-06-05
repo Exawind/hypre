@@ -55,25 +55,25 @@
   cogmres_functions = (hypre_COGMRESFunctions *)
     CAlloc( 1, sizeof(hypre_COGMRESFunctions), HYPRE_MEMORY_HOST );
 
-  cogmres_functions->CAlloc = CAlloc;
-  cogmres_functions->Free = Free;
-  cogmres_functions->CommInfo = CommInfo; /* not in PCGFunctionsCreate */
-  cogmres_functions->CreateVector = CreateVector;
+  cogmres_functions->CAlloc            = CAlloc;
+  cogmres_functions->Free              = Free;
+  cogmres_functions->CommInfo          = CommInfo; /* not in PCGFunctionsCreate */
+  cogmres_functions->CreateVector      = CreateVector;
   cogmres_functions->CreateVectorArray = CreateVectorArray; /* not in PCGFunctionsCreate */
-  cogmres_functions->DestroyVector = DestroyVector;
-  cogmres_functions->MatvecCreate = MatvecCreate;
-  cogmres_functions->Matvec = Matvec;
-  cogmres_functions->MatvecDestroy = MatvecDestroy;
-  cogmres_functions->InnerProd = InnerProd;
-  cogmres_functions->MassInnerProd = MassInnerProd;
-  cogmres_functions->CopyVector = CopyVector;
-  cogmres_functions->ClearVector = ClearVector;
-  cogmres_functions->ScaleVector = ScaleVector;
-  cogmres_functions->Axpy = Axpy;
-  cogmres_functions->MassAxpy = MassAxpy;
+  cogmres_functions->DestroyVector     = DestroyVector;
+  cogmres_functions->MatvecCreate      = MatvecCreate;
+  cogmres_functions->Matvec            = Matvec;
+  cogmres_functions->MatvecDestroy     = MatvecDestroy;
+  cogmres_functions->InnerProd         = InnerProd;
+  cogmres_functions->MassInnerProd     = MassInnerProd;
+  cogmres_functions->CopyVector        = CopyVector;
+  cogmres_functions->ClearVector       = ClearVector;
+  cogmres_functions->ScaleVector       = ScaleVector;
+  cogmres_functions->Axpy              = Axpy;
+  cogmres_functions->MassAxpy          = MassAxpy;
   /* default preconditioner must be set here but can be changed later... */
-  cogmres_functions->precond_setup = PrecondSetup;
-  cogmres_functions->precond       = Precond;
+  cogmres_functions->precond_setup     = PrecondSetup;
+  cogmres_functions->precond           = Precond;
 
   return cogmres_functions;
 }
@@ -189,12 +189,11 @@ hypre_COGMRESSetup( void *cogmres_vdata,
   hypre_COGMRESData *cogmres_data     = (hypre_COGMRESData *)cogmres_vdata;
   hypre_COGMRESFunctions *cogmres_functions = cogmres_data->functions;
 
-  HYPRE_Int            k_dim            = (cogmres_data -> k_dim);
-  HYPRE_Int            max_iter         = (cogmres_data -> max_iter);
-  HYPRE_Int          (*precond_setup)(void*,void*,void*,void*) = (cogmres_functions->precond_setup);
-  void          *precond_data     = (cogmres_data -> precond_data);
-
-  HYPRE_Int            rel_change       = (cogmres_data -> rel_change);
+  HYPRE_Int k_dim                                     = (cogmres_data -> k_dim);
+  HYPRE_Int max_iter                                  = (cogmres_data -> max_iter);
+  HYPRE_Int (*precond_setup)(void*,void*,void*,void*) = (cogmres_functions->precond_setup);
+  void       *precond_data                            = (cogmres_data -> precond_data);
+  HYPRE_Int rel_change                                = (cogmres_data -> rel_change);
 
 
 
@@ -258,18 +257,18 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 
   double time1, time2, time3, time4;
 
-  time1 = MPI_Wtime(); 
-  hypre_COGMRESData  *cogmres_data   = (hypre_COGMRESData *)cogmres_vdata;
+  time1                                     = MPI_Wtime(); 
+  hypre_COGMRESData      *cogmres_data      = (hypre_COGMRESData *)cogmres_vdata;
   hypre_COGMRESFunctions *cogmres_functions = cogmres_data->functions;
-  HYPRE_Int 		     k_dim        = (cogmres_data -> k_dim);
-  HYPRE_Int               min_iter     = (cogmres_data -> min_iter);
-  HYPRE_Int 		     max_iter     = (cogmres_data -> max_iter);
-  HYPRE_Int               rel_change   = (cogmres_data -> rel_change);
-  HYPRE_Int         skip_real_r_check  = (cogmres_data -> skip_real_r_check);
-  HYPRE_Real 	     r_tol        = (cogmres_data -> tol);
-  HYPRE_Real 	     cf_tol       = (cogmres_data -> cf_tol);
-  HYPRE_Real        a_tol        = (cogmres_data -> a_tol);
-  void             *matvec_data  = (cogmres_data -> matvec_data);
+  HYPRE_Int               k_dim             = (cogmres_data -> k_dim);
+  HYPRE_Int               min_iter          = (cogmres_data -> min_iter);
+  HYPRE_Int               max_iter          = (cogmres_data -> max_iter);
+  HYPRE_Int               rel_change        = (cogmres_data -> rel_change);
+  HYPRE_Int               skip_real_r_check = (cogmres_data -> skip_real_r_check);
+  HYPRE_Real              r_tol             = (cogmres_data -> tol);
+  HYPRE_Real              cf_tol            = (cogmres_data -> cf_tol);
+  HYPRE_Real              a_tol             = (cogmres_data -> a_tol);
+  void                   *matvec_data       = (cogmres_data -> matvec_data);
 
   void             *r            = (cogmres_data -> r);
   void             *w            = (cogmres_data -> w);
@@ -279,23 +278,23 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
   void            **p            = (cogmres_data -> p);
 
 
-  HYPRE_Int 	           (*precond)(void*,void*,void*,void*)   = (cogmres_functions -> precond);
-  HYPRE_Int 	            *precond_data = (HYPRE_Int*)(cogmres_data -> precond_data);
+  HYPRE_Int (*precond)(void*,void*,void*,void*) = (cogmres_functions -> precond);
+  HYPRE_Int  *precond_data                      = (HYPRE_Int*)(cogmres_data -> precond_data);
 
-  HYPRE_Int             print_level    = (cogmres_data -> print_level);
-  HYPRE_Int             logging        = (cogmres_data -> logging);
+  HYPRE_Int print_level = (cogmres_data -> print_level);
+  HYPRE_Int logging     = (cogmres_data -> logging);
 
   HYPRE_Real     *norms          = (cogmres_data -> norms);
   /* not used yet   char           *log_file_name  = (cogmres_data -> log_file_name);*/
   /*   FILE           *fp; */
 
-  HYPRE_Int        break_value = 0;
-  HYPRE_Int	      i, j, k;
+  HYPRE_Int  break_value = 0;
+  HYPRE_Int  i, j, k;
   /*KS: rv is the norm history */
   HYPRE_Real *rs, *hh, *c, *s, *rs_2, *rv;
   //, *tmp; 
-  HYPRE_Int        iter; 
-  HYPRE_Int        my_id, num_procs;
+  HYPRE_Int  iter; 
+  HYPRE_Int  my_id, num_procs;
   HYPRE_Real epsilon, gamma, t, r_norm, b_norm, den_norm, x_norm;
   HYPRE_Real w_norm;
 
@@ -330,8 +329,8 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 
   /* initialize work arrays */
   rs = hypre_CTAllocF(HYPRE_Real,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST);
-  c = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
-  s = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
+  c  = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
+  s  = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
   //tmp  = hypre_CTAllocF(HYPRE_Real,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST);
   if (rel_change) rs_2 = hypre_CTAllocF(HYPRE_Real,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST); 
 
@@ -339,7 +338,7 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
   rv = hypre_CTAllocF(HYPRE_Real, k_dim+1, cogmres_functions, HYPRE_MEMORY_HOST);
   //hh = hypre_CTAllocF(HYPRE_Real*,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST);
   //for (i=0; i < k_dim+1; i++)
-  //{	
+  //{ 
   //hh[i] = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
   //}
   //
@@ -375,7 +374,7 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
     return hypre_error_flag;
   }
 
-  r_norm = sqrt((*(cogmres_functions->InnerProd))(p[0],p[0]));
+  r_norm   = sqrt((*(cogmres_functions->InnerProd))(p[0],p[0]));
   r_norm_0 = r_norm;
 
   /* Since it is does not diminish performance, attempt to return an error flag
@@ -520,14 +519,20 @@ while (iter < max_iter)
         time1 = MPI_Wtime();
         i++;
         iter++;
+
         (*(cogmres_functions->ClearVector))(r);
+        
         time2 = MPI_Wtime();
         remainingTime += (time2-time1);
         time1 = MPI_Wtime();
+
         precond(precond_data, A, p[i-1], r);
-time3 = MPI_Wtime();
-  preconTime += (time3 - time1);    
-  (*(cogmres_functions->Matvec))(matvec_data, 1.0, A, r, 0.0, p[i]);
+        
+        time3 = MPI_Wtime();
+        preconTime += (time3 - time1);    
+        
+        (*(cogmres_functions->Matvec))(matvec_data, 1.0, A, r, 0.0, p[i]);
+        
         time2 = MPI_Wtime();
         mvTime += (time2-time3);
         matvecPreconTime += (time2-time1);   
@@ -544,9 +549,11 @@ time3 = MPI_Wtime();
         // hypre_printf("about to start multi IP \n");  
         //(*(cogmres_functions->MassInnerProd))((void *) p[i], p,(HYPRE_Int) i, tmp);
         time1=MPI_Wtime();      
+        
         (*(cogmres_functions->MassInnerProd))((void *) p[i], p,(HYPRE_Int) i, &hh[(i-1)*(k_dim+1)]);
-time3 = MPI_Wtime();
-massIPTime += time3-time1;      
+        
+        time3 = MPI_Wtime();
+        massIPTime += time3-time1;      
   //   z = w - V(:,1:i)*H(1:i,i);
         (*(cogmres_functions->ClearVector))(w);
         (*(cogmres_functions->CopyVector))(p[i],w);
@@ -554,24 +561,27 @@ massIPTime += time3-time1;
         HYPRE_Real t2 = 0.0;
         for (j=0; j<i; j++){
           HYPRE_Int id = idx(j, i-1,k_dim+1);
-          hh[id] = (-1.0)*(2-rv[j])*hh[id];
-          t2 += (hh[id]*hh[id]);        
+          hh[id]       = (-1.0)*(2-rv[j])*hh[id];
+          t2          += (hh[id]*hh[id]);        
         }
-time4 = MPI_Wtime();
+        
+        time4 = MPI_Wtime();
+        
         (*(cogmres_functions->MassAxpy))(&hh[(i-1)*(k_dim+1)],p,w, i);
-time3 = MPI_Wtime();
-massAxpyTime += time3-time4;      
+        
+        time3 = MPI_Wtime();
+        
+        massAxpyTime += time3-time4;      
 
         for (j=0; j<i; j++){
           HYPRE_Int id = idx(j, i-1,k_dim+1);
-
-          hh[id] = (-1.0)*hh[id];
+          hh[id]       = (-1.0)*hh[id];
         }
 
 
         t2 = sqrt(t2)*sqrt(rv[i-1]);
-        t = sqrt( (*(cogmres_functions->InnerProd))(p[i],p[i]) );
-        hh[idx(i, i-1,k_dim+1)] = sqrt(t-t2)*sqrt(t2+t);	
+        t  = sqrt( (*(cogmres_functions->InnerProd))(p[i],p[i]) );
+        hh[idx(i, i-1,k_dim+1)] = sqrt(t-t2)*sqrt(t2+t);  
 
 
 
@@ -585,7 +595,7 @@ massAxpyTime += time3-time4;
                      (*(cogmres_functions->Axpy))(-hh[j][i-1],p[j],p[i]);
                      }
                      t = sqrt((*(cogmres_functions->InnerProd))(p[i],p[i]));
-                     hh[i][i-1] = t;*/	
+                     hh[i][i-1] = t;*/  
         if (hh[idx(i,i-1,k_dim+1)] != 0.0)
         {
           t = 1.0/hh[idx(i,i-1,k_dim+1)];
@@ -608,7 +618,7 @@ massAxpyTime += time3-time4;
             */     
           t = hh[idx(j-1,i-1,k_dim+1)];
           hh[idx(j-1,i-1,k_dim+1)] = s[j-1]*hh[idx(j,i-1,k_dim+1)] + c[j-1]*t;
-          hh[idx(j,i-1, k_dim+1)] = -s[j-1]*t + c[j-1]*hh[idx(j,i-1,k_dim+1)];
+          hh[idx(j,i-1, k_dim+1)]  = -s[j-1]*t + c[j-1]*hh[idx(j,i-1,k_dim+1)];
 
         }
         /*   t= hh[i][i-1]*hh[i][i-1];
@@ -624,14 +634,14 @@ massAxpyTime += time3-time4;
         hh[i-1][i-1] = s[i-1]*hh[i][i-1] + c[i-1]*hh[i-1][i-1];
         r_norm = fabs(rs[i]);
         */
-        t= hh[idx(i, i-1, k_dim+1)]*hh[idx(i,i-1, k_dim+1)];
-        t+= hh[idx(i-1,i-1, k_dim+1)]*hh[idx(i-1,i-1, k_dim+1)];
+        t     = hh[idx(i, i-1, k_dim+1)]*hh[idx(i,i-1, k_dim+1)];
+        t    += hh[idx(i-1,i-1, k_dim+1)]*hh[idx(i-1,i-1, k_dim+1)];
         gamma = sqrt(t);
         if (gamma == 0.0) gamma = epsmac;
-        c[i-1] = hh[idx(i-1,i-1, k_dim+1)]/gamma;
-        s[i-1] = hh[idx(i,i-1, k_dim+1)]/gamma;
-        rs[i] = -hh[idx(i,i-1, k_dim+1)]*rs[i-1];
-        rs[i]/=  gamma;
+        c[i-1]  = hh[idx(i-1,i-1, k_dim+1)]/gamma;
+        s[i-1]  = hh[idx(i,i-1, k_dim+1)]/gamma;
+        rs[i]   = -hh[idx(i,i-1, k_dim+1)]*rs[i-1];
+        rs[i]  /= gamma;
         rs[i-1] = c[i-1]*rs[i-1];
         // determine residual norm 
         hh[idx(i-1,i-1, k_dim+1)] = s[i-1]*hh[idx(i,i-1, k_dim+1)] + c[i-1]*hh[idx(i-1,i-1, k_dim+1)];
@@ -660,9 +670,9 @@ massAxpyTime += time3-time4;
           cf_ave_0 = cf_ave_1;
           cf_ave_1 = pow( r_norm / r_norm_0, 1.0/(2.0*iter));
 
-          weight   = fabs(cf_ave_1 - cf_ave_0);
-          weight   = weight / hypre_max(cf_ave_1, cf_ave_0);
-          weight   = 1.0 - weight;
+          weight = fabs(cf_ave_1 - cf_ave_0);
+          weight = weight / hypre_max(cf_ave_1, cf_ave_0);
+          weight = 1.0 - weight;
 #if 0
           hypre_printf("I = %d: cf_new = %e, cf_old = %e, weight = %e\n",
               i, cf_ave_1, cf_ave_0, weight );
@@ -974,9 +984,6 @@ massAxpyTime += time3-time4;
       hypre_printf("mass Axpy            = %16.16f \n", massAxpyTime);
       hypre_printf("precon multiply      = %16.16f \n", preconTime);
       hypre_printf("mv time              = %16.16f \n", mvTime);
-
-  
-
     }
     (cogmres_data -> num_iterations) = iter;
     if (b_norm > 0.0)
@@ -992,7 +999,7 @@ massAxpyTime += time3-time4;
     if (rel_change)  hypre_TFreeF(rs_2,cogmres_functions);
 
     /* for (i=0; i < k_dim+1; i++)
-       {	
+       {  
        hypre_TFreeF(hh[i],cogmres_functions);
        }*/
     hypre_TFreeF(hh,cogmres_functions); 

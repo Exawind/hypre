@@ -107,19 +107,15 @@ hypre_CSRBlockMatrixMatvec(HYPRE_Complex alpha, hypre_CSRBlockMatrix *A,
 #pragma omp parallel for private(i,jj,b1,b2,temp) HYPRE_SMP_SCHEDULE
 #endif
 
-   for (i = 0; i < num_rows; i++)
-   {
-      for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-      {
-         for (b1 = 0; b1 < blk_size; b1++)
-         {
-            temp = y_data[i*blk_size+b1];
-            for (b2 = 0; b2 < blk_size; b2++)
-               temp += A_data[jj*bnnz+b1*blk_size+b2] * x_data[A_j[jj]*blk_size+b2];
-            y_data[i*blk_size+b1] = temp;
-         }
-      }
-   }
+    for (i  = 0;       i < num_rows; i++ )
+    for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+    for (b1 = 0;      b1 < blk_size; b1++)
+    {
+      temp = y_data[i*blk_size+b1];
+      for (b2 = 0; b2 < blk_size; b2++)
+        temp += A_data[jj*bnnz+b1*blk_size+b2] * x_data[A_j[jj]*blk_size+b2];
+      y_data[i*blk_size+b1] = temp;
+    }
 
    /*-----------------------------------------------------------------
     * y = alpha*y
@@ -240,22 +236,15 @@ hypre_CSRBlockMatrixMatvecT( HYPRE_Complex         alpha,
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i, jj,j, b1, b2) HYPRE_SMP_SCHEDULE
 #endif
-    
-   for (i = 0; i < num_rows; i++)
-   {
-      for (jj = A_i[i]; jj < A_i[i+1]; jj++) /*each nonzero in that row*/
-      {
-         for (b1 = 0; b1 < blk_size; b1++) /*row */
-         {
-            for (b2 = 0; b2 < blk_size; b2++) /*col*/
-            {
-               j = A_j[jj]; /*col */
-               y_data[j*blk_size+b2] +=
-                  A_data[jj*bnnz+b1*blk_size+b2] * x_data[i*blk_size + b1];
-            }
-         }
-      }
-   }
+
+    for (i  = 0;       i < num_rows; i++ )
+    for (jj = A_i[i]; jj < A_i[i+1]; jj++) /*each nonzero in that row*/
+    for (b1 = 0;      b1 < blk_size; b1++) /*row */
+    for (b2 = 0;      b2 < blk_size; b2++) /*col*/
+    {
+      j = A_j[jj]; /*col */
+      y_data[j*blk_size+b2] += A_data[jj*bnnz+b1*blk_size+b2] * x_data[i*blk_size + b1];
+    }
       
    /*-----------------------------------------------------------------
     * y = alpha*y
