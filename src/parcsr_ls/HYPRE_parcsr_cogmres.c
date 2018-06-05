@@ -146,7 +146,7 @@ HYPRE_Int
 HYPRE_ParCSRCOGMRESSetStopCrit( HYPRE_Solver solver,
                               HYPRE_Int          stop_crit )
 {
-   return( HYPRE_COGMRESSetStopCrit( solver, stop_crit ) );
+   return( HYPRE_GMRESSetStopCrit( solver, stop_crit ) );
 }
 
 /*--------------------------------------------------------------------------
