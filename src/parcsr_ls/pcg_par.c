@@ -170,8 +170,7 @@ hypre_ParKrylovInnerProd( void *x,
 /*--------------------------------------------------------------------------
  * hypre_ParKrylovMassInnerProd // written by KS
  *--------------------------------------------------------------------------*/
-
-void
+void 
 hypre_ParKrylovMassInnerProd( void *x, 
                           void **y, int k, void  * result )
 {

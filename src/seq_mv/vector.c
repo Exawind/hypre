@@ -558,12 +558,12 @@ hypre_SeqVectorMassAxpy( HYPRE_Real * alpha,
     hypre_Vector **x,
     hypre_Vector *y, HYPRE_Int k)
 {
-#ifdef  HYPRE_USE_GPU
+/*#ifdef  HYPRE_USE_GPU
   return hypre_SeqVectorAxpyDevice(alpha,x,y);
 #endif
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
-#endif
+#endif*/
 
   HYPRE_Real *y_data = hypre_VectorData(y);
   HYPRE_Real **x_data;
@@ -590,10 +590,10 @@ hypre_SeqVectorMassAxpy( HYPRE_Real * alpha,
   else SyncVectorToHost(y);
 #endif
 
-#ifdef HYPRE_USE_MANAGED
+/*#ifdef HYPRE_USE_MANAGED
   hypre_SeqVectorPrefetchToDevice(x);
   hypre_SeqVectorPrefetchToDevice(y);
-#endif
+#endif*/
 
 #if defined(HYPRE_USING_OPENMP_OFFLOAD)
 #pragma omp target teams  distribute  parallel for private(i) num_teams(NUM_TEAMS) thread_limit(NUM_THREADS) is_device_ptr(y_data,x_data)
@@ -614,10 +614,10 @@ for (j = 0; j<k; j++){
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] += hypre_MPI_Wtime();
 #endif
-#ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD
+/*#ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD
   UpdateDRC(y);
 #endif
-  return ierr;
+  return ierr;*/
 }
 
 
@@ -678,9 +678,9 @@ HYPRE_Real   hypre_SeqVectorInnerProd( hypre_Vector *x,
 void  hypre_SeqVectorMassInnerProd( hypre_Vector *x,
     hypre_Vector **y, int k, HYPRE_Real *result )
 {
-#ifdef HYPRE_USE_GPU
+/*#ifdef HYPRE_USE_GPU
   return hypre_SeqVectorInnerProdDevice(x,y);
-#endif
+#endif*/
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
 #endif
