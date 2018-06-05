@@ -49,7 +49,7 @@
       void         (*MassAxpy)      ( HYPRE_Real *alpha, void **x, void *y, HYPRE_Int k),   
       HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
       HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
-      )
+)
 {
   hypre_COGMRESFunctions * cogmres_functions;
   cogmres_functions = (hypre_COGMRESFunctions *)
@@ -255,6 +255,10 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
     void  *b,
     void  *x)
 {
+
+  double time1, time2, time3, time4;
+
+  time1 = MPI_Wtime(); 
   hypre_COGMRESData  *cogmres_data   = (hypre_COGMRESData *)cogmres_vdata;
   hypre_COGMRESFunctions *cogmres_functions = cogmres_data->functions;
   HYPRE_Int 		     k_dim        = (cogmres_data -> k_dim);
@@ -454,305 +458,415 @@ tol only is checked  */
   /* once the rel. change check has passed, we do not want to check it again */
   rel_change_passed = 0;
 
-
-  /* outer iteration cycle */
-  while (iter < max_iter)
-  {
-    /* initialize first term of hessenberg system */
-
-    rs[0] = r_norm;
-    rv[0] = 1.0;
-    if (r_norm == 0.0)
+  time2 = MPI_Wtime();
+  if (my_id == 0){
+    hypre_printf("GMRES INIT TIME: %16.16f", time2-time1); 
+  }  /* outer iteration cycle */
+    double gsTime = 0.0, matvecPreconTime = 0.0, linSolveTime= 0.0, remainingTime = 0.0; 
+double massAxpyTime =0.0; double massIPTime = 0.0f, preconTime = 0.0f, mvTime = 0.0f;    
+while (iter < max_iter)
     {
-      hypre_TFreeF(c,cogmres_functions); 
-      hypre_TFreeF(s,cogmres_functions); 
-      hypre_TFreeF(rs,cogmres_functions);
-      if (rel_change)  hypre_TFreeF(rs_2,cogmres_functions);
-      //for (i=0; i < k_dim+1; i++) hypre_TFreeF(hh[i],cogmres_functions);
-      hypre_TFreeF(hh,cogmres_functions); 
-      return hypre_error_flag;
-
-    }
-
-    /* see if we are already converged and 
-       should print the final norm and exit */
-    if (r_norm  <= epsilon && iter >= min_iter) 
-    {
-      if (!rel_change) /* shouldn't exit after no iterations if
-                        * relative change is on*/
+      /* initialize first term of hessenberg system */
+      time1 = MPI_Wtime();
+      rs[0] = r_norm;
+      rv[0] = 1.0;
+      if (r_norm == 0.0)
       {
-        (*(cogmres_functions->CopyVector))(b,r);
-        (*(cogmres_functions->Matvec))(matvec_data,-1.0,A,x,1.0,r);
-        r_norm = sqrt((*(cogmres_functions->InnerProd))(r,r));
-        if (r_norm  <= epsilon)
+        hypre_TFreeF(c,cogmres_functions); 
+        hypre_TFreeF(s,cogmres_functions); 
+        hypre_TFreeF(rs,cogmres_functions);
+        if (rel_change)  hypre_TFreeF(rs_2,cogmres_functions);
+        //for (i=0; i < k_dim+1; i++) hypre_TFreeF(hh[i],cogmres_functions);
+        hypre_TFreeF(hh,cogmres_functions); 
+        return hypre_error_flag;
+
+      }
+
+      /* see if we are already converged and 
+         should print the final norm and exit */
+      if (r_norm  <= epsilon && iter >= min_iter) 
+      {
+        if (!rel_change) /* shouldn't exit after no iterations if
+                          * relative change is on*/
         {
-          if ( print_level>1 && my_id == 0)
+          (*(cogmres_functions->CopyVector))(b,r);
+          (*(cogmres_functions->Matvec))(matvec_data,-1.0,A,x,1.0,r);
+          r_norm = sqrt((*(cogmres_functions->InnerProd))(r,r));
+          if (r_norm  <= epsilon)
           {
-            hypre_printf("\n\n");
-            hypre_printf("Final L2 norm of residual: %e\n\n", r_norm);
-          }
-          break;
-        }
-        else
-          if ( print_level>0 && my_id == 0)
-            hypre_printf("false convergence 1\n");
-      }
-    }
-
-
-
-    t = 1.0 / r_norm;
-    (*(cogmres_functions->ScaleVector))(t,p[0]);
-    i = 0;
-
-    /***RESTART CYCLE (right-preconditioning) ***/
-    while (i < k_dim && iter < max_iter)
-    {
-      i++;
-      iter++;
-      (*(cogmres_functions->ClearVector))(r);
-      precond(precond_data, A, p[i-1], r);
-      (*(cogmres_functions->Matvec))(matvec_data, 1.0, A, r, 0.0, p[i]);
-      /** KS & ST: we replace mGS with custom version **/
-      //  H(1:i,i) = (2 - vm(1:i)).*(V(:,1:i)'*w);
-      // BRUTE FORCE
-      //
-      //need multiIP here
-      /* for (j=0; j<i; j++){
-         hh[j][i-1] = (*(cogmres_functions->InnerProd))(p[j],p[i]);
-         hh[j][i-1] = (2-rv[j])*hh[j][i-1];
-      //   hypre_printf("BF h[%d][%d] = %16.16f \n", j, i-1, hh[j][i-1]);
-      }*/
-      // hypre_printf("about to start multi IP \n");  
-      //(*(cogmres_functions->MassInnerProd))((void *) p[i], p,(HYPRE_Int) i, tmp);
-      (*(cogmres_functions->MassInnerProd))((void *) p[i], p,(HYPRE_Int) i, &hh[(i-1)*(k_dim+1)]);
-      for (j=0; j<i; j++){
-        //hh[j][i-1] = tmp[j];
-
-        //        hh[j][i-1] = (2-rv[j])*hh[j][i-1];
-        //   hypre_printf("hh[%d][%d] = %16.16f \n", j, i-1, tmp[j]);
-        //tmp[j] = 0.0f;        
-
-      }
-
-      //   z = w - V(:,1:i)*H(1:i,i);
-      (*(cogmres_functions->ClearVector))(w);
-      (*(cogmres_functions->CopyVector))(p[i],w);
-
-      HYPRE_Real t2 = 0.0;
-      for (j=0; j<i; j++){
-        //(*(cogmres_functions->Axpy))(-hh[j][i-1],p[j],w);
-        //t2 += (hh[j][i-1]*hh[j][i-1]);
-        HYPRE_Int id = idx(j, i-1,k_dim+1);
-        hh[id] = (-1.0)*(2-rv[j])*hh[id];
-        //(*(cogmres_functions->Axpy))(-hh[id],p[j],w);
-        t2 += (hh[id]*hh[id]);        
-        //hypre_printf("adding %f to t2 = %f , current hh[%d][%d] = %f \n", (hh[j][i-1]*hh[j][i-1]), t2, j, i-1, hh[j][i-1]);
-      }
-        (*(cogmres_functions->MassAxpy))(&hh[(i-1)*(k_dim+1)],p,w, i);
-      for (j=0; j<i; j++){
-       HYPRE_Int id = idx(j, i-1,k_dim+1);
-
-  hh[id] = (-1.0)*hh[id];
-      }
-
-
-//hypre_printf("mass axpy! I should diverge! \n");
-      //   H(i+1,i) = sqrt( norm(w) - norm(H(1:i,i))*vs(i) )*sqrt( norm(w) + norm(H(1:i,i))*vs(i) );
-
-      // t = norm(w)
-      //hypre_printf("need to multiply t2 by %f \n", sqrt(rv[i-1]));
-      t2 = sqrt(t2)*sqrt(rv[i-1]);
-      /*sqrt(t - norm(H(1:i, i)*vs(i)) * sqrt(t + norm(H(1:,i)*vs(i);*/
-      t = sqrt( (*(cogmres_functions->InnerProd))(p[i],p[i]) );
-      //    hypre_printf("t = %f t2 = %f  \n", t, t2);
-      hh[idx(i, i-1,k_dim+1)] = sqrt(t-t2)*sqrt(t2+t);	
-
-      //  hypre_printf("h[%d,%d]  = %f \n", i,i-1, hh[i][i-1]);
-
-      // V(:, j+1) = w/H(i+1,i);
-
-
-
-
-      /** KS & ST: end of our code **/
-
-
-      /* modified Gram_Schmidt */
-      /*           for (j=0; j < i; j++)
-                   {
-                   hh[j][i-1] = (*(cogmres_functions->InnerProd))(p[j],p[i]);
-                   (*(cogmres_functions->Axpy))(-hh[j][i-1],p[j],p[i]);
-                   }
-                   t = sqrt((*(cogmres_functions->InnerProd))(p[i],p[i]));
-                   hh[i][i-1] = t;*/	
-      if (hh[idx(i,i-1,k_dim+1)] != 0.0)
-      {
-        t = 1.0/hh[idx(i,i-1,k_dim+1)];
-        (*(cogmres_functions->ScaleVector))(t,w);
-        (*(cogmres_functions->CopyVector))(w, p[i]);
-        rv[i] = sqrt( (*(cogmres_functions->InnerProd))(p[i],p[i]) );
-
-
-      }
-      /* done with modified Gram_schmidt and Arnoldi step.
-         update factorization of hh */
-      for (j = 1; j < i; j++)
-      {
-        /*t = hh[j-1][i-1];
-          hh[j-1][i-1] = s[j-1]*hh[j][i-1] + c[j-1]*t;
-          hh[j][i-1] = -s[j-1]*t + c[j-1]*hh[j][i-1];
-          */     
-        t = hh[idx(j-1,i-1,k_dim+1)];
-        hh[idx(j-1,i-1,k_dim+1)] = s[j-1]*hh[idx(j,i-1,k_dim+1)] + c[j-1]*t;
-        hh[idx(j,i-1, k_dim+1)] = -s[j-1]*t + c[j-1]*hh[idx(j,i-1,k_dim+1)];
-
-      }
-      /*   t= hh[i][i-1]*hh[i][i-1];
-           t+= hh[i-1][i-1]*hh[i-1][i-1];
-           gamma = sqrt(t);
-           if (gamma == 0.0) gamma = epsmac;
-           c[i-1] = hh[i-1][i-1]/gamma;
-           s[i-1] = hh[i][i-1]/gamma;
-           rs[i] = -hh[i][i-1]*rs[i-1];
-           rs[i]/=  gamma;
-           rs[i-1] = c[i-1]*rs[i-1];
-      // determine residual norm 
-      hh[i-1][i-1] = s[i-1]*hh[i][i-1] + c[i-1]*hh[i-1][i-1];
-      r_norm = fabs(rs[i]);
-      */
-      t= hh[idx(i, i-1, k_dim+1)]*hh[idx(i,i-1, k_dim+1)];
-      t+= hh[idx(i-1,i-1, k_dim+1)]*hh[idx(i-1,i-1, k_dim+1)];
-      gamma = sqrt(t);
-      if (gamma == 0.0) gamma = epsmac;
-      c[i-1] = hh[idx(i-1,i-1, k_dim+1)]/gamma;
-      s[i-1] = hh[idx(i,i-1, k_dim+1)]/gamma;
-      rs[i] = -hh[idx(i,i-1, k_dim+1)]*rs[i-1];
-      rs[i]/=  gamma;
-      rs[i-1] = c[i-1]*rs[i-1];
-      // determine residual norm 
-      hh[idx(i-1,i-1, k_dim+1)] = s[i-1]*hh[idx(i,i-1, k_dim+1)] + c[i-1]*hh[idx(i-1,i-1, k_dim+1)];
-      r_norm = fabs(rs[i]);
-      /* print ? */
-      if ( print_level>0 )
-      {
-        norms[iter] = r_norm;
-        if ( print_level>1 && my_id == 0 )
-        {
-          if (b_norm > 0.0)
-            hypre_printf("% 5d    %e    %f   %e\n", iter, 
-                norms[iter],norms[iter]/norms[iter-1],
-                norms[iter]/b_norm);
-          else
-            hypre_printf("% 5d    %e    %f\n", iter, norms[iter],
-                norms[iter]/norms[iter-1]);
-        }
-      }
-      /*convergence factor tolerance */
-      if (cf_tol > 0.0)
-      {
-        cf_ave_0 = cf_ave_1;
-        cf_ave_1 = pow( r_norm / r_norm_0, 1.0/(2.0*iter));
-
-        weight   = fabs(cf_ave_1 - cf_ave_0);
-        weight   = weight / hypre_max(cf_ave_1, cf_ave_0);
-        weight   = 1.0 - weight;
-#if 0
-        hypre_printf("I = %d: cf_new = %e, cf_old = %e, weight = %e\n",
-            i, cf_ave_1, cf_ave_0, weight );
-#endif
-        if (weight * cf_ave_1 > cf_tol) 
-        {
-          break_value = 1;
-          break;
-        }
-      }
-      /* should we exit the restart cycle? (conv. check) */
-      if (r_norm <= epsilon && iter >= min_iter)
-      {
-        if (rel_change && !rel_change_passed)
-        {
-
-          /* To decide whether to break here: to actually
-             determine the relative change requires the approx
-             solution (so a triangular solve) and a
-             precond. solve - so if we have to do this many
-             times, it will be expensive...(unlike cg where is
-             is relatively straightforward)
-
-             previously, the intent (there was a bug), was to
-             exit the restart cycle based on the residual norm
-             and check the relative change outside the cycle.
-             Here we will check the relative here as we don't
-             want to exit the restart cycle prematurely */
-
-          for (k=0; k<i; k++) /* extra copy of rs so we don't need
-                                 to change the later solve */
-            rs_2[k] = rs[k];
-
-          /* solve tri. system*/
-          /*          rs_2[i-1] = rs_2[i-1]/hh[i-1][i-1];
-                      for (k = i-2; k >= 0; k--)
-                      {
-                      t = 0.0;
-                      for (j = k+1; j < i; j++)
-                      {
-                      t -= hh[k][j]*rs_2[j];
-                      }
-                      t+= rs_2[k];
-                      rs_2[k] = t/hh[k][k];
-                      }*/
-
-
-          rs_2[i-1] = rs_2[i-1]/hh[idx(i-1,i-1, k_dim+1)];
-          for (k = i-2; k >= 0; k--)
-          {
-            t = 0.0;
-            for (j = k+1; j < i; j++)
+            if ( print_level>1 && my_id == 0)
             {
-              t -= hh[idx(k,j, k_dim+1)]*rs_2[j];
+              hypre_printf("\n\n");
+              hypre_printf("Final L2 norm of residual: %e\n\n", r_norm);
             }
-            t+= rs_2[k];
-            rs_2[k] = t/hh[idx(k,k, k_dim+1)];
+            break;
           }
-          (*(cogmres_functions->CopyVector))(p[i-1],w);
-          (*(cogmres_functions->ScaleVector))(rs_2[i-1],w);
-          for (j = i-2; j >=0; j--)
-            (*(cogmres_functions->Axpy))(rs_2[j], p[j], w);
+          else
+            if ( print_level>0 && my_id == 0)
+              hypre_printf("false convergence 1\n");
+        }
+      }
 
-          (*(cogmres_functions->ClearVector))(r);
-          /* find correction (in r) */
-          precond(precond_data, A, w, r);
-          /* copy current solution (x) to w (don't want to over-write x)*/
-          (*(cogmres_functions->CopyVector))(x,w);
 
-          /* add the correction */
-          (*(cogmres_functions->Axpy))(1.0,r,w);
 
-          /* now w is the approx solution  - get the norm*/
-          x_norm = sqrt( (*(cogmres_functions->InnerProd))(w,w) );
+      t = 1.0 / r_norm;
+      (*(cogmres_functions->ScaleVector))(t,p[0]);
+      i = 0;
+      time2 = MPI_Wtime();
+      remainingTime += (time2-time1);
+      /***RESTART CYCLE (right-preconditioning) ***/
+      while (i < k_dim && iter < max_iter)
+      {
+        time1 = MPI_Wtime();
+        i++;
+        iter++;
+        (*(cogmres_functions->ClearVector))(r);
+        time2 = MPI_Wtime();
+        remainingTime += (time2-time1);
+        time1 = MPI_Wtime();
+        precond(precond_data, A, p[i-1], r);
+time3 = MPI_Wtime();
+  preconTime += (time3 - time1);    
+  (*(cogmres_functions->Matvec))(matvec_data, 1.0, A, r, 0.0, p[i]);
+        time2 = MPI_Wtime();
+        mvTime += (time2-time3);
+        matvecPreconTime += (time2-time1);   
+        /** KS & ST: we replace mGS with custom version **/
+        //  H(1:i,i) = (2 - vm(1:i)).*(V(:,1:i)'*w);
+        // BRUTE FORCE
+        //
+        //need multiIP here
+        /* for (j=0; j<i; j++){
+           hh[j][i-1] = (*(cogmres_functions->InnerProd))(p[j],p[i]);
+           hh[j][i-1] = (2-rv[j])*hh[j][i-1];
+        //   hypre_printf("BF h[%d][%d] = %16.16f \n", j, i-1, hh[j][i-1]);
+        }*/
+        // hypre_printf("about to start multi IP \n");  
+        //(*(cogmres_functions->MassInnerProd))((void *) p[i], p,(HYPRE_Int) i, tmp);
+        time1=MPI_Wtime();      
+        (*(cogmres_functions->MassInnerProd))((void *) p[i], p,(HYPRE_Int) i, &hh[(i-1)*(k_dim+1)]);
+time3 = MPI_Wtime();
+massIPTime += time3-time1;      
+  //   z = w - V(:,1:i)*H(1:i,i);
+        (*(cogmres_functions->ClearVector))(w);
+        (*(cogmres_functions->CopyVector))(p[i],w);
 
-          if ( !(x_norm <= guard_zero_residual ))
-            /* don't divide by zero */
-          {  /* now get  x_i - x_i-1 */
+        HYPRE_Real t2 = 0.0;
+        for (j=0; j<i; j++){
+          HYPRE_Int id = idx(j, i-1,k_dim+1);
+          hh[id] = (-1.0)*(2-rv[j])*hh[id];
+          t2 += (hh[id]*hh[id]);        
+        }
+time4 = MPI_Wtime();
+        (*(cogmres_functions->MassAxpy))(&hh[(i-1)*(k_dim+1)],p,w, i);
+time3 = MPI_Wtime();
+massAxpyTime += time3-time4;      
 
-            if (num_rel_change_check)
+        for (j=0; j<i; j++){
+          HYPRE_Int id = idx(j, i-1,k_dim+1);
+
+          hh[id] = (-1.0)*hh[id];
+        }
+
+
+        t2 = sqrt(t2)*sqrt(rv[i-1]);
+        t = sqrt( (*(cogmres_functions->InnerProd))(p[i],p[i]) );
+        hh[idx(i, i-1,k_dim+1)] = sqrt(t-t2)*sqrt(t2+t);	
+
+
+
+        /** KS & ST: end of our code **/
+
+
+        /* modified Gram_Schmidt */
+        /*           for (j=0; j < i; j++)
+                     {
+                     hh[j][i-1] = (*(cogmres_functions->InnerProd))(p[j],p[i]);
+                     (*(cogmres_functions->Axpy))(-hh[j][i-1],p[j],p[i]);
+                     }
+                     t = sqrt((*(cogmres_functions->InnerProd))(p[i],p[i]));
+                     hh[i][i-1] = t;*/	
+        if (hh[idx(i,i-1,k_dim+1)] != 0.0)
+        {
+          t = 1.0/hh[idx(i,i-1,k_dim+1)];
+          (*(cogmres_functions->ScaleVector))(t,w);
+          (*(cogmres_functions->CopyVector))(w, p[i]);
+          rv[i] = sqrt( (*(cogmres_functions->InnerProd))(p[i],p[i]) );
+
+
+        }
+        time2 = MPI_Wtime();
+        gsTime += (time2-time1);
+        /* done with modified Gram_schmidt and Arnoldi step.
+           update factorization of hh */
+        time1 = MPI_Wtime();
+        for (j = 1; j < i; j++)
+        {
+          /*t = hh[j-1][i-1];
+            hh[j-1][i-1] = s[j-1]*hh[j][i-1] + c[j-1]*t;
+            hh[j][i-1] = -s[j-1]*t + c[j-1]*hh[j][i-1];
+            */     
+          t = hh[idx(j-1,i-1,k_dim+1)];
+          hh[idx(j-1,i-1,k_dim+1)] = s[j-1]*hh[idx(j,i-1,k_dim+1)] + c[j-1]*t;
+          hh[idx(j,i-1, k_dim+1)] = -s[j-1]*t + c[j-1]*hh[idx(j,i-1,k_dim+1)];
+
+        }
+        /*   t= hh[i][i-1]*hh[i][i-1];
+             t+= hh[i-1][i-1]*hh[i-1][i-1];
+             gamma = sqrt(t);
+             if (gamma == 0.0) gamma = epsmac;
+             c[i-1] = hh[i-1][i-1]/gamma;
+             s[i-1] = hh[i][i-1]/gamma;
+             rs[i] = -hh[i][i-1]*rs[i-1];
+             rs[i]/=  gamma;
+             rs[i-1] = c[i-1]*rs[i-1];
+        // determine residual norm 
+        hh[i-1][i-1] = s[i-1]*hh[i][i-1] + c[i-1]*hh[i-1][i-1];
+        r_norm = fabs(rs[i]);
+        */
+        t= hh[idx(i, i-1, k_dim+1)]*hh[idx(i,i-1, k_dim+1)];
+        t+= hh[idx(i-1,i-1, k_dim+1)]*hh[idx(i-1,i-1, k_dim+1)];
+        gamma = sqrt(t);
+        if (gamma == 0.0) gamma = epsmac;
+        c[i-1] = hh[idx(i-1,i-1, k_dim+1)]/gamma;
+        s[i-1] = hh[idx(i,i-1, k_dim+1)]/gamma;
+        rs[i] = -hh[idx(i,i-1, k_dim+1)]*rs[i-1];
+        rs[i]/=  gamma;
+        rs[i-1] = c[i-1]*rs[i-1];
+        // determine residual norm 
+        hh[idx(i-1,i-1, k_dim+1)] = s[i-1]*hh[idx(i,i-1, k_dim+1)] + c[i-1]*hh[idx(i-1,i-1, k_dim+1)];
+        r_norm = fabs(rs[i]);
+        time2 = MPI_Wtime();
+        linSolveTime  += (time2-time1);
+        /* print ? */
+        time1 = MPI_Wtime();  
+        if ( print_level>0 )
+        {
+          norms[iter] = r_norm;
+          if ( print_level>1 && my_id == 0 )
+          {
+            if (b_norm > 0.0)
+              hypre_printf("% 5d    %e    %f   %e\n", iter, 
+                  norms[iter],norms[iter]/norms[iter-1],
+                  norms[iter]/b_norm);
+            else
+              hypre_printf("% 5d    %e    %f\n", iter, norms[iter],
+                  norms[iter]/norms[iter-1]);
+          }
+        }
+        /*convergence factor tolerance */
+        if (cf_tol > 0.0)
+        {
+          cf_ave_0 = cf_ave_1;
+          cf_ave_1 = pow( r_norm / r_norm_0, 1.0/(2.0*iter));
+
+          weight   = fabs(cf_ave_1 - cf_ave_0);
+          weight   = weight / hypre_max(cf_ave_1, cf_ave_0);
+          weight   = 1.0 - weight;
+#if 0
+          hypre_printf("I = %d: cf_new = %e, cf_old = %e, weight = %e\n",
+              i, cf_ave_1, cf_ave_0, weight );
+#endif
+          if (weight * cf_ave_1 > cf_tol) 
+          {
+            break_value = 1;
+            break;
+          }
+        }
+        /* should we exit the restart cycle? (conv. check) */
+        if (r_norm <= epsilon && iter >= min_iter)
+        {
+          if (rel_change && !rel_change_passed)
+          {
+
+            /* To decide whether to break here: to actually
+               determine the relative change requires the approx
+               solution (so a triangular solve) and a
+               precond. solve - so if we have to do this many
+               times, it will be expensive...(unlike cg where is
+               is relatively straightforward)
+
+               previously, the intent (there was a bug), was to
+               exit the restart cycle based on the residual norm
+               and check the relative change outside the cycle.
+               Here we will check the relative here as we don't
+               want to exit the restart cycle prematurely */
+
+            for (k=0; k<i; k++) /* extra copy of rs so we don't need
+                                   to change the later solve */
+              rs_2[k] = rs[k];
+
+            /* solve tri. system*/
+            /*          rs_2[i-1] = rs_2[i-1]/hh[i-1][i-1];
+                        for (k = i-2; k >= 0; k--)
+                        {
+                        t = 0.0;
+                        for (j = k+1; j < i; j++)
+                        {
+                        t -= hh[k][j]*rs_2[j];
+                        }
+                        t+= rs_2[k];
+                        rs_2[k] = t/hh[k][k];
+                        }*/
+
+
+            rs_2[i-1] = rs_2[i-1]/hh[idx(i-1,i-1, k_dim+1)];
+            for (k = i-2; k >= 0; k--)
             {
-              /* have already checked once so we can avoid another precond.
-                 solve */
-              (*(cogmres_functions->CopyVector))(w, r);
-              (*(cogmres_functions->Axpy))(-1.0, w_2, r);
-              /* now r contains x_i - x_i-1*/
+              t = 0.0;
+              for (j = k+1; j < i; j++)
+              {
+                t -= hh[idx(k,j, k_dim+1)]*rs_2[j];
+              }
+              t+= rs_2[k];
+              rs_2[k] = t/hh[idx(k,k, k_dim+1)];
+            }
+            (*(cogmres_functions->CopyVector))(p[i-1],w);
+            (*(cogmres_functions->ScaleVector))(rs_2[i-1],w);
+            for (j = i-2; j >=0; j--)
+              (*(cogmres_functions->Axpy))(rs_2[j], p[j], w);
 
-              /* save current soln w in w_2 for next time */
-              (*(cogmres_functions->CopyVector))(w, w_2);
+            (*(cogmres_functions->ClearVector))(r);
+            /* find correction (in r) */
+            precond(precond_data, A, w, r);
+            /* copy current solution (x) to w (don't want to over-write x)*/
+            (*(cogmres_functions->CopyVector))(x,w);
+
+            /* add the correction */
+            (*(cogmres_functions->Axpy))(1.0,r,w);
+
+            /* now w is the approx solution  - get the norm*/
+            x_norm = sqrt( (*(cogmres_functions->InnerProd))(w,w) );
+
+            if ( !(x_norm <= guard_zero_residual ))
+              /* don't divide by zero */
+            {  /* now get  x_i - x_i-1 */
+
+              if (num_rel_change_check)
+              {
+                /* have already checked once so we can avoid another precond.
+                   solve */
+                (*(cogmres_functions->CopyVector))(w, r);
+                (*(cogmres_functions->Axpy))(-1.0, w_2, r);
+                /* now r contains x_i - x_i-1*/
+
+                /* save current soln w in w_2 for next time */
+                (*(cogmres_functions->CopyVector))(w, w_2);
+              }
+              else
+              {
+                /* first time to check rel change*/
+
+                /* first save current soln w in w_2 for next time */
+                (*(cogmres_functions->CopyVector))(w, w_2);
+
+                /* for relative change take x_(i-1) to be 
+                   x + M^{-1}[sum{j=0..i-2} rs_j p_j ]. 
+                   Now
+                   x_i - x_{i-1}= {x + M^{-1}[sum{j=0..i-1} rs_j p_j ]}
+                   - {x + M^{-1}[sum{j=0..i-2} rs_j p_j ]}
+                   = M^{-1} rs_{i-1}{p_{i-1}} */
+
+                (*(cogmres_functions->ClearVector))(w);
+                (*(cogmres_functions->Axpy))(rs_2[i-1], p[i-1], w);
+                (*(cogmres_functions->ClearVector))(r);
+                /* apply the preconditioner */
+                precond(precond_data, A, w, r);
+                /* now r contains x_i - x_i-1 */          
+              }
+              /* find the norm of x_i - x_i-1 */          
+              w_norm = sqrt( (*(cogmres_functions->InnerProd))(r,r) );
+              relative_error = w_norm/x_norm;
+              if (relative_error <= r_tol)
+              {
+                rel_change_passed = 1;
+                break;
+              }
             }
             else
             {
-              /* first time to check rel change*/
+              rel_change_passed = 1;
+              break;
 
-              /* first save current soln w in w_2 for next time */
-              (*(cogmres_functions->CopyVector))(w, w_2);
+            }
+            num_rel_change_check++;
+          }
+          else /* no relative change */
+          {
+            break;
+          }
+        }
+        time2 = MPI_Wtime();
+        remainingTime += (time2-time1);
+
+      } /*** end of restart cycle ***/
+
+      /* now compute solution, first solve upper triangular system */
+      time1 = MPI_Wtime();
+      if (break_value) break;
+      /*
+         rs[i-1] = rs[i-1]/hh[i-1][i-1];
+         for (k = i-2; k >= 0; k--)
+         {
+         t = 0.0;
+         for (j = k+1; j < i; j++)
+         {
+         t -= hh[k][j]*rs[j];
+         }
+         t+= rs[k];
+         rs[k] = t/hh[k][k];
+         }
+         */
+      rs[i-1] = rs[i-1]/hh[idx(i-1,i-1, k_dim+1)];
+      for (k = i-2; k >= 0; k--)
+      {
+        t = 0.0;
+        for (j = k+1; j < i; j++)
+        {
+          t -= hh[idx(k,j, k_dim+1)]*rs[j];
+        }
+        t+= rs[k];
+        rs[k] = t/hh[idx(k,k, k_dim+1)];
+      }
+
+      (*(cogmres_functions->CopyVector))(p[i-1],w);
+      (*(cogmres_functions->ScaleVector))(rs[i-1],w);
+      for (j = i-2; j >=0; j--)
+        (*(cogmres_functions->Axpy))(rs[j], p[j], w);
+
+      (*(cogmres_functions->ClearVector))(r);
+      /* find correction (in r) */
+      precond(precond_data, A, w, r);
+
+      /* update current solution x (in x) */
+      (*(cogmres_functions->Axpy))(1.0,r,x);
+
+
+      /* check for convergence by evaluating the actual residual */
+      if (r_norm  <= epsilon && iter >= min_iter)
+      {
+        if (skip_real_r_check)
+        {
+          (cogmres_data -> converged) = 1;
+          break;
+        }
+
+        /* calculate actual residual norm*/
+        (*(cogmres_functions->CopyVector))(b,r);
+        (*(cogmres_functions->Matvec))(matvec_data,-1.0,A,x,1.0,r);
+        real_r_norm_new = r_norm = sqrt( (*(cogmres_functions->InnerProd))(r,r) );
+
+        if (r_norm <= epsilon)
+        {
+          if (rel_change && !rel_change_passed) /* calculate the relative change */
+          {
+
+            /* calculate the norm of the solution */
+            x_norm = sqrt( (*(cogmres_functions->InnerProd))(x,x) );
+
+            if ( !(x_norm <= guard_zero_residual ))
+              /* don't divide by zero */
+            {
 
               /* for relative change take x_(i-1) to be 
                  x + M^{-1}[sum{j=0..i-2} rs_j p_j ]. 
@@ -760,122 +874,26 @@ tol only is checked  */
                  x_i - x_{i-1}= {x + M^{-1}[sum{j=0..i-1} rs_j p_j ]}
                  - {x + M^{-1}[sum{j=0..i-2} rs_j p_j ]}
                  = M^{-1} rs_{i-1}{p_{i-1}} */
-
               (*(cogmres_functions->ClearVector))(w);
-              (*(cogmres_functions->Axpy))(rs_2[i-1], p[i-1], w);
+              (*(cogmres_functions->Axpy))(rs[i-1], p[i-1], w);
               (*(cogmres_functions->ClearVector))(r);
               /* apply the preconditioner */
               precond(precond_data, A, w, r);
-              /* now r contains x_i - x_i-1 */          
+              /* find the norm of x_i - x_i-1 */          
+              w_norm = sqrt( (*(cogmres_functions->InnerProd))(r,r) );
+              relative_error= w_norm/x_norm;
+              if ( relative_error < r_tol )
+              {
+                (cogmres_data -> converged) = 1;
+                if ( print_level>1 && my_id == 0 )
+                {
+                  hypre_printf("\n\n");
+                  hypre_printf("Final L2 norm of residual: %e\n\n", r_norm);
+                }
+                break;
+              }
             }
-            /* find the norm of x_i - x_i-1 */          
-            w_norm = sqrt( (*(cogmres_functions->InnerProd))(r,r) );
-            relative_error = w_norm/x_norm;
-            if (relative_error <= r_tol)
-            {
-              rel_change_passed = 1;
-              break;
-            }
-          }
-          else
-          {
-            rel_change_passed = 1;
-            break;
-
-          }
-          num_rel_change_check++;
-        }
-        else /* no relative change */
-        {
-          break;
-        }
-      }
-
-
-    } /*** end of restart cycle ***/
-
-    /* now compute solution, first solve upper triangular system */
-
-    if (break_value) break;
-    /*
-       rs[i-1] = rs[i-1]/hh[i-1][i-1];
-       for (k = i-2; k >= 0; k--)
-       {
-       t = 0.0;
-       for (j = k+1; j < i; j++)
-       {
-       t -= hh[k][j]*rs[j];
-       }
-       t+= rs[k];
-       rs[k] = t/hh[k][k];
-       }
-       */
-    rs[i-1] = rs[i-1]/hh[idx(i-1,i-1, k_dim+1)];
-    for (k = i-2; k >= 0; k--)
-    {
-      t = 0.0;
-      for (j = k+1; j < i; j++)
-      {
-        t -= hh[idx(k,j, k_dim+1)]*rs[j];
-      }
-      t+= rs[k];
-      rs[k] = t/hh[idx(k,k, k_dim+1)];
-    }
-
-    (*(cogmres_functions->CopyVector))(p[i-1],w);
-    (*(cogmres_functions->ScaleVector))(rs[i-1],w);
-    for (j = i-2; j >=0; j--)
-      (*(cogmres_functions->Axpy))(rs[j], p[j], w);
-
-    (*(cogmres_functions->ClearVector))(r);
-    /* find correction (in r) */
-    precond(precond_data, A, w, r);
-
-    /* update current solution x (in x) */
-    (*(cogmres_functions->Axpy))(1.0,r,x);
-
-
-    /* check for convergence by evaluating the actual residual */
-    if (r_norm  <= epsilon && iter >= min_iter)
-    {
-      if (skip_real_r_check)
-      {
-        (cogmres_data -> converged) = 1;
-        break;
-      }
-
-      /* calculate actual residual norm*/
-      (*(cogmres_functions->CopyVector))(b,r);
-      (*(cogmres_functions->Matvec))(matvec_data,-1.0,A,x,1.0,r);
-      real_r_norm_new = r_norm = sqrt( (*(cogmres_functions->InnerProd))(r,r) );
-
-      if (r_norm <= epsilon)
-      {
-        if (rel_change && !rel_change_passed) /* calculate the relative change */
-        {
-
-          /* calculate the norm of the solution */
-          x_norm = sqrt( (*(cogmres_functions->InnerProd))(x,x) );
-
-          if ( !(x_norm <= guard_zero_residual ))
-            /* don't divide by zero */
-          {
-
-            /* for relative change take x_(i-1) to be 
-               x + M^{-1}[sum{j=0..i-2} rs_j p_j ]. 
-               Now
-               x_i - x_{i-1}= {x + M^{-1}[sum{j=0..i-1} rs_j p_j ]}
-               - {x + M^{-1}[sum{j=0..i-2} rs_j p_j ]}
-               = M^{-1} rs_{i-1}{p_{i-1}} */
-            (*(cogmres_functions->ClearVector))(w);
-            (*(cogmres_functions->Axpy))(rs[i-1], p[i-1], w);
-            (*(cogmres_functions->ClearVector))(r);
-            /* apply the preconditioner */
-            precond(precond_data, A, w, r);
-            /* find the norm of x_i - x_i-1 */          
-            w_norm = sqrt( (*(cogmres_functions->InnerProd))(r,r) );
-            relative_error= w_norm/x_norm;
-            if ( relative_error < r_tol )
+            else
             {
               (cogmres_data -> converged) = 1;
               if ( print_level>1 && my_id == 0 )
@@ -885,499 +903,505 @@ tol only is checked  */
               }
               break;
             }
+
           }
-          else
+          else /* don't need to check rel. change */
           {
-            (cogmres_data -> converged) = 1;
             if ( print_level>1 && my_id == 0 )
             {
               hypre_printf("\n\n");
               hypre_printf("Final L2 norm of residual: %e\n\n", r_norm);
             }
+            (cogmres_data -> converged) = 1;
+            break;
+          }
+        }
+        else /* conv. has not occurred, according to true residual */
+        {
+          /* exit if the real residual norm has not decreased */
+          if (real_r_norm_new >= real_r_norm_old)
+          {
+            if (print_level > 1 && my_id == 0)
+            {
+              hypre_printf("\n\n");
+              hypre_printf("Final L2 norm of residual: %e\n\n", r_norm);
+            }
+            (cogmres_data -> converged) = 1;
             break;
           }
 
+          /* report discrepancy between real/COGMRES residuals and restart */
+          if ( print_level>0 && my_id == 0)
+            hypre_printf("false convergence 2, L2 norm of residual: %e\n", r_norm);
+          (*(cogmres_functions->CopyVector))(r,p[0]);
+          i = 0;
+          real_r_norm_old = real_r_norm_new;
         }
-        else /* don't need to check rel. change */
-        {
-          if ( print_level>1 && my_id == 0 )
-          {
-            hypre_printf("\n\n");
-            hypre_printf("Final L2 norm of residual: %e\n\n", r_norm);
-          }
-          (cogmres_data -> converged) = 1;
-          break;
-        }
-      }
-      else /* conv. has not occurred, according to true residual */
+      } /* end of convergence check */
+
+      /* compute residual vector and continue loop */
+      for (j=i ; j > 0; j--)
       {
-        /* exit if the real residual norm has not decreased */
-        if (real_r_norm_new >= real_r_norm_old)
-        {
-          if (print_level > 1 && my_id == 0)
-          {
-            hypre_printf("\n\n");
-            hypre_printf("Final L2 norm of residual: %e\n\n", r_norm);
-          }
-          (cogmres_data -> converged) = 1;
-          break;
-        }
-
-        /* report discrepancy between real/COGMRES residuals and restart */
-        if ( print_level>0 && my_id == 0)
-          hypre_printf("false convergence 2, L2 norm of residual: %e\n", r_norm);
-        (*(cogmres_functions->CopyVector))(r,p[0]);
-        i = 0;
-        real_r_norm_old = real_r_norm_new;
+        rs[j-1] = -s[j-1]*rs[j];
+        rs[j] = c[j-1]*rs[j];
       }
-    } /* end of convergence check */
 
-    /* compute residual vector and continue loop */
-    for (j=i ; j > 0; j--)
+      if (i) (*(cogmres_functions->Axpy))(rs[i]-1.0,p[i],p[i]);
+      for (j=i-1 ; j > 0; j--)
+        (*(cogmres_functions->Axpy))(rs[j],p[j],p[i]);
+
+      if (i)
+      {
+        (*(cogmres_functions->Axpy))(rs[0]-1.0,p[0],p[0]);
+        (*(cogmres_functions->Axpy))(1.0,p[i],p[0]);
+      }
+      time2 = MPI_Wtime();
+      remainingTime += (time2-time1);
+
+    } /* END of iteration while loop */
+
+
+    if ( print_level>1 && my_id == 0 )
+      hypre_printf("\n\n"); 
+    if (my_id == 0){
+      hypre_printf("TIME for CO-GMRES\n");
+      hypre_printf("matvec+precon        = %16.16f \n", matvecPreconTime);
+      hypre_printf("gram-schmidt (total) = %16.16f \n", gsTime);
+      hypre_printf("linear solve         = %16.16f \n", linSolveTime);
+      hypre_printf("all other            = %16.16f \n", remainingTime);
+      hypre_printf("FINE times\n");
+      hypre_printf("mass Inner Product   = %16.16f \n", massIPTime);
+      hypre_printf("mass Axpy            = %16.16f \n", massAxpyTime);
+      hypre_printf("precon multiply      = %16.16f \n", preconTime);
+      hypre_printf("mv time              = %16.16f \n", mvTime);
+
+  
+
+    }
+    (cogmres_data -> num_iterations) = iter;
+    if (b_norm > 0.0)
+      (cogmres_data -> rel_residual_norm) = r_norm/b_norm;
+    if (b_norm == 0.0)
+      (cogmres_data -> rel_residual_norm) = r_norm;
+
+    if (iter >= max_iter && r_norm > epsilon) hypre_error(HYPRE_ERROR_CONV);
+
+    hypre_TFreeF(c,cogmres_functions); 
+    hypre_TFreeF(s,cogmres_functions); 
+    hypre_TFreeF(rs,cogmres_functions);
+    if (rel_change)  hypre_TFreeF(rs_2,cogmres_functions);
+
+    /* for (i=0; i < k_dim+1; i++)
+       {	
+       hypre_TFreeF(hh[i],cogmres_functions);
+       }*/
+    hypre_TFreeF(hh,cogmres_functions); 
+
+    return hypre_error_flag;
+  }
+
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESSetKDim, hypre_COGMRESGetKDim
+   *--------------------------------------------------------------------------*/
+
+  HYPRE_Int
+    hypre_COGMRESSetKDim( void   *cogmres_vdata,
+        HYPRE_Int   k_dim )
     {
-      rs[j-1] = -s[j-1]*rs[j];
-      rs[j] = c[j-1]*rs[j];
+      hypre_COGMRESData *cogmres_data =(hypre_COGMRESData *) cogmres_vdata;
+
+
+      (cogmres_data -> k_dim) = k_dim;
+
+      return hypre_error_flag;
+
     }
 
-    if (i) (*(cogmres_functions->Axpy))(rs[i]-1.0,p[i],p[i]);
-    for (j=i-1 ; j > 0; j--)
-      (*(cogmres_functions->Axpy))(rs[j],p[j],p[i]);
-
-    if (i)
+  HYPRE_Int
+    hypre_COGMRESGetKDim( void   *cogmres_vdata,
+        HYPRE_Int * k_dim )
     {
-      (*(cogmres_functions->Axpy))(rs[0]-1.0,p[0],p[0]);
-      (*(cogmres_functions->Axpy))(1.0,p[i],p[0]);
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+
+
+      *k_dim = (cogmres_data -> k_dim);
+
+      return hypre_error_flag;
     }
-  } /* END of iteration while loop */
 
-
-  if ( print_level>1 && my_id == 0 )
-    hypre_printf("\n\n"); 
-
-  (cogmres_data -> num_iterations) = iter;
-  if (b_norm > 0.0)
-    (cogmres_data -> rel_residual_norm) = r_norm/b_norm;
-  if (b_norm == 0.0)
-    (cogmres_data -> rel_residual_norm) = r_norm;
-
-  if (iter >= max_iter && r_norm > epsilon) hypre_error(HYPRE_ERROR_CONV);
-
-  hypre_TFreeF(c,cogmres_functions); 
-  hypre_TFreeF(s,cogmres_functions); 
-  hypre_TFreeF(rs,cogmres_functions);
-  if (rel_change)  hypre_TFreeF(rs_2,cogmres_functions);
-
-  /* for (i=0; i < k_dim+1; i++)
-     {	
-     hypre_TFreeF(hh[i],cogmres_functions);
-     }*/
-  hypre_TFreeF(hh,cogmres_functions); 
-
-  return hypre_error_flag;
-}
-
-/*--------------------------------------------------------------------------
- * hypre_COGMRESSetKDim, hypre_COGMRESGetKDim
- *--------------------------------------------------------------------------*/
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESSetTol, hypre_COGMRESGetTol
+   *--------------------------------------------------------------------------*/
 
   HYPRE_Int
-hypre_COGMRESSetKDim( void   *cogmres_vdata,
-    HYPRE_Int   k_dim )
-{
-  hypre_COGMRESData *cogmres_data =(hypre_COGMRESData *) cogmres_vdata;
+    hypre_COGMRESSetTol( void   *cogmres_vdata,
+        HYPRE_Real  tol       )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
 
-  (cogmres_data -> k_dim) = k_dim;
+      (cogmres_data -> tol) = tol;
 
-  return hypre_error_flag;
-
-}
-
-  HYPRE_Int
-hypre_COGMRESGetKDim( void   *cogmres_vdata,
-    HYPRE_Int * k_dim )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
-
-
-  *k_dim = (cogmres_data -> k_dim);
-
-  return hypre_error_flag;
-}
-
-/*--------------------------------------------------------------------------
- * hypre_COGMRESSetTol, hypre_COGMRESGetTol
- *--------------------------------------------------------------------------*/
+      return hypre_error_flag;
+    }
 
   HYPRE_Int
-hypre_COGMRESSetTol( void   *cogmres_vdata,
-    HYPRE_Real  tol       )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESGetTol( void   *cogmres_vdata,
+        HYPRE_Real  * tol      )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
 
-  (cogmres_data -> tol) = tol;
+      *tol = (cogmres_data -> tol);
 
-  return hypre_error_flag;
-}
-
-  HYPRE_Int
-hypre_COGMRESGetTol( void   *cogmres_vdata,
-    HYPRE_Real  * tol      )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
-
-
-  *tol = (cogmres_data -> tol);
-
-  return hypre_error_flag;
-}
-/*--------------------------------------------------------------------------
- * hypre_COGMRESSetAbsoluteTol, hypre_COGMRESGetAbsoluteTol
- *--------------------------------------------------------------------------*/
+      return hypre_error_flag;
+    }
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESSetAbsoluteTol, hypre_COGMRESGetAbsoluteTol
+   *--------------------------------------------------------------------------*/
 
   HYPRE_Int
-hypre_COGMRESSetAbsoluteTol( void   *cogmres_vdata,
-    HYPRE_Real  a_tol       )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESSetAbsoluteTol( void   *cogmres_vdata,
+        HYPRE_Real  a_tol       )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
 
-  (cogmres_data -> a_tol) = a_tol;
+      (cogmres_data -> a_tol) = a_tol;
 
-  return hypre_error_flag;
-}
-
-  HYPRE_Int
-hypre_COGMRESGetAbsoluteTol( void   *cogmres_vdata,
-    HYPRE_Real  * a_tol      )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
-
-
-  *a_tol = (cogmres_data -> a_tol);
-
-  return hypre_error_flag;
-}
-/*--------------------------------------------------------------------------
- * hypre_COGMRESSetConvergenceFactorTol, hypre_COGMRESGetConvergenceFactorTol
- *--------------------------------------------------------------------------*/
+      return hypre_error_flag;
+    }
 
   HYPRE_Int
-hypre_COGMRESSetConvergenceFactorTol( void   *cogmres_vdata,
-    HYPRE_Real  cf_tol       )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESGetAbsoluteTol( void   *cogmres_vdata,
+        HYPRE_Real  * a_tol      )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
 
-  (cogmres_data -> cf_tol) = cf_tol;
+      *a_tol = (cogmres_data -> a_tol);
 
-  return hypre_error_flag;
-}
-
-  HYPRE_Int
-hypre_COGMRESGetConvergenceFactorTol( void   *cogmres_vdata,
-    HYPRE_Real * cf_tol       )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
-
-
-  *cf_tol = (cogmres_data -> cf_tol);
-
-  return hypre_error_flag;
-}
-
-/*--------------------------------------------------------------------------
- * hypre_COGMRESSetMinIter, hypre_COGMRESGetMinIter
- *--------------------------------------------------------------------------*/
+      return hypre_error_flag;
+    }
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESSetConvergenceFactorTol, hypre_COGMRESGetConvergenceFactorTol
+   *--------------------------------------------------------------------------*/
 
   HYPRE_Int
-hypre_COGMRESSetMinIter( void *cogmres_vdata,
-    HYPRE_Int   min_iter  )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESSetConvergenceFactorTol( void   *cogmres_vdata,
+        HYPRE_Real  cf_tol       )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
 
-  (cogmres_data -> min_iter) = min_iter;
+      (cogmres_data -> cf_tol) = cf_tol;
 
-  return hypre_error_flag;
-}
-
-  HYPRE_Int
-hypre_COGMRESGetMinIter( void *cogmres_vdata,
-    HYPRE_Int * min_iter  )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
-
-
-  *min_iter = (cogmres_data -> min_iter);
-
-  return hypre_error_flag;
-}
-
-/*--------------------------------------------------------------------------
- * hypre_COGMRESSetMaxIter, hypre_COGMRESGetMaxIter
- *--------------------------------------------------------------------------*/
+      return hypre_error_flag;
+    }
 
   HYPRE_Int
-hypre_COGMRESSetMaxIter( void *cogmres_vdata,
-    HYPRE_Int   max_iter  )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESGetConvergenceFactorTol( void   *cogmres_vdata,
+        HYPRE_Real * cf_tol       )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
 
-  (cogmres_data -> max_iter) = max_iter;
+      *cf_tol = (cogmres_data -> cf_tol);
 
-  return hypre_error_flag;
-}
+      return hypre_error_flag;
+    }
 
-  HYPRE_Int
-hypre_COGMRESGetMaxIter( void *cogmres_vdata,
-    HYPRE_Int * max_iter  )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
-
-
-  *max_iter = (cogmres_data -> max_iter);
-
-  return hypre_error_flag;
-}
-
-/*--------------------------------------------------------------------------
- * hypre_COGMRESSetRelChange, hypre_COGMRESGetRelChange
- *--------------------------------------------------------------------------*/
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESSetMinIter, hypre_COGMRESGetMinIter
+   *--------------------------------------------------------------------------*/
 
   HYPRE_Int
-hypre_COGMRESSetRelChange( void *cogmres_vdata,
-    HYPRE_Int   rel_change  )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESSetMinIter( void *cogmres_vdata,
+        HYPRE_Int   min_iter  )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
 
-  (cogmres_data -> rel_change) = rel_change;
+      (cogmres_data -> min_iter) = min_iter;
 
-  return hypre_error_flag;
-}
-
-  HYPRE_Int
-hypre_COGMRESGetRelChange( void *cogmres_vdata,
-    HYPRE_Int * rel_change  )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
-
-
-  *rel_change = (cogmres_data -> rel_change);
-
-  return hypre_error_flag;
-}
-
-/*--------------------------------------------------------------------------
- * hypre_COGMRESSetSkipRealResidualCheck, hypre_COGMRESGetSkipRealResidualCheck
- *--------------------------------------------------------------------------*/
+      return hypre_error_flag;
+    }
 
   HYPRE_Int
-hypre_COGMRESSetSkipRealResidualCheck( void *cogmres_vdata,
-    HYPRE_Int skip_real_r_check )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESGetMinIter( void *cogmres_vdata,
+        HYPRE_Int * min_iter  )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
-  (cogmres_data -> skip_real_r_check) = skip_real_r_check;
 
-  return hypre_error_flag;
-}
+      *min_iter = (cogmres_data -> min_iter);
 
-  HYPRE_Int
-hypre_COGMRESGetSkipRealResidualCheck( void *cogmres_vdata,
-    HYPRE_Int *skip_real_r_check)
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+      return hypre_error_flag;
+    }
 
-  *skip_real_r_check = (cogmres_data -> skip_real_r_check);
-
-  return hypre_error_flag;
-}
-
-/*--------------------------------------------------------------------------
- * hypre_COGMRESSetStopCrit, hypre_COGMRESGetStopCrit
- *
- *  OBSOLETE 
- *--------------------------------------------------------------------------*/
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESSetMaxIter, hypre_COGMRESGetMaxIter
+   *--------------------------------------------------------------------------*/
 
   HYPRE_Int
-hypre_COGMRESSetStopCrit( void   *cogmres_vdata,
-    HYPRE_Int  stop_crit       )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESSetMaxIter( void *cogmres_vdata,
+        HYPRE_Int   max_iter  )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
 
-  (cogmres_data -> stop_crit) = stop_crit;
+      (cogmres_data -> max_iter) = max_iter;
 
-  return hypre_error_flag;
-}
-
-  HYPRE_Int
-hypre_COGMRESGetStopCrit( void   *cogmres_vdata,
-    HYPRE_Int * stop_crit       )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
-
-
-  *stop_crit = (cogmres_data -> stop_crit);
-
-  return hypre_error_flag;
-}
-
-/*--------------------------------------------------------------------------
- * hypre_COGMRESSetPrecond
- *--------------------------------------------------------------------------*/
+      return hypre_error_flag;
+    }
 
   HYPRE_Int
-hypre_COGMRESSetPrecond( void  *cogmres_vdata,
-    HYPRE_Int  (*precond)(void*,void*,void*,void*),
-    HYPRE_Int  (*precond_setup)(void*,void*,void*,void*),
-    void  *precond_data )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
-  hypre_COGMRESFunctions *cogmres_functions = cogmres_data->functions;
+    hypre_COGMRESGetMaxIter( void *cogmres_vdata,
+        HYPRE_Int * max_iter  )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
 
-  (cogmres_functions -> precond)        = precond;
-  (cogmres_functions -> precond_setup)  = precond_setup;
-  (cogmres_data -> precond_data)   = precond_data;
+      *max_iter = (cogmres_data -> max_iter);
 
-  return hypre_error_flag;
-}
+      return hypre_error_flag;
+    }
 
-/*--------------------------------------------------------------------------
- * hypre_COGMRESGetPrecond
- *--------------------------------------------------------------------------*/
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESSetRelChange, hypre_COGMRESGetRelChange
+   *--------------------------------------------------------------------------*/
 
   HYPRE_Int
-hypre_COGMRESGetPrecond( void         *cogmres_vdata,
-    HYPRE_Solver *precond_data_ptr )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESSetRelChange( void *cogmres_vdata,
+        HYPRE_Int   rel_change  )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
 
-  *precond_data_ptr = (HYPRE_Solver)(cogmres_data -> precond_data);
+      (cogmres_data -> rel_change) = rel_change;
 
-  return hypre_error_flag;
-}
-
-/*--------------------------------------------------------------------------
- * hypre_COGMRESSetPrintLevel, hypre_COGMRESGetPrintLevel
- *--------------------------------------------------------------------------*/
+      return hypre_error_flag;
+    }
 
   HYPRE_Int
-hypre_COGMRESSetPrintLevel( void *cogmres_vdata,
-    HYPRE_Int   level)
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESGetRelChange( void *cogmres_vdata,
+        HYPRE_Int * rel_change  )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
 
-  (cogmres_data -> print_level) = level;
+      *rel_change = (cogmres_data -> rel_change);
 
-  return hypre_error_flag;
-}
+      return hypre_error_flag;
+    }
 
-  HYPRE_Int
-hypre_COGMRESGetPrintLevel( void *cogmres_vdata,
-    HYPRE_Int * level)
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
-
-
-  *level = (cogmres_data -> print_level);
-
-  return hypre_error_flag;
-}
-
-/*--------------------------------------------------------------------------
- * hypre_COGMRESSetLogging, hypre_COGMRESGetLogging
- *--------------------------------------------------------------------------*/
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESSetSkipRealResidualCheck, hypre_COGMRESGetSkipRealResidualCheck
+   *--------------------------------------------------------------------------*/
 
   HYPRE_Int
-hypre_COGMRESSetLogging( void *cogmres_vdata,
-    HYPRE_Int   level)
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESSetSkipRealResidualCheck( void *cogmres_vdata,
+        HYPRE_Int skip_real_r_check )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
+      (cogmres_data -> skip_real_r_check) = skip_real_r_check;
 
-  (cogmres_data -> logging) = level;
-
-  return hypre_error_flag;
-}
-
-  HYPRE_Int
-hypre_COGMRESGetLogging( void *cogmres_vdata,
-    HYPRE_Int * level)
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
-
-
-  *level = (cogmres_data -> logging);
-
-  return hypre_error_flag;
-}
-
-/*--------------------------------------------------------------------------
- * hypre_COGMRESGetNumIterations
- *--------------------------------------------------------------------------*/
+      return hypre_error_flag;
+    }
 
   HYPRE_Int
-hypre_COGMRESGetNumIterations( void *cogmres_vdata,
-    HYPRE_Int  *num_iterations )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESGetSkipRealResidualCheck( void *cogmres_vdata,
+        HYPRE_Int *skip_real_r_check)
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
+      *skip_real_r_check = (cogmres_data -> skip_real_r_check);
 
-  *num_iterations = (cogmres_data -> num_iterations);
+      return hypre_error_flag;
+    }
 
-  return hypre_error_flag;
-}
-
-/*--------------------------------------------------------------------------
- * hypre_COGMRESGetConverged
- *--------------------------------------------------------------------------*/
-
-  HYPRE_Int
-hypre_COGMRESGetConverged( void *cogmres_vdata,
-    HYPRE_Int  *converged )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
-
-
-  *converged = (cogmres_data -> converged);
-
-  return hypre_error_flag;
-}
-
-/*--------------------------------------------------------------------------
- * hypre_COGMRESGetFinalRelativeResidualNorm
- *--------------------------------------------------------------------------*/
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESSetStopCrit, hypre_COGMRESGetStopCrit
+   *
+   *  OBSOLETE 
+   *--------------------------------------------------------------------------*/
 
   HYPRE_Int
-hypre_COGMRESGetFinalRelativeResidualNorm( void   *cogmres_vdata,
-    HYPRE_Real *relative_residual_norm )
-{
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESSetStopCrit( void   *cogmres_vdata,
+        HYPRE_Int  stop_crit       )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
 
-  *relative_residual_norm = (cogmres_data -> rel_residual_norm);
+      (cogmres_data -> stop_crit) = stop_crit;
 
-  return hypre_error_flag;
-}
+      return hypre_error_flag;
+    }
+
+  HYPRE_Int
+    hypre_COGMRESGetStopCrit( void   *cogmres_vdata,
+        HYPRE_Int * stop_crit       )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
 
-HYPRE_Int hypre_COGMRESSetModifyPC(void *cogmres_vdata, 
-    HYPRE_Int (*modify_pc)(void *precond_data, HYPRE_Int iteration, HYPRE_Real rel_residual_norm))
-{
+      *stop_crit = (cogmres_data -> stop_crit);
 
-  hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
-  hypre_COGMRESFunctions *cogmres_functions = cogmres_data->functions;
+      return hypre_error_flag;
+    }
 
-  (cogmres_functions -> modify_pc)        = modify_pc;
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESSetPrecond
+   *--------------------------------------------------------------------------*/
 
-  return hypre_error_flag;
-} 
+  HYPRE_Int
+    hypre_COGMRESSetPrecond( void  *cogmres_vdata,
+        HYPRE_Int  (*precond)(void*,void*,void*,void*),
+        HYPRE_Int  (*precond_setup)(void*,void*,void*,void*),
+        void  *precond_data )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+      hypre_COGMRESFunctions *cogmres_functions = cogmres_data->functions;
+
+
+      (cogmres_functions -> precond)        = precond;
+      (cogmres_functions -> precond_setup)  = precond_setup;
+      (cogmres_data -> precond_data)   = precond_data;
+
+      return hypre_error_flag;
+    }
+
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESGetPrecond
+   *--------------------------------------------------------------------------*/
+
+  HYPRE_Int
+    hypre_COGMRESGetPrecond( void         *cogmres_vdata,
+        HYPRE_Solver *precond_data_ptr )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+
+
+      *precond_data_ptr = (HYPRE_Solver)(cogmres_data -> precond_data);
+
+      return hypre_error_flag;
+    }
+
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESSetPrintLevel, hypre_COGMRESGetPrintLevel
+   *--------------------------------------------------------------------------*/
+
+  HYPRE_Int
+    hypre_COGMRESSetPrintLevel( void *cogmres_vdata,
+        HYPRE_Int   level)
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+
+
+      (cogmres_data -> print_level) = level;
+
+      return hypre_error_flag;
+    }
+
+  HYPRE_Int
+    hypre_COGMRESGetPrintLevel( void *cogmres_vdata,
+        HYPRE_Int * level)
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+
+
+      *level = (cogmres_data -> print_level);
+
+      return hypre_error_flag;
+    }
+
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESSetLogging, hypre_COGMRESGetLogging
+   *--------------------------------------------------------------------------*/
+
+  HYPRE_Int
+    hypre_COGMRESSetLogging( void *cogmres_vdata,
+        HYPRE_Int   level)
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+
+
+      (cogmres_data -> logging) = level;
+
+      return hypre_error_flag;
+    }
+
+  HYPRE_Int
+    hypre_COGMRESGetLogging( void *cogmres_vdata,
+        HYPRE_Int * level)
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+
+
+      *level = (cogmres_data -> logging);
+
+      return hypre_error_flag;
+    }
+
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESGetNumIterations
+   *--------------------------------------------------------------------------*/
+
+  HYPRE_Int
+    hypre_COGMRESGetNumIterations( void *cogmres_vdata,
+        HYPRE_Int  *num_iterations )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+
+
+      *num_iterations = (cogmres_data -> num_iterations);
+
+      return hypre_error_flag;
+    }
+
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESGetConverged
+   *--------------------------------------------------------------------------*/
+
+  HYPRE_Int
+    hypre_COGMRESGetConverged( void *cogmres_vdata,
+        HYPRE_Int  *converged )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+
+
+      *converged = (cogmres_data -> converged);
+
+      return hypre_error_flag;
+    }
+
+  /*--------------------------------------------------------------------------
+   * hypre_COGMRESGetFinalRelativeResidualNorm
+   *--------------------------------------------------------------------------*/
+
+  HYPRE_Int
+    hypre_COGMRESGetFinalRelativeResidualNorm( void   *cogmres_vdata,
+        HYPRE_Real *relative_residual_norm )
+    {
+      hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+
+
+      *relative_residual_norm = (cogmres_data -> rel_residual_norm);
+
+      return hypre_error_flag;
+    }
+
+
+  HYPRE_Int hypre_COGMRESSetModifyPC(void *cogmres_vdata, 
+      HYPRE_Int (*modify_pc)(void *precond_data, HYPRE_Int iteration, HYPRE_Real rel_residual_norm))
+  {
+
+    hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+    hypre_COGMRESFunctions *cogmres_functions = cogmres_data->functions;
+
+    (cogmres_functions -> modify_pc)        = modify_pc;
+
+    return hypre_error_flag;
+  } 
 
