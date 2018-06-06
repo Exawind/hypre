@@ -147,7 +147,7 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
          x_buf_data[jv] = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
                                         (comm_pkg,  num_sends), HYPRE_MEMORY_SHARED);
    }
-   
+  printf("I am matvec: numvectors = %d\n", num_vectors); 
    if ( num_vectors==1 )
    {
       HYPRE_Int begin = hypre_ParCSRCommPkgSendMapStart(comm_pkg, 0);
@@ -320,7 +320,15 @@ hypre_ParCSRMatrixMatvec( HYPRE_Complex       alpha,
                           HYPRE_Complex       beta,
                           hypre_ParVector    *y )
 {
+/*# ifdef HYPRE_USE_GPU
+PUSH_RANGE_PAYLOAD("MATVEC_CUDA", 0, hypre_CSRMatrixNumRows(A));
+HYPRE_Int ret=hypre_CSRMatrixMatvecDevice(alpha, A, x, beta, y, y, 1);
+POP_RANGE;
+return ret;   
+#else*/
+printf("matvec \n");
    return hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A, x, beta, y, y);
+//#endif
 }
 
 #ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD

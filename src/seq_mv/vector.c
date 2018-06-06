@@ -558,12 +558,13 @@ hypre_SeqVectorMassAxpy( HYPRE_Real * alpha,
     hypre_Vector **x,
     hypre_Vector *y, HYPRE_Int k)
 {
-/*#ifdef  HYPRE_USE_GPU
-  return hypre_SeqVectorAxpyDevice(alpha,x,y);
+#ifdef  HYPRE_USE_GPU
+  return hypre_SeqVectorMassAxpyDevice(alpha,x,y, k);
 #endif
+
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
-#endif*/
+#endif
 
   HYPRE_Real *y_data = hypre_VectorData(y);
   HYPRE_Real **x_data;
@@ -678,9 +679,9 @@ HYPRE_Real   hypre_SeqVectorInnerProd( hypre_Vector *x,
 void  hypre_SeqVectorMassInnerProd( hypre_Vector *x,
     hypre_Vector **y, int k, HYPRE_Real *result )
 {
-/*#ifdef HYPRE_USE_GPU
-  return hypre_SeqVectorInnerProdDevice(x,y);
-#endif*/
+#ifdef HYPRE_USE_GPU
+  return hypre_SeqVectorMassInnerProdDevice(x,y, k, result );
+#endif
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
 #endif
@@ -817,7 +818,7 @@ hypre_SeqVectorAxpyDevice( HYPRE_Complex alpha,
   POP_RANGE;
   return ierr;
 }
-
+//code by KS
 HYPRE_Real   hypre_SeqVectorInnerProdDevice( hypre_Vector *x,
     hypre_Vector *y )
 {
@@ -852,6 +853,97 @@ HYPRE_Real   hypre_SeqVectorInnerProdDevice( hypre_Vector *x,
   return result;
 
 }
+
+
+
+//KS code
+void  hypre_SeqVectorMassInnerProdDevice( hypre_Vector *x,
+    hypre_Vector **y , HYPRE_Int k, HYPRE_Real * result)
+{
+  PUSH_RANGE_PAYLOAD("DEVDOT",4,hypre_VectorSize(x));
+  static cublasHandle_t handle;
+  static HYPRE_Int firstcall=1;
+
+  HYPRE_Complex *x_data = hypre_VectorData(x);
+  HYPRE_Real **y_data;
+  y_data = (HYPRE_Real **) malloc(k * sizeof(HYPRE_Real *));
+
+  HYPRE_Int      i;
+  for (i=0; i<k; ++i){
+    y_data[i] = hypre_VectorData(y[i]);
+  }
+  
+
+
+HYPRE_Int      size   = hypre_VectorSize(x);
+
+
+  cublasStatus_t stat;
+  if (firstcall){
+    handle = getCublasHandle();
+    firstcall=0;
+  }
+  PUSH_RANGE_PAYLOAD("DEVDOT-PRFETCH",5,hypre_VectorSize(x));
+  //hypre_SeqVectorPrefetchToDevice(x);
+  //hypre_SeqVectorPrefetchToDevice(y);
+  POP_RANGE;
+  PUSH_RANGE_PAYLOAD("DEVDOT-ACTUAL",0,hypre_VectorSize(x));
+  cudaStream_t streams;
+
+for (i=0; i<k; ++i){
+  cudaStream_t streams;
+        cudaStreamCreate(&streams);
+        cublasSetStream(handle, streams);
+  stat=cublasDdot(handle, (HYPRE_Int)size,
+      x_data, 1,
+      y_data[i], 1,
+      &result[i]);
+  hypre_CheckErrorDevice(cudaStreamSynchronize(HYPRE_STREAM(4)));
+  }
+POP_RANGE;
+  POP_RANGE;
+
+}
+
+void hypre_SeqVectorMassAxpyDevice( HYPRE_Complex *alpha,
+    hypre_Vector **x,
+    hypre_Vector *y, HYPRE_Int k){
+  HYPRE_Real *y_data = hypre_VectorData(y);
+  
+  HYPRE_Int      size   = hypre_VectorSize(y);
+
+HYPRE_Real ** x_data;
+x_data = (HYPRE_Real **) malloc(k * sizeof(HYPRE_Real *));
+
+  HYPRE_Int      i;
+  for (i=0; i<k; ++i){
+    x_data[i] = hypre_VectorData(x[i]);
+  }
+
+
+
+  HYPRE_Int      ierr = 0;
+  cublasStatus_t stat;
+
+  PUSH_RANGE_PAYLOAD("DEVAXPY",0,hypre_VectorSize(y));
+ // hypre_SeqVectorPrefetchToDevice(x);
+ // hypre_SeqVectorPrefetchToDevice(y);
+  static cublasHandle_t handle;
+  static HYPRE_Int firstcall=1;
+  if (firstcall){
+    handle=getCublasHandle();
+    firstcall=0;
+  }
+for (i=0; i<k; ++i){
+  cublasErrchk(cublasDaxpy(handle,(HYPRE_Int)size,&alpha[i],x_data[i],1,y_data,1));
+  hypre_CheckErrorDevice(cudaStreamSynchronize(HYPRE_STREAM(4)));
+ }
+ POP_RANGE;
+}
+
+
+//end KS code
+
 void hypre_SeqVectorPrefetchToDevice(hypre_Vector *x){
   if (hypre_VectorSize(x)==0) return;
 #if defined(TRACK_MEMORY_ALLOCATIONS)
