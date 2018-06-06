@@ -38,7 +38,6 @@ hypre_CSRMatrixMatvecOutOfPlace( HYPRE_Complex    alpha,
    HYPRE_Real time_begin = hypre_MPI_Wtime();
 #endif
 #ifdef HYPRE_USE_GPU
-printf("gpu matvec, yes yes\n");
    PUSH_RANGE_PAYLOAD("MATVEC",0, hypre_CSRMatrixNumRows(A));
    HYPRE_Int ret=hypre_CSRMatrixMatvecDevice( alpha,A,x,beta,b,y,offset);
    POP_RANGE;
@@ -831,12 +830,12 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
     
     status= cusparseCreateMatDescr(&descr); 
     if (status != CUSPARSE_STATUS_SUCCESS) {
-      printf("ERROR:: Matrix descriptor initialization failed\n");
       exit(2);
     } 
     
     cusparseSetMatType(descr,CUSPARSE_MATRIX_TYPE_GENERAL);
     cusparseSetMatIndexBase(descr,CUSPARSE_INDEX_BASE_ZERO);
+  hypre_CSRMatrixPrefetchToDevice(A);
     
     FirstCall=0;
     hypre_int jj;
@@ -850,7 +849,6 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
 
   PUSH_RANGE("PREFETCH+SPMV",2);
 
-  hypre_CSRMatrixPrefetchToDevice(A);
   hypre_SeqVectorPrefetchToDevice(x);
   hypre_SeqVectorPrefetchToDevice(y);
   

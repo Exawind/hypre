@@ -883,17 +883,17 @@ HYPRE_Int      size   = hypre_VectorSize(x);
     handle = getCublasHandle();
     firstcall=0;
   }
-  PUSH_RANGE_PAYLOAD("DEVDOT-PRFETCH",5,hypre_VectorSize(x));
+//  PUSH_RANGE_PAYLOAD("DEVDOT-PRFETCH",5,hypre_VectorSize(x));
   //hypre_SeqVectorPrefetchToDevice(x);
   //hypre_SeqVectorPrefetchToDevice(y);
-  POP_RANGE;
+  //POP_RANGE;
   PUSH_RANGE_PAYLOAD("DEVDOT-ACTUAL",0,hypre_VectorSize(x));
-  cudaStream_t streams;
+  //cudaStream_t streams;
 
 for (i=0; i<k; ++i){
-  cudaStream_t streams;
-        cudaStreamCreate(&streams);
-        cublasSetStream(handle, streams);
+  //cudaStream_t streams;
+    //    cudaStreamCreate(&streams);
+      //  cublasSetStream(handle, streams);
   stat=cublasDdot(handle, (HYPRE_Int)size,
       x_data, 1,
       y_data[i], 1,
