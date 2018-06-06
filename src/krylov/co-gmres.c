@@ -483,6 +483,8 @@ while (iter < max_iter)
 
       /* see if we are already converged and 
          should print the final norm and exit */
+
+      PUSH_RANGE("COGMRES_RES_CALC", 1);
       if (r_norm  <= epsilon && iter >= min_iter) 
       {
         if (!rel_change) /* shouldn't exit after no iterations if
@@ -505,6 +507,7 @@ while (iter < max_iter)
               hypre_printf("false convergence 1\n");
         }
       }
+      POP_RANGE;
 
 
 
@@ -525,14 +528,14 @@ while (iter < max_iter)
         time2 = MPI_Wtime();
         remainingTime += (time2-time1);
         time1 = MPI_Wtime();
-
+        PUSH_RANGE("COGMRES_PRECOND", 2);
         precond(precond_data, A, p[i-1], r);
-        
+        POP_RANGE;
         time3 = MPI_Wtime();
-        preconTime += (time3 - time1);    
-        
+        preconTime += (time3 - time1);
+        PUSH_RANGE("COGMRES_MATVEC1", 3);
         (*(cogmres_functions->Matvec))(matvec_data, 1.0, A, r, 0.0, p[i]);
-        
+        POP_RANGE;
         time2 = MPI_Wtime();
         mvTime += (time2-time3);
         matvecPreconTime += (time2-time1);   
@@ -548,13 +551,12 @@ while (iter < max_iter)
         }*/
         // hypre_printf("about to start multi IP \n");  
         //(*(cogmres_functions->MassInnerProd))((void *) p[i], p,(HYPRE_Int) i, tmp);
-        time1=MPI_Wtime();      
-        
+        time1=MPI_Wtime();
+        PUSH_RANGE("COGMRES_DOTP", 4);
         (*(cogmres_functions->MassInnerProd))((void *) p[i], p,(HYPRE_Int) i, &hh[(i-1)*(k_dim+1)]);
-        
+        POP_RANGE;
         time3 = MPI_Wtime();
-        massIPTime += time3-time1;      
-  //   z = w - V(:,1:i)*H(1:i,i);
+        massIPTime += time3-time1;
         (*(cogmres_functions->ClearVector))(w);
         (*(cogmres_functions->CopyVector))(p[i],w);
 
@@ -564,14 +566,13 @@ while (iter < max_iter)
           hh[id]       = (-1.0)*(2-rv[j])*hh[id];
           t2          += (hh[id]*hh[id]);        
         }
-        
         time4 = MPI_Wtime();
-        
+
+        PUSH_RANGE("COGMRES_AXPY", 5);
         (*(cogmres_functions->MassAxpy))(&hh[(i-1)*(k_dim+1)],p,w, i);
-        
-        time3 = MPI_Wtime();
-        
-        massAxpyTime += time3-time4;      
+        POP_RANGE;
+time3 = MPI_Wtime();
+massAxpyTime += time3-time4;      
 
         for (j=0; j<i; j++){
           HYPRE_Int id = idx(j, i-1,k_dim+1);
@@ -579,9 +580,11 @@ while (iter < max_iter)
         }
 
 
+        PUSH_RANGE("COGMRES_DOTP1", 6);
         t2 = sqrt(t2)*sqrt(rv[i-1]);
-        t  = sqrt( (*(cogmres_functions->InnerProd))(p[i],p[i]) );
-        hh[idx(i, i-1,k_dim+1)] = sqrt(t-t2)*sqrt(t2+t);  
+        t = sqrt( (*(cogmres_functions->InnerProd))(p[i],p[i]) );
+        hh[idx(i, i-1,k_dim+1)] = sqrt(t-t2)*sqrt(t2+t);
+        POP_RANGE;
 
 
 
@@ -595,7 +598,8 @@ while (iter < max_iter)
                      (*(cogmres_functions->Axpy))(-hh[j][i-1],p[j],p[i]);
                      }
                      t = sqrt((*(cogmres_functions->InnerProd))(p[i],p[i]));
-                     hh[i][i-1] = t;*/  
+                     hh[i][i-1] = t;*/
+        PUSH_RANGE("COGMRES_GS", 1);
         if (hh[idx(i,i-1,k_dim+1)] != 0.0)
         {
           t = 1.0/hh[idx(i,i-1,k_dim+1)];
@@ -605,6 +609,7 @@ while (iter < max_iter)
 
 
         }
+        POP_RANGE;
         time2 = MPI_Wtime();
         gsTime += (time2-time1);
         /* done with modified Gram_schmidt and Arnoldi step.
