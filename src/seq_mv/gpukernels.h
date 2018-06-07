@@ -17,6 +17,7 @@ void ParRelax(
       double * A_offd_data,
       double * Vext_data,
       double * f_data,
-      double * u_data);
+      double * u_data,
+      double * u_data_out);
 void CudaCompileFlagCheck();
 #endif

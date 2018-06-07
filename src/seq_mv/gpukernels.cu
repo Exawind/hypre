@@ -261,6 +261,7 @@ void CudaCompileFlagCheck(){
 	hypre_CheckErrorDevice(cudaDeviceSynchronize());
 }
 }
+*/
 
 extern "C"{
    __global__
@@ -276,7 +277,8 @@ extern "C"{
       HYPRE_Real *__restrict__ A_offd_data,
       HYPRE_Real *__restrict__ Vext_data,
       HYPRE_Real *__restrict__ f_data,
-      HYPRE_Real *__restrict__ u_data){
+      HYPRE_Real *__restrict__ u_data
+      HYPRE_Real *__restrict__ u_data_out){
 
       hypre_int i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -292,10 +294,10 @@ extern "C"{
          }
          for (int jj = A_offd_i[i]; jj < A_offd_i[i+1]; jj++)
          {
-            ii = A_offd_j[jj];
+            int ii = A_offd_j[jj];
             res -= A_offd_data[jj] * Vext_data[ii];
          }
-         u_data[i] = res / A_diag_data[A_diag_i[i]];
+         u_data_out[i] = res / A_diag_data[A_diag_i[i]];
       }
    }
 
@@ -311,12 +313,22 @@ extern "C"{
       HYPRE_Real *__restrict__ A_offd_data,
       HYPRE_Real *__restrict__ Vext_data,
       HYPRE_Real *__restrict__ f_data,
-      HYPRE_Real *__restrict__ u_data) {
+      HYPRE_Real *__restrict__ u_data,
+      HYPRE_Real *__restrict__ u_data_out) {
 
          hypre_int num_threads=128;
          hypre_int num_blocks=n / num_threads + 1;
+
+         HYPRE_Real * d_u_data_out = NULL;
+         cudaMalloc(&d_u_data_out, n * sizeof(HYPRE_Real));
+
+         cudaMemset(d_u_data_out, 0, n * sizeof(HYPRE_Real));
       
-         ParRelaxKernel<<<num_blocks, num_threads>>>(n, relax_points, cf_marker, A_diag_i, A_diag_j, A_diag_data, A_offd_i, A_offd_j, A_offd_data, Vext_data, f_data, u_data);
+         ParRelaxKernel<<<num_blocks, num_threads>>>(n, relax_points, cf_marker, A_diag_i, A_diag_j, A_diag_data, A_offd_i, A_offd_j, A_offd_data, Vext_data, f_data, u_data, d_u_data_out);
+
+         cudaMemcpy(u_data, d_u_data_out, n * sizeof(HYPRE_Real), cudaMemcpyDeviceToHost);
+
+         cudaFree(d_u_data_out);
    }
 }
 
