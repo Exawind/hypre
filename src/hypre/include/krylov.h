@@ -656,7 +656,7 @@ extern "C" {
     void    *matvec_data;
     void    *precond_data;
 
-    hypre_GMRESFunctions * functions;
+    hypre_COGMRESFunctions * functions;
 
     /* log info (always logged) */
     HYPRE_Int      num_iterations;

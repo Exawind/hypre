@@ -206,6 +206,36 @@ void CompileFlagSafetyCheck(hypre_int actual){
 #endif
 }
 }
+
+extern "C"{
+void CudaCompileFlagCheck(){
+	hypre_int devCount;
+	cudaGetDeviceCount(&devCount);
+	hypre_int i;
+	hypre_int cudarch_actual;
+	for(i = 0; i < devCount; ++i)
+	{
+		struct cudaDeviceProp props;
+		cudaGetDeviceProperties(&props, i);
+		cudarch_actual=props.major*100+props.minor*10;
+	}
+	hypre_CheckErrorDevice(cudaPeekAtLastError());
+	hypre_CheckErrorDevice(cudaDeviceSynchronize());
+	CompileFlagSafetyCheck<<<1,1,0,0>>>(cudarch_actual);
+	cudaError_t code=cudaPeekAtLastError();
+	if (code != cudaSuccess)
+	{
+		fprintf(stderr,"ERROR in CudaCompileFlagCheck%s \n", cudaGetErrorString(code));
+		fprintf(stderr,"ERROR :: Check if compile arch flags match actual device arch = sm_%d\n",cudarch_actual/10);
+		exit(2);
+	}
+	hypre_CheckErrorDevice(cudaDeviceSynchronize());
+}
+}
+
+//written by KS
+//naive version
+/*
 extern "C"{
 void CudaCompileFlagCheck(){
 	hypre_int devCount;

@@ -244,6 +244,8 @@ hypre_GMRESSolve(void  *gmres_vdata,
                  void  *b,
 		 void  *x)
 {
+double time1,time2;
+time1 = MPI_Wtime();
    hypre_GMRESData  *gmres_data   = (hypre_GMRESData *)gmres_vdata;
    hypre_GMRESFunctions *gmres_functions = gmres_data->functions;
    HYPRE_Int 		     k_dim        = (gmres_data -> k_dim);
@@ -436,13 +438,16 @@ hypre_GMRESSolve(void  *gmres_vdata,
 
    /* once the rel. change check has passed, we do not want to check it again */
    rel_change_passed = 0;
-
-
+time2 = MPI_Wtime();
+if (my_id == 0){
+hypre_printf("\n GMRES init time %16.16f \n", time2-time1);
+}
+  double gsTime = 0.0, matvecPreconTime = 0.0, linSolveTime= 0.0, remainingTime = 0.0;
    /* outer iteration cycle */
    while (iter < max_iter)
    {
    /* initialize first term of hessenberg system */
-
+time1 = MPI_Wtime();
 	rs[0] = r_norm;
         if (r_norm == 0.0)
         {
@@ -486,16 +491,26 @@ hypre_GMRESSolve(void  *gmres_vdata,
       	t = 1.0 / r_norm;
 	(*(gmres_functions->ScaleVector))(t,p[0]);
 	i = 0;
-
+time2 = MPI_Wtime();
+remainingTime += (time2-time1);
         /***RESTART CYCLE (right-preconditioning) ***/
         while (i < k_dim && iter < max_iter)
 	{
+time1 = MPI_Wtime();
            i++;
            iter++;
            (*(gmres_functions->ClearVector))(r);
+time2 = MPI_Wtime();
+remainingTime += (time2-time1);
+time1 = MPI_Wtime();
            precond(precond_data, A, p[i-1], r);
            (*(gmres_functions->Matvec))(matvec_data, 1.0, A, r, 0.0, p[i]);
-           /* modified Gram_Schmidt */
+time2 = MPI_Wtime();
+matvecPreconTime += (time2-time1);
+time1 = MPI_Wtime();
+  
+
+        /* modified Gram_Schmidt */
            for (j=0; j < i; j++)
            {
               hh[j][i-1] = (*(gmres_functions->InnerProd))(p[j],p[i]);
@@ -510,7 +525,11 @@ hypre_GMRESSolve(void  *gmres_vdata,
            }
            /* done with modified Gram_schmidt and Arnoldi step.
               update factorization of hh */
-           for (j = 1; j < i; j++)
+time2 = MPI_Wtime();
+gsTime += (time2-time1);
+time1 = MPI_Wtime();
+           
+for (j = 1; j < i; j++)
            {
               t = hh[j-1][i-1];
               hh[j-1][i-1] = s[j-1]*hh[j][i-1] + c[j-1]*t;
@@ -528,6 +547,9 @@ hypre_GMRESSolve(void  *gmres_vdata,
            /* determine residual norm */
            hh[i-1][i-1] = s[i-1]*hh[i][i-1] + c[i-1]*hh[i-1][i-1];
            r_norm = fabs(rs[i]);
+time2 = MPI_Wtime();
+linSolveTime += (time2-time1);
+time1 = MPI_Wtime();
 
            /* print ? */
            if ( print_level>0 )
@@ -675,8 +697,11 @@ hypre_GMRESSolve(void  *gmres_vdata,
               }
            }
            
+time2 = MPI_Wtime();
+remainingTime += (time2-time1);
 
 	} /*** end of restart cycle ***/
+time1 = MPI_Wtime();
 
 	/* now compute solution, first solve upper triangular system */
 
@@ -820,6 +845,8 @@ hypre_GMRESSolve(void  *gmres_vdata,
            (*(gmres_functions->Axpy))(rs[0]-1.0,p[0],p[0]);
            (*(gmres_functions->Axpy))(1.0,p[i],p[0]);
         }
+time2 = MPI_Wtime();
+remainingTime += (time2-time1);
    } /* END of iteration while loop */
 
 
@@ -844,6 +871,15 @@ hypre_GMRESSolve(void  *gmres_vdata,
    	hypre_TFreeF(hh[i],gmres_functions);
    }
    hypre_TFreeF(hh,gmres_functions); 
+    if (my_id == 0){
+      hypre_printf("TIME for GMRES\n");
+      hypre_printf("matvec+precon        = %16.16f \n", matvecPreconTime);
+      hypre_printf("gram-schmidt (total) = %16.16f \n", gsTime);
+      hypre_printf("linear solve         = %16.16f \n", linSolveTime);
+      hypre_printf("all other            = %16.16f \n", remainingTime);
+
+
+    }
 
    return hypre_error_flag;
 }

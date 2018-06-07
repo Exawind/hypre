@@ -694,8 +694,20 @@ HYPRE_Int HYPRE_ParVectorAxpy ( HYPRE_Complex alpha , HYPRE_ParVector x , HYPRE_
 HYPRE_Int HYPRE_ParVectorInnerProd ( HYPRE_ParVector x , HYPRE_ParVector y , HYPRE_Real *prod );
 // added by KS
 // mass inner product with x being multiple vectors.
-HYPRE_Int HYPRE_ParVectorMassInnerProd ( HYPRE_ParVector x , HYPRE_ParVector y , HYPRE_Real *prod );
+/*
+ *void hypre_ParKrylovMassInnerProd ( void *x , void **y, int k, void *result );
+void hypre_ParKrylovMassAxpy( HYPRE_Real *alpha, void **x, void *y, HYPRE_Int k);
+ hypre_ParVectorMassInnerProd( hypre_ParVector *x,
+    hypre_ParVector **y, int k, HYPRE_Real *result  ){
+ * */
+
+
+void HYPRE_ParVectorMassInnerProd ( HYPRE_ParVector x , HYPRE_ParVector *y , HYPRE_Int k, HYPRE_Real *prod );
 void  HYPRE_ParVectorMassAxpy      ( HYPRE_Real *alpha, HYPRE_ParVector *x, HYPRE_ParVector y, HYPRE_Int k);  
+
+
+void hypre_ParVectorMassInnerProd ( hypre_ParVector *x , hypre_ParVector **y , HYPRE_Int k, HYPRE_Real *prod );
+void  hypre_ParVectorMassAxpy      ( HYPRE_Real *alpha, hypre_ParVector **x, hypre_ParVector *y, HYPRE_Int k);  
 
 // end of KS code
 

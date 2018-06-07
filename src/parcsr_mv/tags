@@ -1,0 +1,745 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+A	_hypre_parcsr_mv.h	/^   hypre_ParCSRMatrix * A;$/;"	m	struct:__anon8
+A	par_make_system.h	/^   hypre_ParCSRMatrix * A;$/;"	m	struct:__anon16
+CINCLUDES	Makefile	/^CINCLUDES = ${INCLUDES} ${MPIINCLUDE}$/;"	m
+CONTACT	par_csr_assumed_part.c	25;"	d	file:
+C_COMPILE_FLAGS	Makefile	/^C_COMPILE_FLAGS = \\$/;"	m
+CommPkgJobType	_hypre_parcsr_mv.h	/^typedef enum CommPkgJobType$/;"	g
+CommPkgJobType	_hypre_parcsr_mv.h	/^} CommPkgJobType;$/;"	t	typeref:enum:CommPkgJobType
+CommPkgJobType	par_csr_communication.h	/^typedef enum CommPkgJobType$/;"	g
+CommPkgJobType	par_csr_communication.h	/^} CommPkgJobType;$/;"	t	typeref:enum:CommPkgJobType
+DRIVER_FILES	Makefile	/^DRIVER_FILES =\\$/;"	m
+DRIVER_OBJS	Makefile	/^DRIVER_OBJS = ${DRIVER_FILES:.c=.o}$/;"	m
+EXTRA_FILES	Makefile	/^EXTRA_FILES =\\$/;"	m
+FILES	Makefile	/^FILES =\\$/;"	m
+GenerateDiagAndOffd	par_csr_matrix.c	/^GenerateDiagAndOffd(hypre_CSRMatrix *A,$/;"	f
+HEADERS	Makefile	/^HEADERS =\\$/;"	m
+HYPRE_COMM_PKG_JOB_COMPLEX	_hypre_parcsr_mv.h	/^   HYPRE_COMM_PKG_JOB_COMPLEX = 0,$/;"	e	enum:CommPkgJobType
+HYPRE_COMM_PKG_JOB_COMPLEX	par_csr_communication.h	/^   HYPRE_COMM_PKG_JOB_COMPLEX = 0,$/;"	e	enum:CommPkgJobType
+HYPRE_COMM_PKG_JOB_COMPLEX_TRANSPOSE	_hypre_parcsr_mv.h	/^   HYPRE_COMM_PKG_JOB_COMPLEX_TRANSPOSE,$/;"	e	enum:CommPkgJobType
+HYPRE_COMM_PKG_JOB_COMPLEX_TRANSPOSE	par_csr_communication.h	/^   HYPRE_COMM_PKG_JOB_COMPLEX_TRANSPOSE,$/;"	e	enum:CommPkgJobType
+HYPRE_COMM_PKG_JOB_INT	_hypre_parcsr_mv.h	/^   HYPRE_COMM_PKG_JOB_INT,$/;"	e	enum:CommPkgJobType
+HYPRE_COMM_PKG_JOB_INT	par_csr_communication.h	/^   HYPRE_COMM_PKG_JOB_INT,$/;"	e	enum:CommPkgJobType
+HYPRE_COMM_PKG_JOB_INT_TRANSPOSE	_hypre_parcsr_mv.h	/^   HYPRE_COMM_PKG_JOB_INT_TRANSPOSE,$/;"	e	enum:CommPkgJobType
+HYPRE_COMM_PKG_JOB_INT_TRANSPOSE	par_csr_communication.h	/^   HYPRE_COMM_PKG_JOB_INT_TRANSPOSE,$/;"	e	enum:CommPkgJobType
+HYPRE_CSRMatrixToParCSRMatrix	HYPRE_parcsr_matrix.c	/^HYPRE_CSRMatrixToParCSRMatrix( MPI_Comm            comm,$/;"	f
+HYPRE_CSRMatrixToParCSRMatrix_WithNewPartitioning	HYPRE_parcsr_matrix.c	/^HYPRE_CSRMatrixToParCSRMatrix_WithNewPartitioning($/;"	f
+HYPRE_Destroy2DSystem	par_make_system.c	/^HYPRE_Destroy2DSystem( HYPRE_ParCSR_System_Problem  *sys_prob)$/;"	f
+HYPRE_Generate2DSystem	par_make_system.c	/^HYPRE_Generate2DSystem(HYPRE_ParCSRMatrix H_L1, HYPRE_ParCSRMatrix H_L2, $/;"	f
+HYPRE_PARCSR_MV_HEADER	HYPRE_parcsr_mv.h	20;"	d
+HYPRE_PAR_CSR_COMMUNICATION_HEADER	_hypre_parcsr_mv.h	32;"	d
+HYPRE_PAR_CSR_COMMUNICATION_HEADER	par_csr_communication.h	17;"	d
+HYPRE_PAR_CSR_MATRIX_STRUCT	_hypre_parcsr_mv.h	307;"	d
+HYPRE_PAR_CSR_MATRIX_STRUCT	par_csr_matrix.h	29;"	d
+HYPRE_PAR_VECTOR_STRUCT	_hypre_parcsr_mv.h	231;"	d
+HYPRE_PAR_VECTOR_STRUCT	par_vector.h	32;"	d
+HYPRE_ParCSRMatrix	HYPRE_parcsr_mv.h	/^typedef struct hypre_ParCSRMatrix_struct *HYPRE_ParCSRMatrix;$/;"	t	typeref:struct:hypre_ParCSRMatrix_struct
+HYPRE_ParCSRMatrixCreate	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixCreate( MPI_Comm            comm,$/;"	f
+HYPRE_ParCSRMatrixDestroy	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixDestroy( HYPRE_ParCSRMatrix matrix )$/;"	f
+HYPRE_ParCSRMatrixGetColPartitioning	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixGetColPartitioning( HYPRE_ParCSRMatrix   matrix,$/;"	f
+HYPRE_ParCSRMatrixGetComm	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixGetComm( HYPRE_ParCSRMatrix  matrix,$/;"	f
+HYPRE_ParCSRMatrixGetDims	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixGetDims( HYPRE_ParCSRMatrix  matrix,$/;"	f
+HYPRE_ParCSRMatrixGetLocalRange	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixGetLocalRange( HYPRE_ParCSRMatrix  matrix,$/;"	f
+HYPRE_ParCSRMatrixGetRow	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixGetRow( HYPRE_ParCSRMatrix  matrix,$/;"	f
+HYPRE_ParCSRMatrixGetRowPartitioning	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixGetRowPartitioning( HYPRE_ParCSRMatrix   matrix,$/;"	f
+HYPRE_ParCSRMatrixInitialize	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixInitialize( HYPRE_ParCSRMatrix matrix )$/;"	f
+HYPRE_ParCSRMatrixMatvec	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixMatvec( HYPRE_Complex      alpha,$/;"	f
+HYPRE_ParCSRMatrixMatvecT	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixMatvecT( HYPRE_Complex      alpha,$/;"	f
+HYPRE_ParCSRMatrixPrint	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixPrint( HYPRE_ParCSRMatrix  matrix,$/;"	f
+HYPRE_ParCSRMatrixRead	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixRead( MPI_Comm            comm,$/;"	f
+HYPRE_ParCSRMatrixRestoreRow	HYPRE_parcsr_matrix.c	/^HYPRE_ParCSRMatrixRestoreRow( HYPRE_ParCSRMatrix  matrix,$/;"	f
+HYPRE_ParCSR_System_Problem	_hypre_parcsr_mv.h	/^} HYPRE_ParCSR_System_Problem;$/;"	t	typeref:struct:__anon8
+HYPRE_ParCSR_System_Problem	par_make_system.h	/^} HYPRE_ParCSR_System_Problem;$/;"	t	typeref:struct:__anon16
+HYPRE_ParMultiVectorCreate	HYPRE_parcsr_vector.c	/^HYPRE_ParMultiVectorCreate( MPI_Comm         comm,$/;"	f
+HYPRE_ParVector	HYPRE_parcsr_mv.h	/^typedef struct hypre_ParVector_struct *HYPRE_ParVector;$/;"	t	typeref:struct:hypre_ParVector_struct
+HYPRE_ParVectorAxpy	HYPRE_parcsr_vector.c	/^HYPRE_ParVectorAxpy( HYPRE_Complex   alpha,$/;"	f
+HYPRE_ParVectorCloneShallow	HYPRE_parcsr_vector.c	/^HYPRE_ParVectorCloneShallow( HYPRE_ParVector x )$/;"	f
+HYPRE_ParVectorCopy	HYPRE_parcsr_vector.c	/^HYPRE_ParVectorCopy( HYPRE_ParVector x,$/;"	f
+HYPRE_ParVectorCreate	HYPRE_parcsr_vector.c	/^HYPRE_ParVectorCreate( MPI_Comm         comm,$/;"	f
+HYPRE_ParVectorDestroy	HYPRE_parcsr_vector.c	/^HYPRE_ParVectorDestroy( HYPRE_ParVector vector )$/;"	f
+HYPRE_ParVectorInitialize	HYPRE_parcsr_vector.c	/^HYPRE_ParVectorInitialize( HYPRE_ParVector vector )$/;"	f
+HYPRE_ParVectorInnerProd	HYPRE_parcsr_vector.c	/^HYPRE_ParVectorInnerProd( HYPRE_ParVector x,$/;"	f
+HYPRE_ParVectorPrint	HYPRE_parcsr_vector.c	/^HYPRE_ParVectorPrint( HYPRE_ParVector  vector,$/;"	f
+HYPRE_ParVectorRead	HYPRE_parcsr_vector.c	/^HYPRE_ParVectorRead( MPI_Comm         comm,$/;"	f
+HYPRE_ParVectorScale	HYPRE_parcsr_vector.c	/^HYPRE_ParVectorScale( HYPRE_Complex   value,$/;"	f
+HYPRE_ParVectorSetConstantValues	HYPRE_parcsr_vector.c	/^HYPRE_ParVectorSetConstantValues( HYPRE_ParVector  vector,$/;"	f
+HYPRE_ParVectorSetRandomValues	HYPRE_parcsr_vector.c	/^HYPRE_ParVectorSetRandomValues( HYPRE_ParVector  vector,$/;"	f
+HYPRE_USING_PERSISTENT_COMM	par_csr_communication.h	24;"	d
+HYPRE_VectorToParVector	HYPRE_parcsr_vector.c	/^HYPRE_VectorToParVector( MPI_Comm         comm,$/;"	f
+NUM_OF_COMM_PKG_JOB_TYPE	_hypre_parcsr_mv.h	/^   NUM_OF_COMM_PKG_JOB_TYPE,$/;"	e	enum:CommPkgJobType
+NUM_OF_COMM_PKG_JOB_TYPE	par_csr_communication.h	/^   NUM_OF_COMM_PKG_JOB_TYPE,$/;"	e	enum:CommPkgJobType
+OBJS	Makefile	/^OBJS = ${FILES:.c=.o}$/;"	m
+SONAME	Makefile	/^SONAME = libHYPRE_parcsr_mv-${HYPRE_RELEASE_VERSION}.so$/;"	m
+actual_local_size	_hypre_parcsr_mv.h	/^   HYPRE_Int             actual_local_size; $/;"	m	struct:hypre_ParVector_struct
+actual_local_size	par_vector.h	/^   HYPRE_Int      	 actual_local_size; \/* stores actual length of data in local vector$/;"	m	struct:hypre_ParVector_struct
+assumed_partition	_hypre_parcsr_mv.h	/^   hypre_IJAssumedPart  *assumed_partition; \/* only populated if no_global_partition option$/;"	m	struct:hypre_ParVector_struct
+assumed_partition	_hypre_parcsr_mv.h	/^   hypre_IJAssumedPart  *assumed_partition; \/* only populated if$/;"	m	struct:hypre_ParCSRMatrix_struct
+assumed_partition	par_csr_matrix.h	/^   hypre_IJAssumedPart  *assumed_partition; \/* only populated if$/;"	m	struct:hypre_ParCSRMatrix_struct
+assumed_partition	par_vector.h	/^   hypre_IJAssumedPart *assumed_partition; \/* only populated if no_global_partition option$/;"	m	struct:hypre_ParVector_struct
+b	_hypre_parcsr_mv.h	/^   hypre_ParVector * b;$/;"	m	struct:__anon8
+b	par_make_system.h	/^   hypre_ParVector * b;$/;"	m	struct:__anon16
+col_map_offd	_hypre_parcsr_mv.h	/^   HYPRE_Int              *col_map_offd; $/;"	m	struct:__anon6
+col_map_offd	_hypre_parcsr_mv.h	/^   HYPRE_Int            *col_map_offd; $/;"	m	struct:hypre_ParCSRMatrix_struct
+col_map_offd	par_csr_matrix.h	/^   HYPRE_Int              *col_map_offd; $/;"	m	struct:__anon15
+col_map_offd	par_csr_matrix.h	/^   HYPRE_Int            *col_map_offd; $/;"	m	struct:hypre_ParCSRMatrix_struct
+col_starts	_hypre_parcsr_mv.h	/^   HYPRE_Int              *col_starts;$/;"	m	struct:__anon6
+col_starts	_hypre_parcsr_mv.h	/^   HYPRE_Int            *col_starts;$/;"	m	struct:hypre_ParCSRMatrix_struct
+col_starts	par_csr_matrix.h	/^   HYPRE_Int              *col_starts;$/;"	m	struct:__anon15
+col_starts	par_csr_matrix.h	/^   HYPRE_Int            *col_starts;$/;"	m	struct:hypre_ParCSRMatrix_struct
+comm	_hypre_parcsr_mv.h	/^   MPI_Comm                comm;$/;"	m	struct:__anon6
+comm	_hypre_parcsr_mv.h	/^   MPI_Comm               comm;$/;"	m	struct:__anon2
+comm	_hypre_parcsr_mv.h	/^   MPI_Comm              comm;$/;"	m	struct:hypre_ParCSRMatrix_struct
+comm	_hypre_parcsr_mv.h	/^   MPI_Comm              comm;$/;"	m	struct:hypre_ParVector_struct
+comm	_hypre_parcsr_mv.h	/^   MPI_Comm comm;$/;"	m	struct:__anon7
+comm	par_chord_matrix.h	/^   MPI_Comm comm;$/;"	m	struct:__anon10
+comm	par_csr_communication.h	/^   MPI_Comm               comm;$/;"	m	struct:__anon13
+comm	par_csr_matrix.h	/^   MPI_Comm                comm;$/;"	m	struct:__anon15
+comm	par_csr_matrix.h	/^   MPI_Comm              comm;$/;"	m	struct:hypre_ParCSRMatrix_struct
+comm	par_vector.h	/^   MPI_Comm	 comm;$/;"	m	struct:hypre_ParVector_struct
+comm_pkg	_hypre_parcsr_mv.h	/^   hypre_ParCSRCommPkg    *comm_pkg;$/;"	m	struct:__anon6
+comm_pkg	_hypre_parcsr_mv.h	/^   hypre_ParCSRCommPkg  *comm_pkg;$/;"	m	struct:__anon3
+comm_pkg	_hypre_parcsr_mv.h	/^   hypre_ParCSRCommPkg  *comm_pkg;$/;"	m	struct:hypre_ParCSRMatrix_struct
+comm_pkg	par_csr_communication.h	/^   hypre_ParCSRCommPkg  *comm_pkg;$/;"	m	struct:__anon14
+comm_pkg	par_csr_matrix.h	/^   hypre_ParCSRCommPkg    *comm_pkg;$/;"	m	struct:__anon15
+comm_pkg	par_csr_matrix.h	/^   hypre_ParCSRCommPkg  *comm_pkg;$/;"	m	struct:hypre_ParCSRMatrix_struct
+comm_pkgT	_hypre_parcsr_mv.h	/^   hypre_ParCSRCommPkg    *comm_pkgT;$/;"	m	struct:__anon6
+comm_pkgT	_hypre_parcsr_mv.h	/^   hypre_ParCSRCommPkg  *comm_pkgT;$/;"	m	struct:hypre_ParCSRMatrix_struct
+comm_pkgT	par_csr_matrix.h	/^   hypre_ParCSRCommPkg    *comm_pkgT;$/;"	m	struct:__anon15
+comm_pkgT	par_csr_matrix.h	/^   hypre_ParCSRCommPkg  *comm_pkgT;$/;"	m	struct:hypre_ParCSRMatrix_struct
+d_elements	_hypre_parcsr_mv.h	/^   HYPRE_Real     *d_elements; \/* Is this used anywhere? *\/$/;"	m	struct:__anon5
+d_elements	new_commpkg.h	/^   HYPRE_Real     *d_elements; \/* Is this used anywhere? *\/$/;"	m	struct:__anon9
+d_num_nonzeros	_hypre_parcsr_mv.h	/^   HYPRE_Real            d_num_nonzeros;$/;"	m	struct:hypre_ParCSRMatrix_struct
+d_num_nonzeros	par_csr_matrix.h	/^   HYPRE_Real            d_num_nonzeros;$/;"	m	struct:hypre_ParCSRMatrix_struct
+diag	_hypre_parcsr_mv.h	/^   hypre_CSRBooleanMatrix *diag;$/;"	m	struct:__anon6
+diag	_hypre_parcsr_mv.h	/^   hypre_CSRMatrix      *diag;$/;"	m	struct:hypre_ParCSRMatrix_struct
+diag	par_csr_matrix.h	/^   hypre_CSRBooleanMatrix *diag;$/;"	m	struct:__anon15
+diag	par_csr_matrix.h	/^   hypre_CSRMatrix      *diag;$/;"	m	struct:hypre_ParCSRMatrix_struct
+diagT	_hypre_parcsr_mv.h	/^   hypre_CSRMatrix      *diagT, *offdT;$/;"	m	struct:hypre_ParCSRMatrix_struct
+diagT	par_csr_matrix.h	/^   hypre_CSRMatrix      *diagT, *offdT;$/;"	m	struct:hypre_ParCSRMatrix_struct
+digit	_hypre_parcsr_mv.h	/^   struct hypre_NumbersNode * digit[11];$/;"	m	struct:hypre_NumbersNode	typeref:struct:hypre_NumbersNode::hypre_NumbersNode
+digit	numbers.h	/^   struct hypre_NumbersNode * digit[11];$/;"	m	struct:hypre_NumbersNode	typeref:struct:hypre_NumbersNode::hypre_NumbersNode
+element_storage_length	_hypre_parcsr_mv.h	/^   HYPRE_Int       element_storage_length; $/;"	m	struct:__anon5
+element_storage_length	new_commpkg.h	/^   HYPRE_Int       element_storage_length; $/;"	m	struct:__anon9
+elements	_hypre_parcsr_mv.h	/^   HYPRE_Int      *elements;$/;"	m	struct:__anon5
+elements	new_commpkg.h	/^   HYPRE_Int      *elements;$/;"	m	struct:__anon9
+first_col_diag	_hypre_parcsr_mv.h	/^   HYPRE_Int               first_col_diag;$/;"	m	struct:__anon6
+first_col_diag	_hypre_parcsr_mv.h	/^   HYPRE_Int             first_col_diag;$/;"	m	struct:hypre_ParCSRMatrix_struct
+first_col_diag	par_csr_matrix.h	/^   HYPRE_Int               first_col_diag;$/;"	m	struct:__anon15
+first_col_diag	par_csr_matrix.h	/^   HYPRE_Int             first_col_diag;$/;"	m	struct:hypre_ParCSRMatrix_struct
+first_index	_hypre_parcsr_mv.h	/^   HYPRE_Int             first_index;$/;"	m	struct:hypre_ParVector_struct
+first_index	par_vector.h	/^   HYPRE_Int      	 first_index;$/;"	m	struct:hypre_ParVector_struct
+first_row_index	_hypre_parcsr_mv.h	/^   HYPRE_Int               first_row_index;$/;"	m	struct:__anon6
+first_row_index	_hypre_parcsr_mv.h	/^   HYPRE_Int             first_row_index;$/;"	m	struct:hypre_ParCSRMatrix_struct
+first_row_index	par_csr_matrix.h	/^   HYPRE_Int               first_row_index;$/;"	m	struct:__anon15
+first_row_index	par_csr_matrix.h	/^   HYPRE_Int             first_row_index;$/;"	m	struct:hypre_ParCSRMatrix_struct
+firstindex_idof	_hypre_parcsr_mv.h	/^  HYPRE_Int *firstindex_idof; \/* not owned by my_id; ---------------------- *\/$/;"	m	struct:__anon7
+firstindex_idof	par_chord_matrix.h	/^  HYPRE_Int *firstindex_idof; \/* not owned by my_id; ---------------------- *\/$/;"	m	struct:__anon10
+firstindex_rdof	_hypre_parcsr_mv.h	/^  HYPRE_Int *firstindex_rdof; \/* not owned by my_id; ---------------------- *\/$/;"	m	struct:__anon7
+firstindex_rdof	par_chord_matrix.h	/^  HYPRE_Int *firstindex_rdof; \/* not owned by my_id; ---------------------- *\/$/;"	m	struct:__anon10
+getJobTypeOf	par_csr_communication.c	/^static CommPkgJobType getJobTypeOf(HYPRE_Int job)$/;"	f	file:
+getrowactive	_hypre_parcsr_mv.h	/^   HYPRE_Int               getrowactive;$/;"	m	struct:__anon6
+getrowactive	_hypre_parcsr_mv.h	/^   HYPRE_Int             getrowactive;$/;"	m	struct:hypre_ParCSRMatrix_struct
+getrowactive	par_csr_matrix.h	/^   HYPRE_Int               getrowactive;$/;"	m	struct:__anon15
+getrowactive	par_csr_matrix.h	/^   HYPRE_Int             getrowactive;$/;"	m	struct:hypre_ParCSRMatrix_struct
+global_num_cols	_hypre_parcsr_mv.h	/^   HYPRE_Int               global_num_cols;$/;"	m	struct:__anon6
+global_num_cols	_hypre_parcsr_mv.h	/^   HYPRE_Int             global_num_cols;$/;"	m	struct:hypre_ParCSRMatrix_struct
+global_num_cols	par_csr_matrix.h	/^   HYPRE_Int               global_num_cols;$/;"	m	struct:__anon15
+global_num_cols	par_csr_matrix.h	/^   HYPRE_Int             global_num_cols;$/;"	m	struct:hypre_ParCSRMatrix_struct
+global_num_rows	_hypre_parcsr_mv.h	/^   HYPRE_Int               global_num_rows;$/;"	m	struct:__anon6
+global_num_rows	_hypre_parcsr_mv.h	/^   HYPRE_Int             global_num_rows;$/;"	m	struct:hypre_ParCSRMatrix_struct
+global_num_rows	par_csr_matrix.h	/^   HYPRE_Int               global_num_rows;$/;"	m	struct:__anon15
+global_num_rows	par_csr_matrix.h	/^   HYPRE_Int             global_num_rows;$/;"	m	struct:hypre_ParCSRMatrix_struct
+global_size	_hypre_parcsr_mv.h	/^   HYPRE_Int             global_size;$/;"	m	struct:hypre_ParVector_struct
+global_size	par_vector.h	/^   HYPRE_Int      	 global_size;$/;"	m	struct:hypre_ParVector_struct
+hypre_AssumedPartitionDestroy	par_csr_assumed_part.c	/^hypre_AssumedPartitionDestroy(hypre_IJAssumedPart *apart )$/;"	f
+hypre_BooleanGenerateDiagAndOffd	par_csr_bool_matrix.c	/^hypre_BooleanGenerateDiagAndOffd(hypre_CSRBooleanMatrix *A,$/;"	f
+hypre_BooleanMatTCommPkgCreate	par_csr_bool_matop.c	/^hypre_BooleanMatTCommPkgCreate ( hypre_ParCSRBooleanMatrix *A)$/;"	f
+hypre_BooleanMatvecCommPkgCreate	par_csr_bool_matop.c	/^hypre_BooleanMatvecCommPkgCreate ( hypre_ParCSRBooleanMatrix *A)$/;"	f
+hypre_BuildCSRBooleanMatrixMPIDataType	par_csr_bool_matrix.c	/^hypre_BuildCSRBooleanMatrixMPIDataType($/;"	f
+hypre_BuildCSRJDataType	par_csr_communication.c	/^hypre_BuildCSRJDataType( HYPRE_Int num_nonzeros,$/;"	f
+hypre_BuildCSRMatrixMPIDataType	par_csr_communication.c	/^hypre_BuildCSRMatrixMPIDataType( HYPRE_Int num_nonzeros,$/;"	f
+hypre_CSRBooleanMatrixCreate	par_csr_bool_matrix.c	/^hypre_CSRBooleanMatrix *hypre_CSRBooleanMatrixCreate(HYPRE_Int num_rows,HYPRE_Int num_cols,$/;"	f
+hypre_CSRBooleanMatrixDestroy	par_csr_bool_matrix.c	/^HYPRE_Int hypre_CSRBooleanMatrixDestroy( hypre_CSRBooleanMatrix *matrix )$/;"	f
+hypre_CSRBooleanMatrixInitialize	par_csr_bool_matrix.c	/^HYPRE_Int hypre_CSRBooleanMatrixInitialize( hypre_CSRBooleanMatrix *matrix )$/;"	f
+hypre_CSRBooleanMatrixPrint	par_csr_bool_matrix.c	/^hypre_CSRBooleanMatrixPrint( hypre_CSRBooleanMatrix *matrix,$/;"	f
+hypre_CSRBooleanMatrixRead	par_csr_bool_matrix.c	/^hypre_CSRBooleanMatrixRead( const char *file_name )$/;"	f
+hypre_CSRBooleanMatrixSetDataOwner	par_csr_bool_matrix.c	/^HYPRE_Int hypre_CSRBooleanMatrixSetDataOwner( hypre_CSRBooleanMatrix *matrix,$/;"	f
+hypre_CSRBooleanMatrixToParCSRBooleanMatrix	par_csr_bool_matrix.c	/^hypre_CSRBooleanMatrixToParCSRBooleanMatrix$/;"	f
+hypre_CSRMatrixToParCSRMatrix	par_csr_matrix.c	/^hypre_CSRMatrixToParCSRMatrix( MPI_Comm         comm,$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_csrmatrixtoparcsrmatrix, HYPRE_CSRMATRIXTOPARCSRMATRIX)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_csrmatrixtoparcsrmatrix_withnewpartitioning, HYPRE_CSRMATRIXTOPARCSRMATRIX_WITHNEWPARTITIONING)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixcreate, HYPRE_PARCSRMATRIXCREATE)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixdestroy, HYPRE_PARCSRMATRIXDESTROY)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixgetcolpartiti, HYPRE_PARCSRMATRIXGETCOLPARTITI)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixgetcomm, HYPRE_PARCSRMATRIXGETCOMM)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixgetdims, HYPRE_PARCSRMATRIXGETDIMS)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixgetlocalrange, HYPRE_PARCSRMATRIXGETLOCALRANGE)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixgetrow, HYPRE_PARCSRMATRIXGETROW)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixgetrowpartiti, HYPRE_PARCSRMATRIXGETROWPARTITI)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixinitialize, HYPRE_PARCSRMATRIXINITIALIZE)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixmatvec, HYPRE_PARCSRMATRIXMATVEC)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixmatvect, HYPRE_PARCSRMATRIXMATVECT)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixprint, HYPRE_PARCSRMATRIXPRINT)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixread, HYPRE_PARCSRMATRIXREAD)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixrestorerow, HYPRE_PARCSRMATRIXRESTOREROW)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_vector.c	/^hypre_F90_IFACE(hypre_parmultivectorcreate, HYPRE_PARMULTIVECTORCREATE)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_vector.c	/^hypre_F90_IFACE(hypre_parvectoraxpy, HYPRE_PARVECTORAXPY)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_vector.c	/^hypre_F90_IFACE(hypre_parvectorcloneshallow, HYPRE_PARVECTORCLONESHALLOW)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_vector.c	/^hypre_F90_IFACE(hypre_parvectorcopy, HYPRE_PARVECTORCOPY)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_vector.c	/^hypre_F90_IFACE(hypre_parvectorcreate, HYPRE_PARVECTORCREATE)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_vector.c	/^hypre_F90_IFACE(hypre_parvectordestroy, HYPRE_PARVECTORDESTROY)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_vector.c	/^hypre_F90_IFACE(hypre_parvectorinitialize, HYPRE_PARVECTORINITIALIZE)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_vector.c	/^hypre_F90_IFACE(hypre_parvectorinnerprod, HYPRE_PARVECTORINNERPROD)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_vector.c	/^hypre_F90_IFACE(hypre_parvectorprint, HYPRE_PARVECTORPRINT)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_vector.c	/^hypre_F90_IFACE(hypre_parvectorread, HYPRE_PARVECTORREAD)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_vector.c	/^hypre_F90_IFACE(hypre_parvectorscale, HYPRE_PARVECTORSCALE)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_vector.c	/^hypre_F90_IFACE(hypre_parvectorsetconstantvalue, HYPRE_PARVECTORSETCONSTANTVALUE)$/;"	f
+hypre_F90_IFACE	F90_HYPRE_parcsr_vector.c	/^hypre_F90_IFACE(hypre_parvectorsetrandomvalues, HYPRE_PARVECTORSETRANDOMVALUES)$/;"	f
+hypre_F90_IFACE	F90_par_vector.c	/^hypre_F90_IFACE(hypre_copyparvector, HYPRE_COPYPARVECTOR)$/;"	f
+hypre_F90_IFACE	F90_par_vector.c	/^hypre_F90_IFACE(hypre_paraxpy, HYPRE_PARAXPY)$/;"	f
+hypre_F90_IFACE	F90_par_vector.c	/^hypre_F90_IFACE(hypre_parinnerprod, HYPRE_PARINNERPROD)$/;"	f
+hypre_F90_IFACE	F90_par_vector.c	/^hypre_F90_IFACE(hypre_parvectortovectorall, HYPRE_PARVECTORTOVECTORALL)$/;"	f
+hypre_F90_IFACE	F90_par_vector.c	/^hypre_F90_IFACE(hypre_scaleparvector, HYPRE_SCALEPARVECTOR)$/;"	f
+hypre_F90_IFACE	F90_par_vector.c	/^hypre_F90_IFACE(hypre_setparvectorconstantvalue, HYPRE_SETPARVECTORCONSTANTVALUE)$/;"	f
+hypre_F90_IFACE	F90_par_vector.c	/^hypre_F90_IFACE(hypre_setparvectordataowner, HYPRE_SETPARVECTORDATAOWNER)$/;"	f
+hypre_F90_IFACE	F90_par_vector.c	/^hypre_F90_IFACE(hypre_setparvectorpartitioningo, HYPRE_SETPARVECTORPARTITIONINGO)$/;"	f
+hypre_F90_IFACE	F90_par_vector.c	/^hypre_F90_IFACE(hypre_setparvectorrandomvalues, HYPRE_SETPARVECTORRANDOMVALUES)$/;"	f
+hypre_F90_IFACE	F90_par_vector.c	/^hypre_F90_IFACE(hypre_vectortoparvector, HYPRE_VECTORTOPARVECTOR)$/;"	f
+hypre_F90_IFACE	F90_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixglobalnumrows, HYPRE_PARCSRMATRIXGLOBALNUMROWS)$/;"	f
+hypre_F90_IFACE	F90_parcsr_matrix.c	/^hypre_F90_IFACE(hypre_parcsrmatrixrowstarts, HYPRE_PARCSRMATRIXROWSTARTS)$/;"	f
+hypre_FillResponseIJDetermineSendProcs	new_commpkg.c	/^hypre_FillResponseIJDetermineSendProcs(void *p_recv_contact_buf, $/;"	f
+hypre_FillResponseParToCSRMatrix	par_csr_matrix.c	/^hypre_FillResponseParToCSRMatrix( void       *p_recv_contact_buf, $/;"	f
+hypre_FillResponseParToVectorAll	par_vector.c	/^hypre_FillResponseParToVectorAll( void       *p_recv_contact_buf, $/;"	f
+hypre_GetAssumedPartitionProcFromRow	par_csr_assumed_part.c	/^hypre_GetAssumedPartitionProcFromRow( MPI_Comm comm, HYPRE_Int row, $/;"	f
+hypre_GetAssumedPartitionRowRange	par_csr_assumed_part.c	/^hypre_GetAssumedPartitionRowRange( MPI_Comm comm, HYPRE_Int proc_id, HYPRE_Int global_first_row,$/;"	f
+hypre_IJAssumedPart	_hypre_parcsr_mv.h	/^} hypre_IJAssumedPart;$/;"	t	typeref:struct:__anon4
+hypre_IJAssumedPart	par_csr_assumed_part.h	/^} hypre_IJAssumedPart;$/;"	t	typeref:struct:__anon11
+hypre_LocateAssummedPartition	par_csr_assumed_part.c	/^hypre_LocateAssummedPartition(MPI_Comm comm, HYPRE_Int row_start, HYPRE_Int row_end, $/;"	f
+hypre_MatTCommPkgCreate	communicationT.c	/^hypre_MatTCommPkgCreate ( hypre_ParCSRMatrix *A)$/;"	f
+hypre_MatTCommPkgCreate_core	communicationT.c	/^hypre_MatTCommPkgCreate_core ($/;"	f
+hypre_MatvecCommPkgCreate	par_csr_communication.c	/^hypre_MatvecCommPkgCreate ( hypre_ParCSRMatrix *A )$/;"	f
+hypre_MatvecCommPkgDestroy	par_csr_communication.c	/^hypre_MatvecCommPkgDestroy( hypre_ParCSRCommPkg *comm_pkg )$/;"	f
+hypre_MergeDiagAndOffd	par_csr_matrix.c	/^hypre_MergeDiagAndOffd(hypre_ParCSRMatrix *par_matrix)$/;"	f
+hypre_NEW_COMMPKG	_hypre_parcsr_mv.h	183;"	d
+hypre_NEW_COMMPKG	new_commpkg.h	14;"	d
+hypre_NUMBERS_HEADER	_hypre_parcsr_mv.h	500;"	d
+hypre_NUMBERS_HEADER	numbers.h	46;"	d
+hypre_NewCommPkgDestroy	new_commpkg.c	/^hypre_NewCommPkgDestroy(hypre_ParCSRMatrix *parcsr_A)$/;"	f
+hypre_NumbersArray	numbers.c	/^HYPRE_Int * hypre_NumbersArray( hypre_NumbersNode * node )$/;"	f
+hypre_NumbersDeleteNode	numbers.c	/^void hypre_NumbersDeleteNode( hypre_NumbersNode * node )$/;"	f
+hypre_NumbersEnter	numbers.c	/^HYPRE_Int hypre_NumbersEnter( hypre_NumbersNode * node, const HYPRE_Int n )$/;"	f
+hypre_NumbersNEntered	numbers.c	/^HYPRE_Int hypre_NumbersNEntered( hypre_NumbersNode * node )$/;"	f
+hypre_NumbersNewNode	numbers.c	/^hypre_NumbersNode * hypre_NumbersNewNode()$/;"	f
+hypre_NumbersNode	_hypre_parcsr_mv.h	/^typedef struct hypre_NumbersNode{$/;"	s
+hypre_NumbersNode	_hypre_parcsr_mv.h	/^} hypre_NumbersNode;$/;"	t	typeref:struct:hypre_NumbersNode
+hypre_NumbersNode	numbers.h	/^typedef struct hypre_NumbersNode{$/;"	s
+hypre_NumbersNode	numbers.h	/^} hypre_NumbersNode;$/;"	t	typeref:struct:hypre_NumbersNode
+hypre_NumbersQuery	numbers.c	/^HYPRE_Int hypre_NumbersQuery( hypre_NumbersNode * node, const HYPRE_Int n )$/;"	f
+hypre_PARCSR_ASSUMED_PART	_hypre_parcsr_mv.h	151;"	d
+hypre_PARCSR_ASSUMED_PART	par_csr_assumed_part.h	14;"	d
+hypre_PARCSR_MV_HEADER	_hypre_parcsr_mv.h	7;"	d
+hypre_PAR_CHORD_MATRIX_HEADER	_hypre_parcsr_mv.h	536;"	d
+hypre_PAR_CHORD_MATRIX_HEADER	par_chord_matrix.h	22;"	d
+hypre_PAR_CSR_MATRIX_HEADER	_hypre_parcsr_mv.h	300;"	d
+hypre_PAR_CSR_MATRIX_HEADER	par_csr_matrix.h	22;"	d
+hypre_PAR_MAKE_SYSTEM	_hypre_parcsr_mv.h	629;"	d
+hypre_PAR_MAKE_SYSTEM	par_make_system.h	14;"	d
+hypre_PAR_VECTOR_HEADER	_hypre_parcsr_mv.h	223;"	d
+hypre_PAR_VECTOR_HEADER	par_vector.h	24;"	d
+hypre_ParAat_RowSizes	par_csr_aat.c	/^void hypre_ParAat_RowSizes($/;"	f
+hypre_ParBooleanAAt	par_csr_bool_matop.c	/^hypre_ParCSRBooleanMatrix * hypre_ParBooleanAAt( hypre_ParCSRBooleanMatrix  * A )$/;"	f
+hypre_ParBooleanMatmul	par_csr_bool_matop.c	/^hypre_ParCSRBooleanMatrix *hypre_ParBooleanMatmul$/;"	f
+hypre_ParCSRAAt	par_csr_aat.c	/^hypre_ParCSRMatrix *hypre_ParCSRAAt( hypre_ParCSRMatrix  *A )$/;"	f
+hypre_ParCSRBooleanMatrix	_hypre_parcsr_mv.h	/^} hypre_ParCSRBooleanMatrix;$/;"	t	typeref:struct:__anon6
+hypre_ParCSRBooleanMatrix	par_csr_matrix.h	/^} hypre_ParCSRBooleanMatrix;$/;"	t	typeref:struct:__anon15
+hypre_ParCSRBooleanMatrixCreate	par_csr_bool_matrix.c	/^hypre_ParCSRBooleanMatrix *hypre_ParCSRBooleanMatrixCreate( MPI_Comm comm,$/;"	f
+hypre_ParCSRBooleanMatrixDestroy	par_csr_bool_matrix.c	/^HYPRE_Int hypre_ParCSRBooleanMatrixDestroy( hypre_ParCSRBooleanMatrix *matrix )$/;"	f
+hypre_ParCSRBooleanMatrixExtractAExt	par_csr_bool_matop.c	/^hypre_ParCSRBooleanMatrixExtractAExt( hypre_ParCSRBooleanMatrix *A,$/;"	f
+hypre_ParCSRBooleanMatrixExtractBExt	par_csr_bool_matop.c	/^hypre_ParCSRBooleanMatrixExtractBExt$/;"	f
+hypre_ParCSRBooleanMatrixGetLocalRange	par_csr_bool_matrix.c	/^HYPRE_Int hypre_ParCSRBooleanMatrixGetLocalRange(hypre_ParCSRBooleanMatrix *matrix,$/;"	f
+hypre_ParCSRBooleanMatrixGetRow	par_csr_bool_matrix.c	/^HYPRE_Int hypre_ParCSRBooleanMatrixGetRow(hypre_ParCSRBooleanMatrix  *mat,$/;"	f
+hypre_ParCSRBooleanMatrixInitialize	par_csr_bool_matrix.c	/^HYPRE_Int hypre_ParCSRBooleanMatrixInitialize( hypre_ParCSRBooleanMatrix *matrix )$/;"	f
+hypre_ParCSRBooleanMatrixPrint	par_csr_bool_matrix.c	/^HYPRE_Int hypre_ParCSRBooleanMatrixPrint( hypre_ParCSRBooleanMatrix *matrix, $/;"	f
+hypre_ParCSRBooleanMatrixPrintIJ	par_csr_bool_matrix.c	/^HYPRE_Int hypre_ParCSRBooleanMatrixPrintIJ( hypre_ParCSRBooleanMatrix *matrix, $/;"	f
+hypre_ParCSRBooleanMatrixRead	par_csr_bool_matrix.c	/^hypre_ParCSRBooleanMatrixRead( MPI_Comm comm, const char *file_name )$/;"	f
+hypre_ParCSRBooleanMatrixRestoreRow	par_csr_bool_matrix.c	/^HYPRE_Int hypre_ParCSRBooleanMatrixRestoreRow( hypre_ParCSRBooleanMatrix *matrix,$/;"	f
+hypre_ParCSRBooleanMatrixSetColStartsOwner	par_csr_bool_matrix.c	/^HYPRE_Int hypre_ParCSRBooleanMatrixSetColStartsOwner(hypre_ParCSRBooleanMatrix *matrix,$/;"	f
+hypre_ParCSRBooleanMatrixSetDataOwner	par_csr_bool_matrix.c	/^HYPRE_Int hypre_ParCSRBooleanMatrixSetDataOwner(hypre_ParCSRBooleanMatrix *matrix,$/;"	f
+hypre_ParCSRBooleanMatrixSetNNZ	par_csr_bool_matrix.c	/^HYPRE_Int hypre_ParCSRBooleanMatrixSetNNZ( hypre_ParCSRBooleanMatrix *matrix)$/;"	f
+hypre_ParCSRBooleanMatrixSetRowStartsOwner	par_csr_bool_matrix.c	/^HYPRE_Int hypre_ParCSRBooleanMatrixSetRowStartsOwner(hypre_ParCSRBooleanMatrix *matrix,$/;"	f
+hypre_ParCSRBooleanMatrix_Get_ColMapOffd	_hypre_parcsr_mv.h	440;"	d
+hypre_ParCSRBooleanMatrix_Get_ColMapOffd	par_csr_matrix.h	162;"	d
+hypre_ParCSRBooleanMatrix_Get_ColStarts	_hypre_parcsr_mv.h	442;"	d
+hypre_ParCSRBooleanMatrix_Get_ColStarts	par_csr_matrix.h	164;"	d
+hypre_ParCSRBooleanMatrix_Get_Comm	_hypre_parcsr_mv.h	430;"	d
+hypre_ParCSRBooleanMatrix_Get_Comm	par_csr_matrix.h	152;"	d
+hypre_ParCSRBooleanMatrix_Get_CommPkg	_hypre_parcsr_mv.h	443;"	d
+hypre_ParCSRBooleanMatrix_Get_CommPkg	par_csr_matrix.h	165;"	d
+hypre_ParCSRBooleanMatrix_Get_CommPkgT	_hypre_parcsr_mv.h	444;"	d
+hypre_ParCSRBooleanMatrix_Get_CommPkgT	par_csr_matrix.h	166;"	d
+hypre_ParCSRBooleanMatrix_Get_Diag	_hypre_parcsr_mv.h	438;"	d
+hypre_ParCSRBooleanMatrix_Get_Diag	par_csr_matrix.h	160;"	d
+hypre_ParCSRBooleanMatrix_Get_FirstColDiag	_hypre_parcsr_mv.h	435;"	d
+hypre_ParCSRBooleanMatrix_Get_FirstColDiag	par_csr_matrix.h	157;"	d
+hypre_ParCSRBooleanMatrix_Get_FirstRowIndex	_hypre_parcsr_mv.h	434;"	d
+hypre_ParCSRBooleanMatrix_Get_FirstRowIndex	par_csr_matrix.h	156;"	d
+hypre_ParCSRBooleanMatrix_Get_Getrowactive	_hypre_parcsr_mv.h	452;"	d
+hypre_ParCSRBooleanMatrix_Get_Getrowactive	par_csr_matrix.h	174;"	d
+hypre_ParCSRBooleanMatrix_Get_GlobalNCols	_hypre_parcsr_mv.h	432;"	d
+hypre_ParCSRBooleanMatrix_Get_GlobalNCols	par_csr_matrix.h	154;"	d
+hypre_ParCSRBooleanMatrix_Get_GlobalNRows	_hypre_parcsr_mv.h	431;"	d
+hypre_ParCSRBooleanMatrix_Get_GlobalNRows	par_csr_matrix.h	153;"	d
+hypre_ParCSRBooleanMatrix_Get_LastColDiag	_hypre_parcsr_mv.h	437;"	d
+hypre_ParCSRBooleanMatrix_Get_LastColDiag	par_csr_matrix.h	159;"	d
+hypre_ParCSRBooleanMatrix_Get_LastRowIndex	_hypre_parcsr_mv.h	436;"	d
+hypre_ParCSRBooleanMatrix_Get_LastRowIndex	par_csr_matrix.h	158;"	d
+hypre_ParCSRBooleanMatrix_Get_NCols	_hypre_parcsr_mv.h	449;"	d
+hypre_ParCSRBooleanMatrix_Get_NCols	par_csr_matrix.h	171;"	d
+hypre_ParCSRBooleanMatrix_Get_NNZ	_hypre_parcsr_mv.h	450;"	d
+hypre_ParCSRBooleanMatrix_Get_NNZ	par_csr_matrix.h	172;"	d
+hypre_ParCSRBooleanMatrix_Get_NRows	_hypre_parcsr_mv.h	448;"	d
+hypre_ParCSRBooleanMatrix_Get_NRows	par_csr_matrix.h	170;"	d
+hypre_ParCSRBooleanMatrix_Get_Offd	_hypre_parcsr_mv.h	439;"	d
+hypre_ParCSRBooleanMatrix_Get_Offd	par_csr_matrix.h	161;"	d
+hypre_ParCSRBooleanMatrix_Get_OwnsColStarts	_hypre_parcsr_mv.h	447;"	d
+hypre_ParCSRBooleanMatrix_Get_OwnsColStarts	par_csr_matrix.h	169;"	d
+hypre_ParCSRBooleanMatrix_Get_OwnsData	_hypre_parcsr_mv.h	445;"	d
+hypre_ParCSRBooleanMatrix_Get_OwnsData	par_csr_matrix.h	167;"	d
+hypre_ParCSRBooleanMatrix_Get_OwnsRowStarts	_hypre_parcsr_mv.h	446;"	d
+hypre_ParCSRBooleanMatrix_Get_OwnsRowStarts	par_csr_matrix.h	168;"	d
+hypre_ParCSRBooleanMatrix_Get_RowStarts	_hypre_parcsr_mv.h	441;"	d
+hypre_ParCSRBooleanMatrix_Get_RowStarts	par_csr_matrix.h	163;"	d
+hypre_ParCSRBooleanMatrix_Get_Rowindices	_hypre_parcsr_mv.h	451;"	d
+hypre_ParCSRBooleanMatrix_Get_Rowindices	par_csr_matrix.h	173;"	d
+hypre_ParCSRBooleanMatrix_Get_StartRow	_hypre_parcsr_mv.h	433;"	d
+hypre_ParCSRBooleanMatrix_Get_StartRow	par_csr_matrix.h	155;"	d
+hypre_ParCSRCommHandle	_hypre_parcsr_mv.h	/^} hypre_ParCSRCommHandle;$/;"	t	typeref:struct:__anon3
+hypre_ParCSRCommHandle	par_csr_communication.h	/^} hypre_ParCSRCommHandle;$/;"	t	typeref:struct:__anon14
+hypre_ParCSRCommHandleCommPkg	_hypre_parcsr_mv.h	130;"	d
+hypre_ParCSRCommHandleCommPkg	par_csr_communication.h	115;"	d
+hypre_ParCSRCommHandleCreate	par_csr_communication.c	/^hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,$/;"	f
+hypre_ParCSRCommHandleDestroy	par_csr_communication.c	/^hypre_ParCSRCommHandleDestroy( hypre_ParCSRCommHandle *comm_handle )$/;"	f
+hypre_ParCSRCommHandleNumRequests	_hypre_parcsr_mv.h	133;"	d
+hypre_ParCSRCommHandleNumRequests	par_csr_communication.h	118;"	d
+hypre_ParCSRCommHandleRecvData	_hypre_parcsr_mv.h	132;"	d
+hypre_ParCSRCommHandleRecvData	par_csr_communication.h	117;"	d
+hypre_ParCSRCommHandleRequest	_hypre_parcsr_mv.h	135;"	d
+hypre_ParCSRCommHandleRequest	par_csr_communication.h	120;"	d
+hypre_ParCSRCommHandleRequests	_hypre_parcsr_mv.h	134;"	d
+hypre_ParCSRCommHandleRequests	par_csr_communication.h	119;"	d
+hypre_ParCSRCommHandleSendData	_hypre_parcsr_mv.h	131;"	d
+hypre_ParCSRCommHandleSendData	par_csr_communication.h	116;"	d
+hypre_ParCSRCommPkg	_hypre_parcsr_mv.h	/^} hypre_ParCSRCommPkg;$/;"	t	typeref:struct:__anon2
+hypre_ParCSRCommPkg	par_csr_communication.h	/^} hypre_ParCSRCommPkg;$/;"	t	typeref:struct:__anon13
+hypre_ParCSRCommPkgComm	_hypre_parcsr_mv.h	104;"	d
+hypre_ParCSRCommPkgComm	par_csr_communication.h	89;"	d
+hypre_ParCSRCommPkgCreate	par_csr_communication.c	/^hypre_ParCSRCommPkgCreate$/;"	f
+hypre_ParCSRCommPkgCreateApart	new_commpkg.c	/^hypre_ParCSRCommPkgCreateApart$/;"	f
+hypre_ParCSRCommPkgCreateApart_core	new_commpkg.c	/^hypre_ParCSRCommPkgCreateApart_core($/;"	f
+hypre_ParCSRCommPkgCreate_core	par_csr_communication.c	/^hypre_ParCSRCommPkgCreate_core($/;"	f
+hypre_ParCSRCommPkgGetPersistentCommHandle	par_csr_communication.c	/^hypre_ParCSRCommPkgGetPersistentCommHandle( HYPRE_Int job,$/;"	f
+hypre_ParCSRCommPkgNumRecvs	_hypre_parcsr_mv.h	114;"	d
+hypre_ParCSRCommPkgNumRecvs	par_csr_communication.h	99;"	d
+hypre_ParCSRCommPkgNumSends	_hypre_parcsr_mv.h	106;"	d
+hypre_ParCSRCommPkgNumSends	par_csr_communication.h	91;"	d
+hypre_ParCSRCommPkgRecvMPIType	_hypre_parcsr_mv.h	124;"	d
+hypre_ParCSRCommPkgRecvMPIType	par_csr_communication.h	109;"	d
+hypre_ParCSRCommPkgRecvMPITypes	_hypre_parcsr_mv.h	123;"	d
+hypre_ParCSRCommPkgRecvMPITypes	par_csr_communication.h	108;"	d
+hypre_ParCSRCommPkgRecvProc	_hypre_parcsr_mv.h	116;"	d
+hypre_ParCSRCommPkgRecvProc	par_csr_communication.h	101;"	d
+hypre_ParCSRCommPkgRecvProcs	_hypre_parcsr_mv.h	115;"	d
+hypre_ParCSRCommPkgRecvProcs	par_csr_communication.h	100;"	d
+hypre_ParCSRCommPkgRecvVecStart	_hypre_parcsr_mv.h	118;"	d
+hypre_ParCSRCommPkgRecvVecStart	par_csr_communication.h	103;"	d
+hypre_ParCSRCommPkgRecvVecStarts	_hypre_parcsr_mv.h	117;"	d
+hypre_ParCSRCommPkgRecvVecStarts	par_csr_communication.h	102;"	d
+hypre_ParCSRCommPkgSendMPIType	_hypre_parcsr_mv.h	121;"	d
+hypre_ParCSRCommPkgSendMPIType	par_csr_communication.h	106;"	d
+hypre_ParCSRCommPkgSendMPITypes	_hypre_parcsr_mv.h	120;"	d
+hypre_ParCSRCommPkgSendMPITypes	par_csr_communication.h	105;"	d
+hypre_ParCSRCommPkgSendMapElmt	_hypre_parcsr_mv.h	112;"	d
+hypre_ParCSRCommPkgSendMapElmt	par_csr_communication.h	97;"	d
+hypre_ParCSRCommPkgSendMapElmts	_hypre_parcsr_mv.h	111;"	d
+hypre_ParCSRCommPkgSendMapElmts	par_csr_communication.h	96;"	d
+hypre_ParCSRCommPkgSendMapStart	_hypre_parcsr_mv.h	110;"	d
+hypre_ParCSRCommPkgSendMapStart	par_csr_communication.h	95;"	d
+hypre_ParCSRCommPkgSendMapStarts	_hypre_parcsr_mv.h	109;"	d
+hypre_ParCSRCommPkgSendMapStarts	par_csr_communication.h	94;"	d
+hypre_ParCSRCommPkgSendProc	_hypre_parcsr_mv.h	108;"	d
+hypre_ParCSRCommPkgSendProc	par_csr_communication.h	93;"	d
+hypre_ParCSRCommPkgSendProcs	_hypre_parcsr_mv.h	107;"	d
+hypre_ParCSRCommPkgSendProcs	par_csr_communication.h	92;"	d
+hypre_ParCSRFindExtendCommPkg	par_csr_communication.c	/^hypre_ParCSRFindExtendCommPkg(hypre_ParCSRMatrix *A, HYPRE_Int indices_len, HYPRE_Int *indices, $/;"	f
+hypre_ParCSRMatrix	_hypre_parcsr_mv.h	/^} hypre_ParCSRMatrix;$/;"	t	typeref:struct:hypre_ParCSRMatrix_struct
+hypre_ParCSRMatrix	par_csr_matrix.h	/^} hypre_ParCSRMatrix;$/;"	t	typeref:struct:hypre_ParCSRMatrix_struct
+hypre_ParCSRMatrixAminvDB	par_csr_matop.c	/^hypre_ParCSRMatrixAminvDB( hypre_ParCSRMatrix *A, hypre_ParCSRMatrix *B,$/;"	f
+hypre_ParCSRMatrixAssumedPartition	_hypre_parcsr_mv.h	395;"	d
+hypre_ParCSRMatrixAssumedPartition	par_csr_matrix.h	117;"	d
+hypre_ParCSRMatrixColMapOffd	_hypre_parcsr_mv.h	378;"	d
+hypre_ParCSRMatrixColMapOffd	par_csr_matrix.h	100;"	d
+hypre_ParCSRMatrixColStarts	_hypre_parcsr_mv.h	380;"	d
+hypre_ParCSRMatrixColStarts	par_csr_matrix.h	102;"	d
+hypre_ParCSRMatrixComm	_hypre_parcsr_mv.h	367;"	d
+hypre_ParCSRMatrixComm	par_csr_matrix.h	89;"	d
+hypre_ParCSRMatrixCommPkg	_hypre_parcsr_mv.h	381;"	d
+hypre_ParCSRMatrixCommPkg	par_csr_matrix.h	103;"	d
+hypre_ParCSRMatrixCommPkgT	_hypre_parcsr_mv.h	382;"	d
+hypre_ParCSRMatrixCommPkgT	par_csr_matrix.h	104;"	d
+hypre_ParCSRMatrixCompleteClone	par_csr_matrix.c	/^hypre_ParCSRMatrix * hypre_ParCSRMatrixCompleteClone( hypre_ParCSRMatrix * A )$/;"	f
+hypre_ParCSRMatrixCopy	par_csr_matrix.c	/^hypre_ParCSRMatrixCopy( hypre_ParCSRMatrix *A,$/;"	f
+hypre_ParCSRMatrixCopy_C	par_csr_matop_marked.c	/^void hypre_ParCSRMatrixCopy_C( hypre_ParCSRMatrix * P,$/;"	f
+hypre_ParCSRMatrixCreate	par_csr_matrix.c	/^hypre_ParCSRMatrixCreate( MPI_Comm comm,$/;"	f
+hypre_ParCSRMatrixCreateAssumedPartition	par_csr_assumed_part.c	/^hypre_ParCSRMatrixCreateAssumedPartition( hypre_ParCSRMatrix *matrix) $/;"	f
+hypre_ParCSRMatrixDNumNonzeros	_hypre_parcsr_mv.h	391;"	d
+hypre_ParCSRMatrixDNumNonzeros	par_csr_matrix.h	113;"	d
+hypre_ParCSRMatrixDestroy	par_csr_matrix.c	/^hypre_ParCSRMatrixDestroy( hypre_ParCSRMatrix *matrix )$/;"	f
+hypre_ParCSRMatrixDiag	_hypre_parcsr_mv.h	374;"	d
+hypre_ParCSRMatrixDiag	par_csr_matrix.h	96;"	d
+hypre_ParCSRMatrixDiagT	_hypre_parcsr_mv.h	376;"	d
+hypre_ParCSRMatrixDiagT	par_csr_matrix.h	98;"	d
+hypre_ParCSRMatrixDropSmallEntries	par_csr_matrix.c	/^hypre_ParCSRMatrixDropSmallEntries( hypre_ParCSRMatrix *A,$/;"	f
+hypre_ParCSRMatrixExtractAExt	par_csr_aat.c	/^hypre_ParCSRMatrixExtractAExt( hypre_ParCSRMatrix *A,$/;"	f
+hypre_ParCSRMatrixExtractBExt	par_csr_matop.c	/^hypre_ParCSRMatrixExtractBExt( hypre_ParCSRMatrix *B,$/;"	f
+hypre_ParCSRMatrixExtractBExt_Arrays	par_csr_matop.c	/^void hypre_ParCSRMatrixExtractBExt_Arrays($/;"	f
+hypre_ParCSRMatrixExtractBExt_Arrays_Overlap	par_csr_matop.c	/^void hypre_ParCSRMatrixExtractBExt_Arrays_Overlap($/;"	f
+hypre_ParCSRMatrixExtractBExt_Overlap	par_csr_matop.c	/^hypre_ParCSRMatrixExtractBExt_Overlap( hypre_ParCSRMatrix *B,$/;"	f
+hypre_ParCSRMatrixExtractRowSubmatrices	par_csr_matop.c	/^void hypre_ParCSRMatrixExtractRowSubmatrices( hypre_ParCSRMatrix *A_csr,$/;"	f
+hypre_ParCSRMatrixExtractSubmatrices	par_csr_matop.c	/^void hypre_ParCSRMatrixExtractSubmatrices( hypre_ParCSRMatrix *A_csr,$/;"	f
+hypre_ParCSRMatrixFirstColDiag	_hypre_parcsr_mv.h	371;"	d
+hypre_ParCSRMatrixFirstColDiag	par_csr_matrix.h	93;"	d
+hypre_ParCSRMatrixFirstRowIndex	_hypre_parcsr_mv.h	370;"	d
+hypre_ParCSRMatrixFirstRowIndex	par_csr_matrix.h	92;"	d
+hypre_ParCSRMatrixGenSpanningTree	par_csr_matop.c	/^void hypre_ParCSRMatrixGenSpanningTree( hypre_ParCSRMatrix *G_csr,$/;"	f
+hypre_ParCSRMatrixGetLocalRange	par_csr_matrix.c	/^hypre_ParCSRMatrixGetLocalRange( hypre_ParCSRMatrix *matrix,$/;"	f
+hypre_ParCSRMatrixGetRow	par_csr_matrix.c	/^hypre_ParCSRMatrixGetRow( hypre_ParCSRMatrix  *mat,$/;"	f
+hypre_ParCSRMatrixGetrowactive	_hypre_parcsr_mv.h	394;"	d
+hypre_ParCSRMatrixGetrowactive	par_csr_matrix.h	116;"	d
+hypre_ParCSRMatrixGlobalNumCols	_hypre_parcsr_mv.h	369;"	d
+hypre_ParCSRMatrixGlobalNumCols	par_csr_matrix.h	91;"	d
+hypre_ParCSRMatrixGlobalNumRows	_hypre_parcsr_mv.h	368;"	d
+hypre_ParCSRMatrixGlobalNumRows	par_csr_matrix.h	90;"	d
+hypre_ParCSRMatrixInitialize	par_csr_matrix.c	/^hypre_ParCSRMatrixInitialize( hypre_ParCSRMatrix *matrix )$/;"	f
+hypre_ParCSRMatrixIsManaged	par_csr_matrix.c	/^hypre_int hypre_ParCSRMatrixIsManaged(hypre_ParCSRMatrix *a){$/;"	f
+hypre_ParCSRMatrixLastColDiag	_hypre_parcsr_mv.h	373;"	d
+hypre_ParCSRMatrixLastColDiag	par_csr_matrix.h	95;"	d
+hypre_ParCSRMatrixLastRowIndex	_hypre_parcsr_mv.h	372;"	d
+hypre_ParCSRMatrixLastRowIndex	par_csr_matrix.h	94;"	d
+hypre_ParCSRMatrixLocalSumElts	par_csr_matop.c	/^HYPRE_Complex hypre_ParCSRMatrixLocalSumElts( hypre_ParCSRMatrix * A )$/;"	f
+hypre_ParCSRMatrixMatvec	par_csr_matvec.c	/^hypre_ParCSRMatrixMatvec( HYPRE_Complex       alpha,$/;"	f
+hypre_ParCSRMatrixMatvec3	par_csr_matvec.c	/^hypre_ParCSRMatrixMatvec3( HYPRE_Complex       alpha,$/;"	f
+hypre_ParCSRMatrixMatvecOutOfPlace	par_csr_matvec.c	/^hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,$/;"	f
+hypre_ParCSRMatrixMatvecOutOfPlace3	par_csr_matvec.c	/^hypre_ParCSRMatrixMatvecOutOfPlace3( HYPRE_Complex       alpha,$/;"	f
+hypre_ParCSRMatrixMatvecT	par_csr_matvec.c	/^hypre_ParCSRMatrixMatvecT( HYPRE_Complex       alpha,$/;"	f
+hypre_ParCSRMatrixMatvec_FF	par_csr_matvec.c	/^hypre_ParCSRMatrixMatvec_FF( HYPRE_Complex       alpha,$/;"	f
+hypre_ParCSRMatrixNumCols	_hypre_parcsr_mv.h	388;"	d
+hypre_ParCSRMatrixNumCols	par_csr_matrix.h	110;"	d
+hypre_ParCSRMatrixNumNonzeros	_hypre_parcsr_mv.h	390;"	d
+hypre_ParCSRMatrixNumNonzeros	par_csr_matrix.h	112;"	d
+hypre_ParCSRMatrixNumRows	_hypre_parcsr_mv.h	386;"	d
+hypre_ParCSRMatrixNumRows	par_csr_matrix.h	108;"	d
+hypre_ParCSRMatrixOffd	_hypre_parcsr_mv.h	375;"	d
+hypre_ParCSRMatrixOffd	par_csr_matrix.h	97;"	d
+hypre_ParCSRMatrixOffdT	_hypre_parcsr_mv.h	377;"	d
+hypre_ParCSRMatrixOffdT	par_csr_matrix.h	99;"	d
+hypre_ParCSRMatrixOwnsColStarts	_hypre_parcsr_mv.h	385;"	d
+hypre_ParCSRMatrixOwnsColStarts	par_csr_matrix.h	107;"	d
+hypre_ParCSRMatrixOwnsData	_hypre_parcsr_mv.h	383;"	d
+hypre_ParCSRMatrixOwnsData	par_csr_matrix.h	105;"	d
+hypre_ParCSRMatrixOwnsRowStarts	_hypre_parcsr_mv.h	384;"	d
+hypre_ParCSRMatrixOwnsRowStarts	par_csr_matrix.h	106;"	d
+hypre_ParCSRMatrixPrint	par_csr_matrix.c	/^hypre_ParCSRMatrixPrint( hypre_ParCSRMatrix *matrix, $/;"	f
+hypre_ParCSRMatrixPrintIJ	par_csr_matrix.c	/^hypre_ParCSRMatrixPrintIJ( const hypre_ParCSRMatrix *matrix, $/;"	f
+hypre_ParCSRMatrixRead	par_csr_matrix.c	/^hypre_ParCSRMatrixRead( MPI_Comm    comm,$/;"	f
+hypre_ParCSRMatrixReadIJ	par_csr_matrix.c	/^hypre_ParCSRMatrixReadIJ( MPI_Comm             comm,$/;"	f
+hypre_ParCSRMatrixRestoreRow	par_csr_matrix.c	/^hypre_ParCSRMatrixRestoreRow( hypre_ParCSRMatrix *matrix,$/;"	f
+hypre_ParCSRMatrixRowStarts	_hypre_parcsr_mv.h	379;"	d
+hypre_ParCSRMatrixRowStarts	par_csr_matrix.h	101;"	d
+hypre_ParCSRMatrixRowindices	_hypre_parcsr_mv.h	392;"	d
+hypre_ParCSRMatrixRowindices	par_csr_matrix.h	114;"	d
+hypre_ParCSRMatrixRowvalues	_hypre_parcsr_mv.h	393;"	d
+hypre_ParCSRMatrixRowvalues	par_csr_matrix.h	115;"	d
+hypre_ParCSRMatrixSetColStartsOwner	par_csr_matrix.c	/^hypre_ParCSRMatrixSetColStartsOwner( hypre_ParCSRMatrix *matrix,$/;"	f
+hypre_ParCSRMatrixSetDNumNonzeros	par_csr_matrix.c	/^hypre_ParCSRMatrixSetDNumNonzeros( hypre_ParCSRMatrix *matrix )$/;"	f
+hypre_ParCSRMatrixSetDataOwner	par_csr_matrix.c	/^hypre_ParCSRMatrixSetDataOwner( hypre_ParCSRMatrix *matrix,$/;"	f
+hypre_ParCSRMatrixSetNumNonzeros	par_csr_matrix.c	/^hypre_ParCSRMatrixSetNumNonzeros( hypre_ParCSRMatrix *matrix )$/;"	f
+hypre_ParCSRMatrixSetRowStartsOwner	par_csr_matrix.c	/^hypre_ParCSRMatrixSetRowStartsOwner( hypre_ParCSRMatrix *matrix,$/;"	f
+hypre_ParCSRMatrixToCSRMatrixAll	par_csr_matrix.c	/^hypre_ParCSRMatrixToCSRMatrixAll(hypre_ParCSRMatrix *par_matrix)$/;"	f
+hypre_ParCSRMatrixToParChordMatrix	parchord_to_parcsr.c	/^hypre_ParCSRMatrixToParChordMatrix($/;"	f
+hypre_ParCSRMatrixTranspose	par_csr_matop.c	/^hypre_ParCSRMatrixTranspose( hypre_ParCSRMatrix *A,$/;"	f
+hypre_ParCSRMatrixUnion	par_csr_matrix.c	/^hypre_ParCSRMatrix * hypre_ParCSRMatrixUnion( hypre_ParCSRMatrix * A,$/;"	f
+hypre_ParCSRMatrixZero_F	par_csr_matop_marked.c	/^void  hypre_ParCSRMatrixZero_F( hypre_ParCSRMatrix * P,$/;"	f
+hypre_ParCSRMatrix_struct	_hypre_parcsr_mv.h	/^typedef struct hypre_ParCSRMatrix_struct$/;"	s
+hypre_ParCSRMatrix_struct	par_csr_matrix.h	/^typedef struct hypre_ParCSRMatrix_struct$/;"	s
+hypre_ParCSRPersistentCommHandle	_hypre_parcsr_mv.h	/^} hypre_ParCSRPersistentCommHandle;$/;"	t	typeref:struct:__anon1
+hypre_ParCSRPersistentCommHandle	par_csr_communication.h	/^} hypre_ParCSRPersistentCommHandle;$/;"	t	typeref:struct:__anon12
+hypre_ParCSRPersistentCommHandleCreate	par_csr_communication.c	/^hypre_ParCSRPersistentCommHandleCreate( HYPRE_Int job,$/;"	f
+hypre_ParCSRPersistentCommHandleDestroy	par_csr_communication.c	/^hypre_ParCSRPersistentCommHandleDestroy( hypre_ParCSRPersistentCommHandle *comm_handle )$/;"	f
+hypre_ParCSRPersistentCommHandleStart	par_csr_communication.c	/^void hypre_ParCSRPersistentCommHandleStart( hypre_ParCSRPersistentCommHandle *comm_handle )$/;"	f
+hypre_ParCSRPersistentCommHandleWait	par_csr_communication.c	/^void hypre_ParCSRPersistentCommHandleWait( hypre_ParCSRPersistentCommHandle *comm_handle )$/;"	f
+hypre_ParChordMatrix	_hypre_parcsr_mv.h	/^} hypre_ParChordMatrix;$/;"	t	typeref:struct:__anon7
+hypre_ParChordMatrix	par_chord_matrix.h	/^} hypre_ParChordMatrix;$/;"	t	typeref:struct:__anon10
+hypre_ParChordMatrixComm	_hypre_parcsr_mv.h	587;"	d
+hypre_ParChordMatrixComm	par_chord_matrix.h	73;"	d
+hypre_ParChordMatrixFirstindexIdof	_hypre_parcsr_mv.h	604;"	d
+hypre_ParChordMatrixFirstindexIdof	par_chord_matrix.h	90;"	d
+hypre_ParChordMatrixFirstindexRdof	_hypre_parcsr_mv.h	605;"	d
+hypre_ParChordMatrixFirstindexRdof	par_chord_matrix.h	91;"	d
+hypre_ParChordMatrixIdofInprocessor	_hypre_parcsr_mv.h	594;"	d
+hypre_ParChordMatrixIdofInprocessor	par_chord_matrix.h	80;"	d
+hypre_ParChordMatrixInchordData	_hypre_parcsr_mv.h	600;"	d
+hypre_ParChordMatrixInchordData	par_chord_matrix.h	86;"	d
+hypre_ParChordMatrixInchordIdof	_hypre_parcsr_mv.h	598;"	d
+hypre_ParChordMatrixInchordIdof	par_chord_matrix.h	84;"	d
+hypre_ParChordMatrixInchordRdof	_hypre_parcsr_mv.h	599;"	d
+hypre_ParChordMatrixInchordRdof	par_chord_matrix.h	85;"	d
+hypre_ParChordMatrixInprocessor	_hypre_parcsr_mv.h	592;"	d
+hypre_ParChordMatrixInprocessor	par_chord_matrix.h	78;"	d
+hypre_ParChordMatrixNumIdofs	_hypre_parcsr_mv.h	601;"	d
+hypre_ParChordMatrixNumIdofs	par_chord_matrix.h	87;"	d
+hypre_ParChordMatrixNumIdofsInprocessor	_hypre_parcsr_mv.h	593;"	d
+hypre_ParChordMatrixNumIdofsInprocessor	par_chord_matrix.h	79;"	d
+hypre_ParChordMatrixNumInchords	_hypre_parcsr_mv.h	596;"	d
+hypre_ParChordMatrixNumInchords	par_chord_matrix.h	82;"	d
+hypre_ParChordMatrixNumInprocessors	_hypre_parcsr_mv.h	591;"	d
+hypre_ParChordMatrixNumInprocessors	par_chord_matrix.h	77;"	d
+hypre_ParChordMatrixNumRdofs	_hypre_parcsr_mv.h	602;"	d
+hypre_ParChordMatrixNumRdofs	par_chord_matrix.h	88;"	d
+hypre_ParChordMatrixNumRdofsToprocessor	_hypre_parcsr_mv.h	611;"	d
+hypre_ParChordMatrixNumRdofsToprocessor	par_chord_matrix.h	97;"	d
+hypre_ParChordMatrixNumToprocessors	_hypre_parcsr_mv.h	609;"	d
+hypre_ParChordMatrixNumToprocessors	par_chord_matrix.h	95;"	d
+hypre_ParChordMatrixRdofToprocessor	_hypre_parcsr_mv.h	612;"	d
+hypre_ParChordMatrixRdofToprocessor	par_chord_matrix.h	98;"	d
+hypre_ParChordMatrixToParCSRMatrix	parchord_to_parcsr.c	/^hypre_ParChordMatrixToParCSRMatrix($/;"	f
+hypre_ParChordMatrixToprocessor	_hypre_parcsr_mv.h	610;"	d
+hypre_ParChordMatrixToprocessor	par_chord_matrix.h	96;"	d
+hypre_ParChordMatrix_RowStarts	parchord_to_parcsr.c	/^void hypre_ParChordMatrix_RowStarts($/;"	f
+hypre_ParMatMinus_F	par_csr_matop_marked.c	/^hypre_ParCSRMatrix * hypre_ParMatMinus_F($/;"	f
+hypre_ParMatScaleDiagInv_F	par_csr_matop_marked.c	/^void hypre_ParMatScaleDiagInv_F($/;"	f
+hypre_ParMatmul	par_csr_matop.c	/^hypre_ParCSRMatrix *hypre_ParMatmul( hypre_ParCSRMatrix  *A,$/;"	f
+hypre_ParMatmul_FC	par_csr_matop_marked.c	/^hypre_ParCSRMatrix * hypre_ParMatmul_FC($/;"	f
+hypre_ParMatmul_RowSizes	par_csr_matop.c	/^void hypre_ParMatmul_RowSizes($/;"	f
+hypre_ParMatmul_RowSizes_Marked	par_csr_matop_marked.c	/^void hypre_ParMatmul_RowSizes_Marked($/;"	f
+hypre_ParMultiVectorCreate	par_vector.c	/^hypre_ParMultiVectorCreate( MPI_Comm   comm,$/;"	f
+hypre_ParTMatmul	par_csr_matop.c	/^hypre_ParCSRMatrix *hypre_ParTMatmul( hypre_ParCSRMatrix  *A,$/;"	f
+hypre_ParVector	_hypre_parcsr_mv.h	/^} hypre_ParVector;$/;"	t	typeref:struct:hypre_ParVector_struct
+hypre_ParVector	par_vector.h	/^} hypre_ParVector;$/;"	t	typeref:struct:hypre_ParVector_struct
+hypre_ParVectorActualLocalSize	_hypre_parcsr_mv.h	268;"	d
+hypre_ParVectorActualLocalSize	par_vector.h	68;"	d
+hypre_ParVectorAssumedPartition	_hypre_parcsr_mv.h	275;"	d
+hypre_ParVectorAssumedPartition	par_vector.h	75;"	d
+hypre_ParVectorAxpy	par_vector.c	/^hypre_ParVectorAxpy( HYPRE_Complex    alpha,$/;"	f
+hypre_ParVectorCloneShallow	par_vector.c	/^hypre_ParVectorCloneShallow( hypre_ParVector *x )$/;"	f
+hypre_ParVectorComm	_hypre_parcsr_mv.h	263;"	d
+hypre_ParVectorComm	par_vector.h	63;"	d
+hypre_ParVectorCopy	par_vector.c	/^hypre_ParVectorCopy( hypre_ParVector *x,$/;"	f
+hypre_ParVectorCreate	par_vector.c	/^hypre_ParVectorCreate( MPI_Comm   comm,$/;"	f
+hypre_ParVectorCreateAssumedPartition	par_csr_assumed_part.c	/^hypre_ParVectorCreateAssumedPartition( hypre_ParVector *vector) $/;"	f
+hypre_ParVectorDestroy	par_vector.c	/^hypre_ParVectorDestroy( hypre_ParVector *vector )$/;"	f
+hypre_ParVectorFirstIndex	_hypre_parcsr_mv.h	265;"	d
+hypre_ParVectorFirstIndex	par_vector.h	65;"	d
+hypre_ParVectorGlobalSize	_hypre_parcsr_mv.h	264;"	d
+hypre_ParVectorGlobalSize	par_vector.h	64;"	d
+hypre_ParVectorInitialize	par_vector.c	/^hypre_ParVectorInitialize( hypre_ParVector *vector )$/;"	f
+hypre_ParVectorInnerProd	par_vector.c	/^hypre_ParVectorInnerProd( hypre_ParVector *x,$/;"	f
+hypre_ParVectorIsManaged	par_vector.c	/^hypre_int hypre_ParVectorIsManaged(hypre_ParVector *vector){$/;"	f
+hypre_ParVectorLastIndex	_hypre_parcsr_mv.h	266;"	d
+hypre_ParVectorLastIndex	par_vector.h	66;"	d
+hypre_ParVectorLocalSumElts	par_vector.c	/^HYPRE_Complex hypre_ParVectorLocalSumElts( hypre_ParVector * vector )$/;"	f
+hypre_ParVectorLocalVector	_hypre_parcsr_mv.h	269;"	d
+hypre_ParVectorLocalVector	par_vector.h	69;"	d
+hypre_ParVectorMassAxpy	par_vector.c	/^hypre_ParVectorMassAxpy( HYPRE_Real * alpha,$/;"	f
+hypre_ParVectorMassInnerProd	par_vector.c	/^void  hypre_ParVectorMassInnerProd( hypre_ParVector *x,$/;"	f
+hypre_ParVectorNumVectors	_hypre_parcsr_mv.h	272;"	d
+hypre_ParVectorNumVectors	par_vector.h	72;"	d
+hypre_ParVectorOwnsData	_hypre_parcsr_mv.h	270;"	d
+hypre_ParVectorOwnsData	par_vector.h	70;"	d
+hypre_ParVectorOwnsPartitioning	_hypre_parcsr_mv.h	271;"	d
+hypre_ParVectorOwnsPartitioning	par_vector.h	71;"	d
+hypre_ParVectorPartitioning	_hypre_parcsr_mv.h	267;"	d
+hypre_ParVectorPartitioning	par_vector.h	67;"	d
+hypre_ParVectorPrint	par_vector.c	/^hypre_ParVectorPrint( hypre_ParVector  *vector, $/;"	f
+hypre_ParVectorPrintIJ	par_vector.c	/^hypre_ParVectorPrintIJ( hypre_ParVector *vector,$/;"	f
+hypre_ParVectorRead	par_vector.c	/^*hypre_ParVectorRead( MPI_Comm    comm,$/;"	f
+hypre_ParVectorReadIJ	par_vector.c	/^hypre_ParVectorReadIJ( MPI_Comm          comm,$/;"	f
+hypre_ParVectorScale	par_vector.c	/^hypre_ParVectorScale( HYPRE_Complex    alpha,$/;"	f
+hypre_ParVectorSetConstantValues	par_vector.c	/^hypre_ParVectorSetConstantValues( hypre_ParVector *v,$/;"	f
+hypre_ParVectorSetDataOwner	par_vector.c	/^hypre_ParVectorSetDataOwner( hypre_ParVector *vector,$/;"	f
+hypre_ParVectorSetPartitioningOwner	par_vector.c	/^hypre_ParVectorSetPartitioningOwner( hypre_ParVector *vector,$/;"	f
+hypre_ParVectorSetRandomValues	par_vector.c	/^hypre_ParVectorSetRandomValues( hypre_ParVector *v,$/;"	f
+hypre_ParVectorToVectorAll	par_vector.c	/^hypre_ParVectorToVectorAll( hypre_ParVector *par_v )$/;"	f
+hypre_ParVectorUpdateHost	par_vector.c	/^void hypre_ParVectorUpdateHost(hypre_ParVector *p){$/;"	f
+hypre_ParVector_struct	_hypre_parcsr_mv.h	/^typedef struct hypre_ParVector_struct$/;"	s
+hypre_ParVector_struct	par_vector.h	/^typedef struct hypre_ParVector_struct$/;"	s
+hypre_ParcsrAdd	par_csr_matop.c	/^hypre_ParcsrAdd( HYPRE_Complex alpha,$/;"	f
+hypre_ParcsrBdiagInvScal	par_csr_matop.c	/^hypre_ParcsrBdiagInvScal( hypre_ParCSRMatrix   *A,$/;"	f
+hypre_ParcsrGetExternalRows	par_csr_matop.c	/^hypre_ParcsrGetExternalRows( hypre_ParCSRMatrix   *A,$/;"	f
+hypre_ParvecBdiagInvScal	par_csr_matop.c	/^hypre_ParvecBdiagInvScal( hypre_ParVector     *b,$/;"	f
+hypre_PrintCommpkg	new_commpkg.c	/^HYPRE_Int hypre_PrintCommpkg(hypre_ParCSRMatrix *A, const char *file_name)$/;"	f
+hypre_ProcListElements	_hypre_parcsr_mv.h	/^}  hypre_ProcListElements;   $/;"	t	typeref:struct:__anon5
+hypre_ProcListElements	new_commpkg.h	/^}  hypre_ProcListElements;   $/;"	t	typeref:struct:__anon9
+hypre_RangeFillResponseIJDetermineRecvProcs	new_commpkg.c	/^hypre_RangeFillResponseIJDetermineRecvProcs(void *p_recv_contact_buf,$/;"	f
+hypre_RowsWithColumn	communicationT.c	/^void hypre_RowsWithColumn$/;"	f
+hypre_RowsWithColumn_original	communicationT.c	/^void hypre_RowsWithColumn_original$/;"	f
+hypre_VectorToParVector	par_vector.c	/^hypre_VectorToParVector ( MPI_Comm      comm,$/;"	f
+id	_hypre_parcsr_mv.h	/^   HYPRE_Int      *id;$/;"	m	struct:__anon5
+id	new_commpkg.h	/^   HYPRE_Int      *id;$/;"	m	struct:__anon9
+idof_inprocessor	_hypre_parcsr_mv.h	/^  HYPRE_Int **idof_inprocessor; $/;"	m	struct:__anon7
+idof_inprocessor	par_chord_matrix.h	/^  HYPRE_Int **idof_inprocessor; $/;"	m	struct:__anon10
+inchord_data	_hypre_parcsr_mv.h	/^  HYPRE_Complex **inchord_data;$/;"	m	struct:__anon7
+inchord_data	par_chord_matrix.h	/^  HYPRE_Complex **inchord_data;$/;"	m	struct:__anon10
+inchord_idof	_hypre_parcsr_mv.h	/^  HYPRE_Int     **inchord_idof;$/;"	m	struct:__anon7
+inchord_idof	par_chord_matrix.h	/^  HYPRE_Int     **inchord_idof;$/;"	m	struct:__anon10
+inchord_rdof	_hypre_parcsr_mv.h	/^  HYPRE_Int     **inchord_rdof;$/;"	m	struct:__anon7
+inchord_rdof	par_chord_matrix.h	/^  HYPRE_Int     **inchord_rdof;$/;"	m	struct:__anon10
+inprocessor	_hypre_parcsr_mv.h	/^  HYPRE_Int *inprocessor;$/;"	m	struct:__anon7
+inprocessor	par_chord_matrix.h	/^  HYPRE_Int *inprocessor;$/;"	m	struct:__anon10
+last_col_diag	_hypre_parcsr_mv.h	/^   HYPRE_Int               last_col_diag;$/;"	m	struct:__anon6
+last_col_diag	_hypre_parcsr_mv.h	/^   HYPRE_Int             last_col_diag;$/;"	m	struct:hypre_ParCSRMatrix_struct
+last_col_diag	par_csr_matrix.h	/^   HYPRE_Int               last_col_diag;$/;"	m	struct:__anon15
+last_col_diag	par_csr_matrix.h	/^   HYPRE_Int             last_col_diag;$/;"	m	struct:hypre_ParCSRMatrix_struct
+last_index	_hypre_parcsr_mv.h	/^   HYPRE_Int             last_index;$/;"	m	struct:hypre_ParVector_struct
+last_index	par_vector.h	/^   HYPRE_Int             last_index;$/;"	m	struct:hypre_ParVector_struct
+last_row_index	_hypre_parcsr_mv.h	/^   HYPRE_Int               last_row_index;$/;"	m	struct:__anon6
+last_row_index	_hypre_parcsr_mv.h	/^   HYPRE_Int             last_row_index;$/;"	m	struct:hypre_ParCSRMatrix_struct
+last_row_index	par_csr_matrix.h	/^   HYPRE_Int               last_row_index;$/;"	m	struct:__anon15
+last_row_index	par_csr_matrix.h	/^   HYPRE_Int             last_row_index;$/;"	m	struct:hypre_ParCSRMatrix_struct
+length	_hypre_parcsr_mv.h	/^   HYPRE_Int                   length;$/;"	m	struct:__anon4
+length	_hypre_parcsr_mv.h	/^   HYPRE_Int       length;$/;"	m	struct:__anon5
+length	new_commpkg.h	/^   HYPRE_Int       length;$/;"	m	struct:__anon9
+length	par_csr_assumed_part.h	/^   HYPRE_Int                   length;$/;"	m	struct:__anon11
+local_vector	_hypre_parcsr_mv.h	/^   hypre_Vector         *local_vector; $/;"	m	struct:hypre_ParVector_struct
+local_vector	par_vector.h	/^   hypre_Vector	*local_vector; $/;"	m	struct:hypre_ParVector_struct
+main	driver.c	/^main( HYPRE_Int   argc,$/;"	f
+main	driver_aat.c	/^main( HYPRE_Int   argc,$/;"	f
+main	driver_boolaat.c	/^main( HYPRE_Int   argc,$/;"	f
+main	driver_boolmatmul.c	/^main( HYPRE_Int   argc,$/;"	f
+main	driver_mat_multivec.c	/^main( HYPRE_Int   argc,$/;"	f
+main	driver_matmul.c	/^main( HYPRE_Int   argc,$/;"	f
+main	driver_matvec.c	/^main( HYPRE_Int   argc,$/;"	f
+main	driver_multivec.c	/^main( HYPRE_Int   argc,$/;"	f
+mydebug	new_commpkg.c	24;"	d	file:
+num_idofs	_hypre_parcsr_mv.h	/^  HYPRE_Int num_idofs;$/;"	m	struct:__anon7
+num_idofs	par_chord_matrix.h	/^  HYPRE_Int num_idofs;$/;"	m	struct:__anon10
+num_idofs_inprocessor	_hypre_parcsr_mv.h	/^  HYPRE_Int *num_idofs_inprocessor; $/;"	m	struct:__anon7
+num_idofs_inprocessor	par_chord_matrix.h	/^  HYPRE_Int *num_idofs_inprocessor; $/;"	m	struct:__anon10
+num_inchords	_hypre_parcsr_mv.h	/^  HYPRE_Int     *num_inchords;$/;"	m	struct:__anon7
+num_inchords	par_chord_matrix.h	/^  HYPRE_Int     *num_inchords;$/;"	m	struct:__anon10
+num_inprocessors	_hypre_parcsr_mv.h	/^  HYPRE_Int num_inprocessors;$/;"	m	struct:__anon7
+num_inprocessors	par_chord_matrix.h	/^  HYPRE_Int num_inprocessors;$/;"	m	struct:__anon10
+num_nonzeros	_hypre_parcsr_mv.h	/^   HYPRE_Int               num_nonzeros;$/;"	m	struct:__anon6
+num_nonzeros	_hypre_parcsr_mv.h	/^   HYPRE_Int             num_nonzeros;$/;"	m	struct:hypre_ParCSRMatrix_struct
+num_nonzeros	par_csr_matrix.h	/^   HYPRE_Int               num_nonzeros;$/;"	m	struct:__anon15
+num_nonzeros	par_csr_matrix.h	/^   HYPRE_Int             num_nonzeros;$/;"	m	struct:hypre_ParCSRMatrix_struct
+num_rdofs	_hypre_parcsr_mv.h	/^  HYPRE_Int num_rdofs;$/;"	m	struct:__anon7
+num_rdofs	par_chord_matrix.h	/^  HYPRE_Int num_rdofs;$/;"	m	struct:__anon10
+num_rdofs_toprocessor	_hypre_parcsr_mv.h	/^  HYPRE_Int *num_rdofs_toprocessor;$/;"	m	struct:__anon7
+num_rdofs_toprocessor	par_chord_matrix.h	/^  HYPRE_Int *num_rdofs_toprocessor;$/;"	m	struct:__anon10
+num_recvs	_hypre_parcsr_mv.h	/^   HYPRE_Int                    num_recvs;$/;"	m	struct:__anon2
+num_recvs	par_csr_communication.h	/^   HYPRE_Int                    num_recvs;$/;"	m	struct:__anon13
+num_requests	_hypre_parcsr_mv.h	/^   HYPRE_Int             num_requests;$/;"	m	struct:__anon1
+num_requests	_hypre_parcsr_mv.h	/^   HYPRE_Int             num_requests;$/;"	m	struct:__anon3
+num_requests	par_csr_communication.h	/^   HYPRE_Int             num_requests;$/;"	m	struct:__anon12
+num_requests	par_csr_communication.h	/^   HYPRE_Int             num_requests;$/;"	m	struct:__anon14
+num_sends	_hypre_parcsr_mv.h	/^   HYPRE_Int                    num_sends;$/;"	m	struct:__anon2
+num_sends	par_csr_communication.h	/^   HYPRE_Int                    num_sends;$/;"	m	struct:__anon13
+num_toprocessors	_hypre_parcsr_mv.h	/^  HYPRE_Int num_toprocessors;$/;"	m	struct:__anon7
+num_toprocessors	par_chord_matrix.h	/^  HYPRE_Int num_toprocessors;$/;"	m	struct:__anon10
+offd	_hypre_parcsr_mv.h	/^   hypre_CSRBooleanMatrix *offd;$/;"	m	struct:__anon6
+offd	_hypre_parcsr_mv.h	/^   hypre_CSRMatrix      *offd;$/;"	m	struct:hypre_ParCSRMatrix_struct
+offd	par_csr_matrix.h	/^   hypre_CSRBooleanMatrix *offd;$/;"	m	struct:__anon15
+offd	par_csr_matrix.h	/^   hypre_CSRMatrix      *offd;$/;"	m	struct:hypre_ParCSRMatrix_struct
+offdT	_hypre_parcsr_mv.h	/^   hypre_CSRMatrix      *diagT, *offdT;$/;"	m	struct:hypre_ParCSRMatrix_struct
+offdT	par_csr_matrix.h	/^   hypre_CSRMatrix      *diagT, *offdT;$/;"	m	struct:hypre_ParCSRMatrix_struct
+own_recv_data	_hypre_parcsr_mv.h	/^   HYPRE_Int own_send_data, own_recv_data;$/;"	m	struct:__anon1
+own_recv_data	par_csr_communication.h	/^   HYPRE_Int own_send_data, own_recv_data;$/;"	m	struct:__anon12
+own_send_data	_hypre_parcsr_mv.h	/^   HYPRE_Int own_send_data, own_recv_data;$/;"	m	struct:__anon1
+own_send_data	par_csr_communication.h	/^   HYPRE_Int own_send_data, own_recv_data;$/;"	m	struct:__anon12
+owns_col_starts	_hypre_parcsr_mv.h	/^   HYPRE_Int               owns_col_starts;$/;"	m	struct:__anon6
+owns_col_starts	_hypre_parcsr_mv.h	/^   HYPRE_Int             owns_col_starts;$/;"	m	struct:hypre_ParCSRMatrix_struct
+owns_col_starts	par_csr_matrix.h	/^   HYPRE_Int               owns_col_starts;$/;"	m	struct:__anon15
+owns_col_starts	par_csr_matrix.h	/^   HYPRE_Int             owns_col_starts;$/;"	m	struct:hypre_ParCSRMatrix_struct
+owns_data	_hypre_parcsr_mv.h	/^   HYPRE_Int               owns_data;$/;"	m	struct:__anon6
+owns_data	_hypre_parcsr_mv.h	/^   HYPRE_Int             owns_data;$/;"	m	struct:hypre_ParCSRMatrix_struct
+owns_data	_hypre_parcsr_mv.h	/^   HYPRE_Int             owns_data;$/;"	m	struct:hypre_ParVector_struct
+owns_data	par_csr_matrix.h	/^   HYPRE_Int               owns_data;$/;"	m	struct:__anon15
+owns_data	par_csr_matrix.h	/^   HYPRE_Int             owns_data;$/;"	m	struct:hypre_ParCSRMatrix_struct
+owns_data	par_vector.h	/^   HYPRE_Int      	 owns_data;$/;"	m	struct:hypre_ParVector_struct
+owns_partitioning	_hypre_parcsr_mv.h	/^   HYPRE_Int             owns_partitioning;$/;"	m	struct:hypre_ParVector_struct
+owns_partitioning	par_vector.h	/^   HYPRE_Int      	 owns_partitioning;$/;"	m	struct:hypre_ParVector_struct
+owns_row_starts	_hypre_parcsr_mv.h	/^   HYPRE_Int               owns_row_starts;$/;"	m	struct:__anon6
+owns_row_starts	_hypre_parcsr_mv.h	/^   HYPRE_Int             owns_row_starts;$/;"	m	struct:hypre_ParCSRMatrix_struct
+owns_row_starts	par_csr_matrix.h	/^   HYPRE_Int               owns_row_starts;$/;"	m	struct:__anon15
+owns_row_starts	par_csr_matrix.h	/^   HYPRE_Int             owns_row_starts;$/;"	m	struct:hypre_ParCSRMatrix_struct
+partitioning	_hypre_parcsr_mv.h	/^   HYPRE_Int            *partitioning;$/;"	m	struct:hypre_ParVector_struct
+partitioning	par_vector.h	/^   HYPRE_Int      	*partitioning;$/;"	m	struct:hypre_ParVector_struct
+persistent_comm_handles	_hypre_parcsr_mv.h	/^   hypre_ParCSRPersistentCommHandle *persistent_comm_handles[NUM_OF_COMM_PKG_JOB_TYPE];$/;"	m	struct:__anon2
+persistent_comm_handles	par_csr_communication.h	/^   hypre_ParCSRPersistentCommHandle *persistent_comm_handles[NUM_OF_COMM_PKG_JOB_TYPE];$/;"	m	struct:__anon13
+proc_list	_hypre_parcsr_mv.h	/^   HYPRE_Int                  *proc_list;$/;"	m	struct:__anon4
+proc_list	par_csr_assumed_part.h	/^   HYPRE_Int                   *proc_list;$/;"	m	struct:__anon11
+rdof_toprocessor	_hypre_parcsr_mv.h	/^  HYPRE_Int **rdof_toprocessor;$/;"	m	struct:__anon7
+rdof_toprocessor	par_chord_matrix.h	/^  HYPRE_Int **rdof_toprocessor;$/;"	m	struct:__anon10
+recv_data	_hypre_parcsr_mv.h	/^   void                 *recv_data;$/;"	m	struct:__anon3
+recv_data	_hypre_parcsr_mv.h	/^   void     *recv_data;$/;"	m	struct:__anon1
+recv_data	par_csr_communication.h	/^   void 	  *recv_data;$/;"	m	struct:__anon14
+recv_data	par_csr_communication.h	/^   void     *recv_data;$/;"	m	struct:__anon12
+recv_mpi_types	_hypre_parcsr_mv.h	/^   hypre_MPI_Datatype          *recv_mpi_types;$/;"	m	struct:__anon2
+recv_mpi_types	par_csr_communication.h	/^   hypre_MPI_Datatype          *recv_mpi_types;$/;"	m	struct:__anon13
+recv_procs	_hypre_parcsr_mv.h	/^   HYPRE_Int                   *recv_procs;$/;"	m	struct:__anon2
+recv_procs	par_csr_communication.h	/^   HYPRE_Int                   *recv_procs;$/;"	m	struct:__anon13
+recv_vec_starts	_hypre_parcsr_mv.h	/^   HYPRE_Int                   *recv_vec_starts;$/;"	m	struct:__anon2
+recv_vec_starts	par_csr_communication.h	/^   HYPRE_Int                   *recv_vec_starts;$/;"	m	struct:__anon13
+requests	_hypre_parcsr_mv.h	/^   hypre_MPI_Request    *requests;$/;"	m	struct:__anon1
+requests	_hypre_parcsr_mv.h	/^   hypre_MPI_Request    *requests;$/;"	m	struct:__anon3
+requests	par_csr_communication.h	/^   hypre_MPI_Request    *requests;$/;"	m	struct:__anon12
+requests	par_csr_communication.h	/^   hypre_MPI_Request    *requests;$/;"	m	struct:__anon14
+row_end	_hypre_parcsr_mv.h	/^   HYPRE_Int                   row_end;$/;"	m	struct:__anon4
+row_end	par_csr_assumed_part.h	/^   HYPRE_Int                   row_end;$/;"	m	struct:__anon11
+row_end_list	_hypre_parcsr_mv.h	/^   HYPRE_Int                  *row_end_list;  $/;"	m	struct:__anon4
+row_end_list	par_csr_assumed_part.h	/^   HYPRE_Int                   *row_end_list;  $/;"	m	struct:__anon11
+row_start	_hypre_parcsr_mv.h	/^   HYPRE_Int                   row_start;$/;"	m	struct:__anon4
+row_start	par_csr_assumed_part.h	/^   HYPRE_Int                   row_start;$/;"	m	struct:__anon11
+row_start_list	_hypre_parcsr_mv.h	/^   HYPRE_Int                  *row_start_list;$/;"	m	struct:__anon4
+row_start_list	par_csr_assumed_part.h	/^   HYPRE_Int		         *row_start_list;$/;"	m	struct:__anon11
+row_starts	_hypre_parcsr_mv.h	/^   HYPRE_Int              *row_starts; $/;"	m	struct:__anon6
+row_starts	_hypre_parcsr_mv.h	/^   HYPRE_Int            *row_starts; $/;"	m	struct:hypre_ParCSRMatrix_struct
+row_starts	par_csr_matrix.h	/^   HYPRE_Int              *row_starts; $/;"	m	struct:__anon15
+row_starts	par_csr_matrix.h	/^   HYPRE_Int            *row_starts; $/;"	m	struct:hypre_ParCSRMatrix_struct
+rowindices	_hypre_parcsr_mv.h	/^   HYPRE_Int              *rowindices;$/;"	m	struct:__anon6
+rowindices	_hypre_parcsr_mv.h	/^   HYPRE_Int            *rowindices;$/;"	m	struct:hypre_ParCSRMatrix_struct
+rowindices	par_csr_matrix.h	/^   HYPRE_Int              *rowindices;$/;"	m	struct:__anon15
+rowindices	par_csr_matrix.h	/^   HYPRE_Int            *rowindices;$/;"	m	struct:hypre_ParCSRMatrix_struct
+rowvalues	_hypre_parcsr_mv.h	/^   HYPRE_Complex        *rowvalues;$/;"	m	struct:hypre_ParCSRMatrix_struct
+rowvalues	par_csr_matrix.h	/^   HYPRE_Complex        *rowvalues;$/;"	m	struct:hypre_ParCSRMatrix_struct
+send_data	_hypre_parcsr_mv.h	/^   void                 *send_data;$/;"	m	struct:__anon3
+send_data	_hypre_parcsr_mv.h	/^   void     *send_data;$/;"	m	struct:__anon1
+send_data	par_csr_communication.h	/^   void 	  *send_data;$/;"	m	struct:__anon14
+send_data	par_csr_communication.h	/^   void     *send_data;$/;"	m	struct:__anon12
+send_map_elmts	_hypre_parcsr_mv.h	/^   HYPRE_Int                   *send_map_elmts;$/;"	m	struct:__anon2
+send_map_elmts	par_csr_communication.h	/^   HYPRE_Int			 *send_map_elmts;$/;"	m	struct:__anon13
+send_map_starts	_hypre_parcsr_mv.h	/^   HYPRE_Int                   *send_map_starts;$/;"	m	struct:__anon2
+send_map_starts	par_csr_communication.h	/^   HYPRE_Int			 *send_map_starts;$/;"	m	struct:__anon13
+send_mpi_types	_hypre_parcsr_mv.h	/^   hypre_MPI_Datatype          *send_mpi_types;$/;"	m	struct:__anon2
+send_mpi_types	par_csr_communication.h	/^   hypre_MPI_Datatype          *send_mpi_types;$/;"	m	struct:__anon13
+send_procs	_hypre_parcsr_mv.h	/^   HYPRE_Int                   *send_procs;$/;"	m	struct:__anon2
+send_procs	par_csr_communication.h	/^   HYPRE_Int                   *send_procs;$/;"	m	struct:__anon13
+sort_index	_hypre_parcsr_mv.h	/^   HYPRE_Int                  *sort_index;$/;"	m	struct:__anon4
+sort_index	par_csr_assumed_part.h	/^  HYPRE_Int                    *sort_index;$/;"	m	struct:__anon11
+storage_length	_hypre_parcsr_mv.h	/^   HYPRE_Int                   storage_length;$/;"	m	struct:__anon4
+storage_length	_hypre_parcsr_mv.h	/^   HYPRE_Int       storage_length; $/;"	m	struct:__anon5
+storage_length	new_commpkg.h	/^   HYPRE_Int       storage_length; $/;"	m	struct:__anon9
+storage_length	par_csr_assumed_part.h	/^   HYPRE_Int                   storage_length;$/;"	m	struct:__anon11
+toprocessor	_hypre_parcsr_mv.h	/^  HYPRE_Int *toprocessor;$/;"	m	struct:__anon7
+toprocessor	par_chord_matrix.h	/^  HYPRE_Int *toprocessor;$/;"	m	struct:__anon10
+v_elements	_hypre_parcsr_mv.h	/^   void           *v_elements;$/;"	m	struct:__anon5
+v_elements	new_commpkg.h	/^   void           *v_elements;$/;"	m	struct:__anon9
+vec_starts	_hypre_parcsr_mv.h	/^   HYPRE_Int      *vec_starts;$/;"	m	struct:__anon5
+vec_starts	new_commpkg.h	/^   HYPRE_Int      *vec_starts;$/;"	m	struct:__anon9
+x	_hypre_parcsr_mv.h	/^   hypre_ParVector * x;$/;"	m	struct:__anon8
+x	par_make_system.h	/^   hypre_ParVector * x;$/;"	m	struct:__anon16

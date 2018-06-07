@@ -147,7 +147,6 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
          x_buf_data[jv] = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
                                         (comm_pkg,  num_sends), HYPRE_MEMORY_SHARED);
    }
-   
    if ( num_vectors==1 )
    {
       HYPRE_Int begin = hypre_ParCSRCommPkgSendMapStart(comm_pkg, 0);
@@ -190,7 +189,7 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
       HYPRE_Int num_threads=64;
       HYPRE_Int num_teams = (end-begin+(end-begin)%num_threads)/num_threads;
       HYPRE_Int *local_send_map_elmts = comm_pkg->send_map_elmts;
-      printf("USING OFFLOADED PACKING OF BUFER\n");
+      //printf("USING OFFLOADED PACKING OF BUFER\n");
 #pragma omp target teams  distribute  parallel for private(i) num_teams(num_teams) thread_limit(num_threads) is_device_ptr(x_local_data,x_buf_data,comm_pkg,local_send_map_elmts)
 #elif defined(HYPRE_USING_OPENMP)
 #pragma omp parallel for HYPRE_SMP_SCHEDULE
@@ -320,7 +319,14 @@ hypre_ParCSRMatrixMatvec( HYPRE_Complex       alpha,
                           HYPRE_Complex       beta,
                           hypre_ParVector    *y )
 {
+/*# ifdef HYPRE_USE_GPU
+PUSH_RANGE_PAYLOAD("MATVEC_CUDA", 0, hypre_CSRMatrixNumRows(A));
+HYPRE_Int ret=hypre_CSRMatrixMatvecDevice(alpha, A, x, beta, y, y, 1);
+POP_RANGE;
+return ret;   
+#else*/
    return hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A, x, beta, y, y);
+//#endif
 }
 
 #ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD
@@ -384,7 +390,6 @@ hypre_ParCSRMatrixMatvecT( HYPRE_Complex       alpha,
    HYPRE_Int         ierr  = 0;
 
    if (y==NULL) {
-     printf("NULLY %p\b", (void*) y);
      return 1;
    }
    /*---------------------------------------------------------------------

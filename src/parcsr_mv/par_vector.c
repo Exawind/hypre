@@ -461,7 +461,7 @@ hypre_ParVectorInnerProd( hypre_ParVector *x,
 /* --------
  * hypre_parVectorMassInnerProd: mass inner product; y is multiple vectors.
  */
-void hypre_ParVectorMassInnerProd( hypre_ParVector *x,
+void  hypre_ParVectorMassInnerProd( hypre_ParVector *x,
     hypre_ParVector **y, int k, HYPRE_Real *result  ){
 
   MPI_Comm      comm    = hypre_ParVectorComm(x);
@@ -473,7 +473,7 @@ void hypre_ParVectorMassInnerProd( hypre_ParVector *x,
     y_local[i] = (hypre_Vector*) hypre_ParVectorLocalVector(y[i]);
   }           
   //HYPRE_Real result = 0.0;
-  HYPRE_Real * local_result = calloc(k, sizeof(HYPRE_Real)); 
+  HYPRE_Real * local_result = (HYPRE_Real *)calloc(k, sizeof(HYPRE_Real)); 
 
   hypre_SeqVectorMassInnerProd(x_local, y_local,k, local_result);
 

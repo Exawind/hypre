@@ -830,12 +830,12 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
     
     status= cusparseCreateMatDescr(&descr); 
     if (status != CUSPARSE_STATUS_SUCCESS) {
-      printf("ERROR:: Matrix descriptor initialization failed\n");
       exit(2);
     } 
     
     cusparseSetMatType(descr,CUSPARSE_MATRIX_TYPE_GENERAL);
     cusparseSetMatIndexBase(descr,CUSPARSE_INDEX_BASE_ZERO);
+  hypre_CSRMatrixPrefetchToDevice(A);
     
     FirstCall=0;
     hypre_int jj;
@@ -849,7 +849,6 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
 
   PUSH_RANGE("PREFETCH+SPMV",2);
 
-  hypre_CSRMatrixPrefetchToDevice(A);
   hypre_SeqVectorPrefetchToDevice(x);
   hypre_SeqVectorPrefetchToDevice(y);
   

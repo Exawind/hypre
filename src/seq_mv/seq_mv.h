@@ -387,6 +387,9 @@ HYPRE_Complex hypre_VectorSumAbsElts ( hypre_Vector *vector );
 HYPRE_Int hypre_SeqVectorCopyDevice ( hypre_Vector *x , hypre_Vector *y );
 HYPRE_Int hypre_SeqVectorAxpyDevice( HYPRE_Complex alpha , hypre_Vector *x , hypre_Vector *y );
 HYPRE_Real hypre_SeqVectorInnerProdDevice ( hypre_Vector *x , hypre_Vector *y );
+void  hypre_SeqVectorMassInnerProdDevice ( hypre_Vector *x , hypre_Vector **y, HYPRE_Int k, HYPRE_Real * result);
+void hypre_SeqVectorMassAxpyDevice(HYPRE_Real * alpha, hypre_Vector **x, hypre_Vector *y, HYPRE_Int k);
+
 void hypre_SeqVectorPrefetchToDevice(hypre_Vector *x);
 void hypre_SeqVectorPrefetchToHost(hypre_Vector *x);
 void hypre_SeqVectorPrefetchToDeviceInStream(hypre_Vector *x, HYPRE_Int index);
