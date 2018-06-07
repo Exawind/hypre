@@ -237,17 +237,20 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
    /*-----------------------------------------------------------------------
     *    Main V-cycle loop
     *-----------------------------------------------------------------------*/
-   
+PUSH_RANGE("BoomerAMGSolve",0); 
    while ( (relative_resid >= tol || cycle_count < min_iter) && cycle_count < max_iter )
    {
       hypre_ParAMGDataCycleOpCount(amg_data) = 0;
-      /* Op count only needed for one cycle */
+   
+   /* Op count only needed for one cycle */
+PUSH_RANGE("AMGCYCLE",1);
       if ((additive < 0 || additive >= num_levels) 
 	   && (mult_additive < 0 || mult_additive >= num_levels)
 	   && (simple < 0 || simple >= num_levels) )
          hypre_BoomerAMGCycle(amg_data, F_array, U_array); 
       else
-         hypre_BoomerAMGAdditiveCycle(amg_data); 
+         hypre_BoomerAMGAdditiveCycle(amg_data);
+POP_RANGE; 
       /*---------------------------------------------------------------
        *    Compute  fine-grid residual and residual norm
        *----------------------------------------------------------------*/
@@ -306,7 +309,7 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
                       resid_nrm, conv_factor, relative_resid);
       }
    }
-
+POP_RANGE;
    if (cycle_count == max_iter && tol > 0.)
    {
       Solve_err_flag = 1;
