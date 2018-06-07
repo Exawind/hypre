@@ -599,32 +599,33 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 	  }
 	  else
 	  {
-            for (i = 0; i < n; i++) /* relax interior points */
-            {
+        ParRelax(n, relax_points, CF_marker, A_diag_i, A_diag_j, A_diag_data, A_offd_i, A_offd_j, A_offd_data, Vext_data, f_data, u_data);
+            // for (i = 0; i < n; i++) /* relax interior points */
+            // {
 
-               /*-----------------------------------------------------------
-                * If i is of the right type ( C or F ) and diagonal is
+            //    /*-----------------------------------------------------------
+            //     * If i is of the right type ( C or F ) and diagonal is
       
-                * nonzero, relax point i; otherwise, skip it.
-                *-----------------------------------------------------------*/
+            //     * nonzero, relax point i; otherwise, skip it.
+            //     *-----------------------------------------------------------*/
              
-               if (cf_marker[i] == relax_points 
-				&& A_diag_data[A_diag_i[i]] != zero)
-               {
-                  res = f_data[i];
-                  for (jj = A_diag_i[i]+1; jj < A_diag_i[i+1]; jj++)
-                  {
-                     ii = A_diag_j[jj];
-                     res -= A_diag_data[jj] * u_data[ii];
-                  }
-                  for (jj = A_offd_i[i]; jj < A_offd_i[i+1]; jj++)
-                  {
-                     ii = A_offd_j[jj];
-                     res -= A_offd_data[jj] * Vext_data[ii];
-                  }
-                  u_data[i] = res / A_diag_data[A_diag_i[i]];
-               }
-            }     
+            //    if (cf_marker[i] == relax_points 
+				// && A_diag_data[A_diag_i[i]] != zero)
+            //    {
+            //       res = f_data[i];
+            //       for (jj = A_diag_i[i]+1; jj < A_diag_i[i+1]; jj++)
+            //       {
+            //          ii = A_diag_j[jj];
+            //          res -= A_diag_data[jj] * u_data[ii];
+            //       }
+            //       for (jj = A_offd_i[i]; jj < A_offd_i[i+1]; jj++)
+            //       {
+            //          ii = A_offd_j[jj];
+            //          res -= A_offd_data[jj] * Vext_data[ii];
+            //       }
+            //       u_data[i] = res / A_diag_data[A_diag_i[i]];
+            //    }
+            // }     
 	  }
          }
         }
