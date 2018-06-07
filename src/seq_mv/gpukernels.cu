@@ -277,7 +277,7 @@ extern "C"{
       HYPRE_Real *__restrict__ A_offd_data,
       HYPRE_Real *__restrict__ Vext_data,
       HYPRE_Real *__restrict__ f_data,
-      HYPRE_Real *__restrict__ u_data
+      HYPRE_Real *__restrict__ u_data,
       HYPRE_Real *__restrict__ u_data_out){
 
       hypre_int i = blockIdx.x * blockDim.x + threadIdx.x;
