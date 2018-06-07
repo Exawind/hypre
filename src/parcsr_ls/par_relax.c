@@ -20,7 +20,9 @@
 #include "Common.h"
 #include "_hypre_lapack.h"
 #include "../sstruct_ls/gselim.h"
-
+#ifdef HYPRE_USE_GPU
+#include "gpukernels.h"
+#endif
 /*--------------------------------------------------------------------------
  * hypre_BoomerAMGRelax
  *--------------------------------------------------------------------------*/
