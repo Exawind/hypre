@@ -58,6 +58,36 @@ extern "C++" {
 #endif
 #include <cublas_v2.h>
 #include <cuda_runtime_api.h>
+#include <sstream>
+#include <assert.h>
+
+void __checkCudaErrors(cudaError_t status, const std::string& methodName, const std::string& filename, const int& lineNumber)
+{
+   if (status)
+   {
+      std::stringstream errMsg;
+      errMsg << "GPU Error: " << methodName << " failed. Error message: " << cudaGetErrorString(status) << "\n" <<
+         filename << "(" << lineNumber << ")";
+
+      std::string temp = errMsg.str();
+      printf(errMsg.str().c_str());
+      assert(false);
+   }
+}
+
+//Only check for errors if this flag is defined. This will cause device synchronize and slow down the code significantly
+#if defined(CHECK_CUDA_ERRORS)
+
+#define checkCudaLastError() cudaThreadSynchronize(); __checkCudaErrors(cudaGetLastError(), "cudaGetLastError()", __FILE__, __LINE__);
+#define checkCudaFunc(method) __checkCudaErrors(method, #method, __FILE__, __LINE__);
+
+#else
+
+#define checkCudaLastError()
+#define checkCudaFunc(method) method;
+
+#endif
+
 inline const char *cusparseErrorCheck(cusparseStatus_t error)
 {
     switch (error)
