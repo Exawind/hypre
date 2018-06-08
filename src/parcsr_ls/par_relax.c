@@ -601,7 +601,7 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 	  }
 	  else
 	  {
-        ParRelax(n, relax_points, CF_marker, A_diag_i, A_diag_j, A_diag_data, A_offd_i, A_offd_j, A_offd_data, Vext_data, f_data, u_data);
+        ParRelax(n, relax_points, cf_marker, A_diag_i, A_diag_j, A_diag_data, A_offd_i, A_offd_j, A_offd_data, Vext_data, f_data, u_data);
             // for (i = 0; i < n; i++) /* relax interior points */
             // {
 

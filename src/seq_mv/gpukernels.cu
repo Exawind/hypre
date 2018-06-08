@@ -263,6 +263,7 @@ void CudaCompileFlagCheck(){
 }
 */
 
+/*
 extern "C"{
    __global__
    void ParRelaxKernel(
@@ -313,8 +314,7 @@ extern "C"{
       HYPRE_Real *__restrict__ A_offd_data,
       HYPRE_Real *__restrict__ Vext_data,
       HYPRE_Real *__restrict__ f_data,
-      HYPRE_Real *__restrict__ u_data,
-      HYPRE_Real *__restrict__ u_data_out) {
+      HYPRE_Real *__restrict__ u_data) {
 
          hypre_int num_threads=128;
          hypre_int num_blocks=n / num_threads + 1;
@@ -330,7 +330,9 @@ extern "C"{
 
          cudaFree(d_u_data_out);
    }
+   void ParRelax() {}
 }
+*/
 
 //written by KS
 //naive version

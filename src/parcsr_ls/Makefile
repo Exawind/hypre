@@ -134,7 +134,8 @@ FILES =\
  ame.c\
  par_restr.c\
  par_lr_restr.c\
- superlu.c
+ superlu.c\
+ ls_gpukernels.c
 
 OBJS = ${FILES:.c=.o}
 
