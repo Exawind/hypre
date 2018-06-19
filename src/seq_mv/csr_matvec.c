@@ -17,6 +17,7 @@
  *****************************************************************************/
 
 #include "seq_mv.h"
+#include "gpukernels.h"
 #include <assert.h>
 
 
@@ -466,17 +467,38 @@ hypre_CSRMatrixMatvecT( HYPRE_Complex    alpha,
                         HYPRE_Complex    beta,
                         hypre_Vector    *y     )
 {
+printf("calling matvec TRANSPOSE!! alpha %16.16f beta %16.16f\n", alpha, beta);
+//alpha = 1.0f, beta =0.0f;
+   HYPRE_Int         i, j, jv, jj;
+   HYPRE_Complex    *y_data = hypre_VectorData(y);
    HYPRE_Complex    *A_data    = hypre_CSRMatrixData(A);
+   HYPRE_Int         num_cols  = hypre_CSRMatrixNumCols(A);
+   HYPRE_Int         num_vectors = hypre_VectorNumVectors(x);
+   HYPRE_Int         y_size = hypre_VectorSize(y);
+
+#ifdef HYPRE_USE_GPU
+//printf("I mean,  matvec TRANSPOSE GPU!!");
+// set y to zero
+   
+      for (i = 0; i < num_cols*num_vectors; i++){
+         y_data[i] = 0.0f;
+}
+PUSH_RANGE_PAYLOAD("MATVEC-T",0, hypre_CSRMatrixNumRows(A));
+   HYPRE_Int ret=hypre_CSRMatrixMatvecDeviceT( alpha,A,x,beta,y,y,0);
+   POP_RANGE;
+  return ret;
+#ifdef HYPRE_PROFILE
+   hypre_profile_times[HYPRE_TIMER_ID_MATVEC] += hypre_MPI_Wtime() - time_begin;
+#endif
+#endif
+
+
    HYPRE_Int        *A_i       = hypre_CSRMatrixI(A);
    HYPRE_Int        *A_j       = hypre_CSRMatrixJ(A);
    HYPRE_Int         num_rows  = hypre_CSRMatrixNumRows(A);
-   HYPRE_Int         num_cols  = hypre_CSRMatrixNumCols(A);
 
    HYPRE_Complex    *x_data = hypre_VectorData(x);
-   HYPRE_Complex    *y_data = hypre_VectorData(y);
    HYPRE_Int         x_size = hypre_VectorSize(x);
-   HYPRE_Int         y_size = hypre_VectorSize(y);
-   HYPRE_Int         num_vectors = hypre_VectorNumVectors(x);
    HYPRE_Int         idxstride_y = hypre_VectorIndexStride(y);
    HYPRE_Int         vecstride_y = hypre_VectorVectorStride(y);
    HYPRE_Int         idxstride_x = hypre_VectorIndexStride(x);
@@ -487,7 +509,6 @@ hypre_CSRMatrixMatvecT( HYPRE_Complex    alpha,
    HYPRE_Complex    *y_data_expand;
    HYPRE_Int         my_thread_num = 0, offset = 0;
    
-   HYPRE_Int         i, j, jv, jj;
    HYPRE_Int         num_threads;
 
    HYPRE_Int         ierr  = 0;
@@ -868,4 +889,56 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
   return 0;
   
 }
+//KS code
+//
+
+HYPRE_Int
+hypre_CSRMatrixMatvecDeviceT( HYPRE_Complex    alpha,
+                       hypre_CSRMatrix *A,
+                       hypre_Vector    *x,
+                       HYPRE_Complex    beta,
+                       hypre_Vector    *b,
+                       hypre_Vector    *y,
+                       HYPRE_Int offset ){
+
+  if (x==y) fprintf(stderr,"ERROR::x and y are the same pointer in hypre_CSRMatrixMatvecDevice\n");
+static int FirstCall=1;
+HYPRE_Int myid;  
+if (FirstCall){
+    PUSH_RANGE("FIRST_CALL",4);  
+    
+    
+    FirstCall=0;
+    hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
+    myid++;
+    POP_RANGE;
+  }
+
+  PUSH_RANGE("PREFETCH+SPMV",2);
+
+  hypre_CSRMatrixPrefetchToDevice(A);
+  hypre_SeqVectorPrefetchToDevice(x);
+  hypre_SeqVectorPrefetchToDevice(y);
+  
+  if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
+
+ MatvecTCSR(A->num_rows, alpha, A->data, A->i, A->j, x->data,0.0f, y->data);
+
+  POP_RANGE;
+  
+//HYPRE_Int i, j, jj;
+     /* for (i = 0; i < A->num_rows; i++)
+      {
+HYPRE_Real xx = x->data[i];
+            for (jj = A->i[i]; jj < A->i[i+1]; jj++)
+            {
+              
+               y->data[A->j[jj]] += A->data[jj] * xx;
+            }
+         }*/
+
+
+return 0;
+}
+
 #endif

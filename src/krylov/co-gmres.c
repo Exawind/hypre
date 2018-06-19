@@ -254,7 +254,6 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
     void  *b,
     void  *x)
 {
-
   double time1, time2, time3, time4;
 
   time1                                     = MPI_Wtime(); 
@@ -519,6 +518,7 @@ while (iter < max_iter)
       /***RESTART CYCLE (right-preconditioning) ***/
       while (i < k_dim && iter < max_iter)
       {
+
         time1 = MPI_Wtime();
         i++;
         iter++;
@@ -573,11 +573,13 @@ while (iter < max_iter)
         POP_RANGE;
 time3 = MPI_Wtime();
 massAxpyTime += time3-time4;      
-
+printf("\n");
         for (j=0; j<i; j++){
           HYPRE_Int id = idx(j, i-1,k_dim+1);
           hh[id]       = (-1.0)*hh[id];
-        }
+	printf(" %f ", hh[id]);       
+ }
+printf("\n");
 
 
         PUSH_RANGE("COGMRES_DOTP1", 6);
@@ -643,6 +645,7 @@ massAxpyTime += time3-time4;
         t    += hh[idx(i-1,i-1, k_dim+1)]*hh[idx(i-1,i-1, k_dim+1)];
         gamma = sqrt(t);
         if (gamma == 0.0) gamma = epsmac;
+	
         c[i-1]  = hh[idx(i-1,i-1, k_dim+1)]/gamma;
         s[i-1]  = hh[idx(i,i-1, k_dim+1)]/gamma;
         rs[i]   = -hh[idx(i,i-1, k_dim+1)]*rs[i-1];

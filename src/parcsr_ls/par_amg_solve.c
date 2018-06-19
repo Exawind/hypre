@@ -240,6 +240,8 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
    
    while ( (relative_resid >= tol || cycle_count < min_iter) && cycle_count < max_iter )
    {
+
+//printf("AMG cycle !!! \n");
       hypre_ParAMGDataCycleOpCount(amg_data) = 0;
       /* Op count only needed for one cycle */
       if ((additive < 0 || additive >= num_levels) 

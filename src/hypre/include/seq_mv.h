@@ -248,6 +248,7 @@ typedef struct
 #include <cuda_runtime_api.h>
 int VecScaleScalar(double *u, const double alpha,  int num_rows,cudaStream_t s);
 void VecCopy(double* tgt, const double* src, int size,cudaStream_t s);
+void MatvecTCSR(int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_int *ia, hypre_int *ja, HYPRE_Complex *x, HYPRE_Complex beta, HYPRE_Complex *y);
 void VecSet(double* tgt, int size, double value, cudaStream_t s);
 void VecScale(double *u, double *v, double *l1_norm, int num_rows,cudaStream_t s);
 void VecScaleSplit(double *u, double *v, double *l1_norm, int num_rows,cudaStream_t s);
@@ -296,6 +297,7 @@ HYPRE_Int hypre_CSRMatrixMatvecT ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hy
 HYPRE_Int hypre_CSRMatrixMatvec_FF ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *y , HYPRE_Int *CF_marker_x , HYPRE_Int *CF_marker_y , HYPRE_Int fpt );
 #ifdef HYPRE_USE_GPU
 HYPRE_Int hypre_CSRMatrixMatvecDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
+HYPRE_Int hypre_CSRMatrixMatvecDeviceT( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
 #endif
 /* genpart.c */
 HYPRE_Int hypre_GeneratePartitioning ( HYPRE_Int length , HYPRE_Int num_procs , HYPRE_Int **part_ptr );

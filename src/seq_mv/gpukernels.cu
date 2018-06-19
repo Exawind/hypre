@@ -235,19 +235,79 @@ void CudaCompileFlagCheck(){
 //written by KS
 //naive version
 /*
+   extern "C"{
+   __global__
+   void MassInnerProdKernel(HYPRE_Real * __restrict__ u, const HYPRE_Real * __restrict__ v, HYPRE_Real * result, HYPRE_Int k, HYPRE_Int n){
+   hypre_int i = blockIdx.x * blockDim.x + threadIdx.x;
+   if (i<n){
+// KS we should fetch u to shared or to registers 
+int j;	
+for (j =0; j<k; ++j){
+result[i] += u[i]*v[j*n + i];
+}
+}
+}
+}
+ */
+/**hypre_int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_int *ia, hypre_int *ja, HYPRE_Complex *x, HYPRE_Complex beta, HYPRE_Complex *y */
 extern "C"{
 __global__
-void MassInnerProdKernel(HYPRE_Real * __restrict__ u, const HYPRE_Real * __restrict__ v, HYPRE_Real * result, hypre_int k, hypre int n){
-	hypre_int i = blockIdx.x * blockDim.x + threadIdx.x;
-	if (i<n){
-		// KS we should fetch u to shared or to registers 
-		for (int j =0; j<k; ++J){
-			result[i] += u[i]*v[j*n + i];
+void CSRMatvecTKernel_v1(HYPRE_Int num_rows, const HYPRE_Real * __restrict__ a, const HYPRE_Int * __restrict__ ia,const __restrict__  HYPRE_Int  * ja,const  HYPRE_Real * x, HYPRE_Real * y){
+
+	/*
+	   i = 0; num_rows-1
+	   for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+	   {
+	   j = A_j[jj];
+	   y_data[j] += A_data[jj] * x_data[i];
+	   }
+
+
+	 */
+
+	int i = blockIdx.x*blockDim.x + threadIdx.x;
+	int j;
+
+	if (i<num_rows) {
+		const double xx = x[i];
+		for (j=ia[i]; j< ia[i+1]; j++){
+			//    y[ja[j]] += a[j]*xx;
+		
+//if ((xx*a[j]) >  1e-16){
+//			atomicAdd(&y[ja[j]], 0.1f); 
+
+	 atomicAdd_system(&y[ja[j]], a[j]*xx);    
+
+//}
 		}
 	}
+
 }
 }
-*/
+
+
+
+extern "C"{
+void MatvecTCSR(hypre_int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_int *ia, hypre_int *ja, HYPRE_Complex *x, HYPRE_Complex beta, HYPRE_Complex *y){
+	hypre_int num_threads=32;
+	hypre_int num_blocks=num_rows/num_threads+1;
+	printf("blocks: %d threads %d \n", num_blocks, num_threads);
+#ifdef CATCH_LAUNCH_ERRORS
+	hypre_CheckErrorDevice(cudaPeekAtLastError());
+	hypre_CheckErrorDevice(cudaDeviceSynchronize());
+#endif    
+
+	CSRMatvecTKernel_v1<<<num_blocks,num_threads>>>(num_rows, a, ia, ja, x, y);
+cudaDeviceSynchronize();
+#ifdef CATCH_LAUNCH_ERRORS
+	hypre_CheckErrorDevice(cudaPeekAtLastError());
+	hypre_CheckErrorDevice(cudaDeviceSynchronize());
+#endif
+
+}
+}
+
+
 
 
 //end of KS code
