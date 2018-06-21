@@ -36,6 +36,7 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
 
    MPI_Comm 	      comm = hypre_ParCSRMatrixComm(A);   
 
+PUSH_RANGE("AMG-SOLVE:1",1);
    hypre_ParAMGData   *amg_data = (hypre_ParAMGData*) amg_vdata;
 
    /* Data Structure variables */
@@ -120,7 +121,6 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
 
    A_block_array          = hypre_ParAMGDataABlockArray(amg_data);
 
-
 /*   Vtemp = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A_array[0]),
                                  hypre_ParCSRMatrixGlobalNumRows(A_array[0]),
                                  hypre_ParCSRMatrixRowStarts(A_array[0]));
@@ -129,12 +129,13 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
    hypre_ParAMGDataVtemp(amg_data) = Vtemp;
 */
    Vtemp = hypre_ParAMGDataVtemp(amg_data);
+POP_RANGE;
 
    /*-----------------------------------------------------------------------
     *    Write the solver parameters
     *-----------------------------------------------------------------------*/
 
-
+PUSH_RANGE("AMG SOLVE: 2",2);
    if (my_id == 0 && amg_print_level > 1)
       hypre_BoomerAMGWriteSolverParams(amg_data); 
 
@@ -176,7 +177,8 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
            hypre_ParCSRMatrixMatvec(alpha, A_array[0], U_array[0], beta, Vtemp);
         resid_nrm = sqrt(hypre_ParVectorInnerProd(Vtemp, Vtemp));
      }
-
+POP_RANGE;
+PUSH_RANGE("AMG SOLVE: 3",3);
      /* Since it is does not diminish performance, attempt to return an error flag
         and notify users when they supply bad input. */
      if (resid_nrm != 0.) ieee_check = resid_nrm/resid_nrm; /* INF -> NaN conversion */
@@ -234,23 +236,30 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
                    relative_resid);
    }
 
+POP_RANGE;
    /*-----------------------------------------------------------------------
     *    Main V-cycle loop
     *-----------------------------------------------------------------------*/
-   
+PUSH_RANGE("AMG SOLVE: 4",4);   
    while ( (relative_resid >= tol || cycle_count < min_iter) && cycle_count < max_iter )
    {
 
 //printf("AMG cycle !!! \n");
+
       hypre_ParAMGDataCycleOpCount(amg_data) = 0;
       /* Op count only needed for one cycle */
       if ((additive < 0 || additive >= num_levels) 
 	   && (mult_additive < 0 || mult_additive >= num_levels)
 	   && (simple < 0 || simple >= num_levels) )
+{PUSH_RANGE("AMG SOLVE: 7",7);   
          hypre_BoomerAMGCycle(amg_data, F_array, U_array); 
-      else
+POP_RANGE;
+}
+     else{
+PUSH_RANGE("AMG SOLVE: 8",8);   
+
          hypre_BoomerAMGAdditiveCycle(amg_data); 
-      /*---------------------------------------------------------------
+     } /*---------------------------------------------------------------
        *    Compute  fine-grid residual and residual norm
        *----------------------------------------------------------------*/
 
@@ -308,13 +317,15 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
                       resid_nrm, conv_factor, relative_resid);
       }
    }
-
+POP_RANGE;
+PUSH_RANGE("AMG CYCLE: 5",5);
    if (cycle_count == max_iter && tol > 0.)
    {
       Solve_err_flag = 1;
       hypre_error(HYPRE_ERROR_CONV);
    }
-
+POP_RANGE;
+PUSH_RANGE("AMG CYCLE",6);
    /*-----------------------------------------------------------------------
     *    Compute closing statistics
     *-----------------------------------------------------------------------*/
@@ -387,6 +398,7 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
       hypre_TFree(num_variables, HYPRE_MEMORY_HOST);
    }
    HYPRE_ANNOTATION_END("BoomerAMG.solve");
+POP_RANGE;
    
    return hypre_error_flag;
 }

@@ -467,7 +467,7 @@ hypre_CSRMatrixMatvecT( HYPRE_Complex    alpha,
                         HYPRE_Complex    beta,
                         hypre_Vector    *y     )
 {
-printf("calling matvec TRANSPOSE!! alpha %16.16f beta %16.16f\n", alpha, beta);
+//printf("calling matvec TRANSPOSE!! alpha %16.16f beta %16.16f\n", alpha, beta);
 //alpha = 1.0f, beta =0.0f;
    HYPRE_Int         i, j, jv, jj;
    HYPRE_Complex    *y_data = hypre_VectorData(y);
@@ -475,6 +475,7 @@ printf("calling matvec TRANSPOSE!! alpha %16.16f beta %16.16f\n", alpha, beta);
    HYPRE_Int         num_cols  = hypre_CSRMatrixNumCols(A);
    HYPRE_Int         num_vectors = hypre_VectorNumVectors(x);
    HYPRE_Int         y_size = hypre_VectorSize(y);
+
 
 #ifdef HYPRE_USE_GPU
 //printf("I mean,  matvec TRANSPOSE GPU!!");

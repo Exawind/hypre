@@ -573,13 +573,13 @@ while (iter < max_iter)
         POP_RANGE;
 time3 = MPI_Wtime();
 massAxpyTime += time3-time4;      
-printf("\n");
+//printf("\n");
         for (j=0; j<i; j++){
           HYPRE_Int id = idx(j, i-1,k_dim+1);
           hh[id]       = (-1.0)*hh[id];
-	printf(" %f ", hh[id]);       
+//	printf(" %f ", hh[id]);       
  }
-printf("\n");
+//printf("\n");
 
 
         PUSH_RANGE("COGMRES_DOTP1", 6);

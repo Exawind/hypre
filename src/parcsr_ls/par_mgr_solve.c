@@ -514,6 +514,7 @@ hypre_MGRCycle( void               *mgr_vdata,
                    { /* (single level) relaxation for A_ff */
 		      if (relax_type == 18)
 		      {
+printf("here..\n");
 		        for(i=0; i<nsweeps; i++)
 		         hypre_ParCSRRelax_L1_Jacobi(A_array[fine_grid], F_array[fine_grid], CF_marker[fine_grid],
 						   relax_points, relax_weight, relax_l1_norms[fine_grid],

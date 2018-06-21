@@ -272,33 +272,60 @@ void CSRMatvecTKernel_v1(HYPRE_Int num_rows, const HYPRE_Real * __restrict__ a, 
 		const double xx = x[i];
 		for (j=ia[i]; j< ia[i+1]; j++){
 			//    y[ja[j]] += a[j]*xx;
-		
-//if ((xx*a[j]) >  1e-16){
-//			atomicAdd(&y[ja[j]], 0.1f); 
 
-	 atomicAdd_system(&y[ja[j]], a[j]*xx);    
+			if (abs(xx*a[j]) >  1e-16){
+				//	atomicAdd(&y[ja[j]], 0.1f); 
 
-//}
+				atomicAdd_system(&y[ja[j]], a[j]*xx);    
+
+			}
 		}
 	}
 
 }
 }
 
+//v2 shared memory for x
 
 
 extern "C"{
+__global__
+void CSRMatvecTKernel_v2(HYPRE_Int num_rows, const HYPRE_Real * __restrict__ a, const HYPRE_Int * __restrict__ ia,const __restrict__  HYPRE_Int  * ja,const  HYPRE_Real * x, HYPRE_Real * y){
+
+
+	int i = blockIdx.x*blockDim.x + threadIdx.x;
+	int j=threadIdx.x;
+	__shared__ HYPRE_Real s_x[64];
+
+
+	if (i<num_rows) {
+		s_x[j] = x[i];
+		__syncthreads();
+		const double xx = s_x[j];
+		for (j=ia[i]; j< ia[i+1]; j++){
+
+			if (abs(xx*a[j]) >  1e-16){
+
+				atomicAdd_system(&y[ja[j]], a[j]*xx);    
+
+			}
+		}
+	}
+
+}
+}
+extern "C"{
 void MatvecTCSR(hypre_int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_int *ia, hypre_int *ja, HYPRE_Complex *x, HYPRE_Complex beta, HYPRE_Complex *y){
-	hypre_int num_threads=32;
+	hypre_int num_threads=64;
 	hypre_int num_blocks=num_rows/num_threads+1;
-	printf("blocks: %d threads %d \n", num_blocks, num_threads);
+	//	printf("blocks: %d threads %d \n", num_blocks, num_threads);
 #ifdef CATCH_LAUNCH_ERRORS
 	hypre_CheckErrorDevice(cudaPeekAtLastError());
 	hypre_CheckErrorDevice(cudaDeviceSynchronize());
 #endif    
 
 	CSRMatvecTKernel_v1<<<num_blocks,num_threads>>>(num_rows, a, ia, ja, x, y);
-cudaDeviceSynchronize();
+	cudaDeviceSynchronize();
 #ifdef CATCH_LAUNCH_ERRORS
 	hypre_CheckErrorDevice(cudaPeekAtLastError());
 	hypre_CheckErrorDevice(cudaDeviceSynchronize());
@@ -307,8 +334,150 @@ cudaDeviceSynchronize();
 }
 }
 
+extern "C"{
+__global__
+void ParRelaxKernel(
+		HYPRE_Int n,
+		HYPRE_Int relax_points,
+		HYPRE_Int *__restrict__ cf_marker,
+		HYPRE_Int *__restrict__ A_diag_i,
+		HYPRE_Int *__restrict__ A_diag_j,
+		HYPRE_Real *__restrict__ A_diag_data,
+		HYPRE_Int *__restrict__ A_offd_i,
+		HYPRE_Int *__restrict__ A_offd_j,
+		HYPRE_Real *__restrict__ A_offd_data,
+		HYPRE_Real *__restrict__ Vext_data,
+		HYPRE_Real *__restrict__ f_data,
+		HYPRE_Real *__restrict__ u_data){
+
+	hypre_int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+	if (i < n &&
+			cf_marker[i] == relax_points && 
+			A_diag_data[A_diag_i[i]] != 0.0)
+	{
+		HYPRE_Real res = f_data[i];
+		for (int jj = A_diag_i[i]+1; jj < A_diag_i[i+1]; jj++)
+		{
+			int ii = A_diag_j[jj];
+			if (ii>=i){          
+				res -= A_diag_data[jj] * u_data[ii];
+			}}
+		for (int jj = A_offd_i[i]; jj < A_offd_i[i+1]; jj++)
+		{
+			int ii = A_offd_j[jj];
+			res -= A_offd_data[jj] * Vext_data[ii];
+		}
+		u_data[i] = res / A_diag_data[A_diag_i[i]];
+	}
+}
+
+void ParRelax(
+		HYPRE_Int n,
+		HYPRE_Int relax_points,
+		HYPRE_Int *__restrict__ cf_marker,
+		HYPRE_Int *__restrict__ A_diag_i,
+		HYPRE_Int *__restrict__ A_diag_j,
+		HYPRE_Real *__restrict__ A_diag_data,
+		HYPRE_Int *__restrict__ A_offd_i,
+		HYPRE_Int *__restrict__ A_offd_j,
+		HYPRE_Real *__restrict__ A_offd_data,
+		HYPRE_Real *__restrict__ Vext_data,
+		HYPRE_Real *__restrict__ f_data,
+		HYPRE_Real *__restrict__ u_data) {
+
+	hypre_int num_threads=128;
+	hypre_int num_blocks=n / num_threads + 1;
+
+	/*     HYPRE_Real * d_u_data_out = NULL;
+	       cudaMalloc(&d_u_data_out, n * sizeof(HYPRE_Real));
+
+	       cudaMemset(d_u_data_out, 0, n * sizeof(HYPRE_Real));
+	 */
+	ParRelaxKernel<<<num_blocks, num_threads>>>(n, relax_points, cf_marker, A_diag_i, A_diag_j, A_diag_data, A_offd_i, A_offd_j, A_offd_data, Vext_data, f_data, u_data);
+
+	/*
+	   cudaMemcpy(u_data, d_u_data_out, n * sizeof(HYPRE_Real), cudaMemcpyDeviceToDevice);
+
+	   cudaFree(d_u_data_out);
+	 */
+}
+}
+
+//L1Jacobi
+
+extern "C"{
+__global__
+void ParRelaxL1JacobiKernel(
+		HYPRE_Int n,
+HYPRE_Real * __restrict__ l1_norms,	
+HYPRE_Real __restrict__ relax_weight,
+	HYPRE_Int *__restrict__ A_diag_i,
+		HYPRE_Int *__restrict__ A_diag_j,
+		HYPRE_Real *__restrict__ A_diag_data,
+		HYPRE_Int *__restrict__ A_offd_i,
+		HYPRE_Int *__restrict__ A_offd_j,
+		HYPRE_Real *__restrict__ A_offd_data,
+		HYPRE_Real *__restrict__ Vtemp_data,
+		HYPRE_Real *__restrict__ f_data,
+		HYPRE_Real *__restrict__ u_data){
+
+	hypre_int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+	if (i < n){
+int ii, jj;
+HYPRE_Real res;
+		if (A_diag_data[A_diag_i[i]] != 0.0)
+		{
+			res = f_data[i];
+			for (jj = A_diag_i[i]; jj < A_diag_i[i+1]; jj++)
+			{
+				ii = A_diag_j[jj];
+				res -= A_diag_data[jj] * Vtemp_data[ii];
+			}
+			for (jj = A_offd_i[i]; jj < A_offd_i[i+1]; jj++)
+			{
+				ii = A_offd_j[jj];
+				res -= A_offd_data[jj] * Vtemp_data[ii];
+			}
+			u_data[i] += (relax_weight*res)/l1_norms[i];
+		}
 
 
+	}
+}
+
+void ParRelaxL1Jacobi(
+		HYPRE_Int n,
+HYPRE_Real * __restrict__ l1_data,	
+HYPRE_Real __restrict__ relax_weight,
+		HYPRE_Int *__restrict__ A_diag_i,
+		HYPRE_Int *__restrict__ A_diag_j,
+		HYPRE_Real *__restrict__ A_diag_data,
+		HYPRE_Int *__restrict__ A_offd_i,
+		HYPRE_Int *__restrict__ A_offd_j,
+		HYPRE_Real *__restrict__ A_offd_data,
+		HYPRE_Real *__restrict__ Vtemp_data,
+		HYPRE_Real *__restrict__ f_data,
+		HYPRE_Real *__restrict__ u_data) {
+
+	hypre_int num_threads=128;
+	hypre_int num_blocks=n / num_threads + 1;
+
+	/*     HYPRE_Real * d_u_data_out = NULL;
+	       cudaMalloc(&d_u_data_out, n * sizeof(HYPRE_Real));
+
+	       cudaMemset(d_u_data_out, 0, n * sizeof(HYPRE_Real));
+	 */
+	ParRelaxL1JacobiKernel<<<num_blocks, num_threads>>>(n,l1_data,relax_weight, A_diag_i, A_diag_j, A_diag_data, A_offd_i, A_offd_j, A_offd_data, Vtemp_data, f_data, u_data);
+
+	/*
+	   cudaMemcpy(u_data, d_u_data_out, n * sizeof(HYPRE_Real), cudaMemcpyDeviceToDevice);
+
+	   cudaFree(d_u_data_out);
+	 */
+}
+}
 
 //end of KS code
 

@@ -37,6 +37,8 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
                    hypre_ParVector  **F_array,
                    hypre_ParVector  **U_array   )
 {
+//printf("cycle begins\n");
+PUSH_RANGE("PART A", 1);
    hypre_ParAMGData *amg_data = (hypre_ParAMGData*) amg_vdata;
 
    HYPRE_Solver *smoother;
@@ -195,7 +197,8 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
        for (j = 1; j < num_levels; j++)
          num_coeffs[j] = hypre_ParCSRMatrixDNumNonzeros(A_array[j]);
    }
-
+POP_RANGE;
+PUSH_RANGE("BLOCK B", 2);
    /*---------------------------------------------------------------------
     *    Initialize cycling control counter
     *
@@ -233,6 +236,7 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
           || smooth_type == 17 || smooth_type == 18
           || smooth_type == 9 || smooth_type == 19)
       {
+printf("here111\n");
          HYPRE_Int actual_local_size = hypre_ParVectorActualLocalSize(Vtemp);
          Utemp = hypre_ParVectorCreate(comm,hypre_ParVectorGlobalSize(Vtemp),
                         hypre_ParVectorPartitioning(Vtemp));
@@ -251,6 +255,8 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
    }
 
 
+POP_RANGE;
+PUSH_RANGE("BLOCK C", 3);
    /*---------------------------------------------------------------------
     * Main loop of cycling
     *--------------------------------------------------------------------*/
@@ -261,8 +267,10 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
    
    while (Not_Finished)
    {
+PUSH_RANGE("BLOCK C-1", 5);
       if (num_levels > 1)
-      {
+     {
+      
         local_size
             = hypre_VectorSize(hypre_ParVectorLocalVector(F_array[level]));
         hypre_VectorSize(hypre_ParVectorLocalVector(Vtemp)) = local_size;
@@ -300,7 +308,7 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
            Aux_F = F_array[level];
 	}
         relax_type = grid_relax_type[cycle_param];
-      }
+     }
       else /* AB: 4/08: removed the max_levels > 1 check - should do this when max-levels = 1 also */
       {
         /* If no coarsening occurred, apply a simple smoother once */
@@ -312,8 +320,9 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
         relax_type = hypre_ParAMGDataUserRelaxType(amg_data);
         if (relax_type == -1) relax_type = 6;
       }
-
-      if (l1_norms != NULL)
+POP_RANGE;
+PUSH_RANGE("BLOCK C-2", 6);     
+ if (l1_norms != NULL)
          l1_norms_level = l1_norms[level];
       else
          l1_norms_level = NULL;
@@ -325,8 +334,10 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
 #ifdef HAVE_DSUPERLU
       else if (cycle_param == 3 && hypre_ParAMGDataDSLUSolver(amg_data) != NULL)
       {
+PUSH_RANGE("C-2-2", 9);
          hypre_SLUDistSolve(hypre_ParAMGDataDSLUSolver(amg_data), Aux_F, Aux_U);
-      }
+POP_RANGE;    
+  }
 #endif
       else
       {
@@ -382,6 +393,7 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
 			smooth_type == 9 || smooth_type == 19 ||
 			smooth_type == 17 || smooth_type == 18))
               {
+printf("here 222\n");
                  hypre_VectorSize(hypre_ParVectorLocalVector(Utemp)) = local_size;
                  alpha = -1.0;
                  beta = 1.0;
@@ -420,8 +432,10 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
               }
               else if (relax_type == 18)
               {   /* L1 - Jacobi*/
+//printf("here333\n");
                  if (relax_order == 1 && cycle_param < 3)
                  {
+//printf("here 444\n");
                     /* need to do CF - so can't use the AMS one */
                     HYPRE_Int i;
                     HYPRE_Int loc_relax_points[2];
@@ -447,6 +461,8 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
                  }
                  else /* not CF - so use through AMS */
                  {
+//printf("here 555\n");
+
 #if defined(HYPRE_USE_GPU)|| defined(HYPRE_USING_OPENMP_OFFLOAD) || defined(HYPRE_USING_MAPPED_OPENMP_OFFLOAD)
 		   //printf("par_cycle.c 3 %d\n",level);
 		   hypre_ParCSRRelax(A_array[level], 
@@ -459,7 +475,7 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
                                        Aux_U,
                                        Vtemp, 
 				       Ztemp);
-		   //printf("par_cycle.c 3 done %d\n",level);
+		 //  printf("par_cycle.c 3 done %d\n",level);
 #else
                     if (num_threads == 1)
                        hypre_ParCSRRelax(A_array[level],
@@ -550,7 +566,9 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
                  }
                  else
                  {
-                    Solve_err_flag = hypre_BoomerAMGRelaxIF(A_array[level],
+PUSH_RANGE("C-2-3", 10);
+              
+   Solve_err_flag = hypre_BoomerAMGRelaxIF(A_array[level],
                                                           Aux_F,
                                                           CF_marker_array[level],
                                                           relax_type,
@@ -562,7 +580,8 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
                                                           Aux_U,
                                                           Vtemp,
                                                           Ztemp);
-                 }
+POP_RANGE;                
+ }
 	      }
 
               if (Solve_err_flag != 0)
@@ -588,6 +607,8 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
            }
         }
       }
+POP_RANGE;
+PUSH_RANGE("BLOCK C-3", 6);     
 
       /*------------------------------------------------------------------
        * Decrement the control counter and determine which grid to visit next
@@ -706,7 +727,10 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
       {
          Not_Finished = 0;
       }
-   }
+POP_RANGE;
+   }//while
+POP_RANGE;
+PUSH_RANGE("BLOCK D", 4);
 
 #ifdef HYPRE_USING_CALIPER
    cali_end(iter_attr);  /* unset "iter" */
@@ -723,5 +747,6 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
         hypre_ParVectorDestroy(Utemp);
    }
    //printf("HYPRE_BoomerAMGCycle END\n");
+   POP_RANGE;
    return(Solve_err_flag);
 }
