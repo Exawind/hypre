@@ -48,7 +48,7 @@
 /* #undef HYPRE_IRIX64 */
 
 /* Define to 1 if using long long int for HYPRE_Int */
-/* #undef HYPRE_BIGINT */
+#define HYPRE_BIGINT 1
 
 /* Define to 1 if using single precision values for HYPRE_Real */
 /* #undef HYPRE_SINGLE */
@@ -69,10 +69,10 @@
 /* #undef HYPRE_HOPSCOTCH */
 
 /* Define to 1 if an MPI library is found */
-/* #undef HYPRE_HAVE_MPI */
+#define HYPRE_HAVE_MPI 1
 
 /* Define to 1 if the routine MPI_Comm_f2c is found */
-/* #undef HYPRE_HAVE_MPI_COMM_F2C */
+#define HYPRE_HAVE_MPI_COMM_F2C 1
 
 /* Disable MPI, enable serial codes */
 /* #undef HYPRE_SEQUENTIAL */
@@ -121,13 +121,13 @@
 
 /* Define to a macro mangling the given C identifier (in lower and upper
  * case), which must not contain underscores, for linking with Fortran. */
-/* #undef HYPRE_FC_FUNC */
+#define HYPRE_FC_FUNC(name,NAME) name ## _
 
 /* As HYPRE_HYPRE_FC_FUNC, but for C identifiers containing underscores. */
-/* #undef HYPRE_FC_FUNC_ */
+#define HYPRE_FC_FUNC_(name,NAME) name ## _
 
 /* Define to 1 if nvcc is enabled */
-#define HYPRE_USING_NVCC 1
+/* #undef HYPRE_USING_NVCC */
 
 /* Define to 1 if Caliper instrumentation is enabled */
 /* #undef HYPRE_USING_CALIPER */

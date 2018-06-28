@@ -460,9 +460,17 @@ hypre_ParVectorInnerProd( hypre_ParVector *x,
 }
 /* --------
  * hypre_parVectorMassInnerProd: mass inner product; y is multiple vectors.
- */
+void HYPRE_ParVectorMassInnerProd ( HYPRE_ParVector x , HYPRE_ParVector *y , HYPRE_Int k, HYPRE_Real *prod );
+void  HYPRE_ParVectorMassAxpy      ( HYPRE_Real *alpha, HYPRE_ParVector *x, HYPRE_ParVector y, HYPRE_Int k);
+
+
+void hypre_ParVectorMassInnerProd ( hypre_ParVector *x , hypre_ParVector **y , HYPRE_Int k, HYPRE_Real *prod );
+void  hypre_ParVectorMassAxpy      ( HYPRE_Real *alpha, hypre_ParVector **x, hypre_ParVector *y, HYPRE_Int k); 
+
+
+*/
 void  hypre_ParVectorMassInnerProd( hypre_ParVector *x,
-    hypre_ParVector **y, int k, HYPRE_Real *result  ){
+    hypre_ParVector **y, HYPRE_Int k, HYPRE_Real *result  ){
 
   MPI_Comm      comm    = hypre_ParVectorComm(x);
   hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
