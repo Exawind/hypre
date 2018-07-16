@@ -9,7 +9,10 @@
 
 #include "_hypre_parcsr_ls.h"
 #include "float.h"
-
+#include "seq_mv.h"
+extern "C" {
+#include "gpukernels.h"
+}
 HYPRE_Int hypre_LINPACKcgtql1(HYPRE_Int*,HYPRE_Real *,HYPRE_Real *,HYPRE_Int *);
 
 /******************************************************************************
@@ -1103,21 +1106,41 @@ HYPRE_Int  hypre_ParCSRRelax_L1_Jacobi( hypre_ParCSRMatrix *A,
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i,ii,jj,res) HYPRE_SMP_SCHEDULE
 #endif
-
+		printf("here 1\n");
 		//GOES To GPU KS
 #if HYPRE_USE_GPU
 		//kernel
 		HYPRE_Real * Vtemp_data_d = hypre_TAlloc(HYPRE_Real  , n,       HYPRE_MEMORY_DEVICE);  
 		HYPRE_Real * l1_data_d = hypre_TAlloc(HYPRE_Real  , n,       HYPRE_MEMORY_DEVICE);  
-
+		HYPRE_Real * Vext_data_d;
 		hypre_TMemcpy( Vtemp_data_d, u_data, HYPRE_Real, n, HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_HOST );
-		hypre_TMemcpy( l1_data_d, l1_norms, HYPRE_Real, n, HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_HOST );
+	
+	hypre_TMemcpy( l1_data_d, l1_norms, HYPRE_Real, n, HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_HOST );
 
 		hypre_CSRMatrixPrefetchToDevice(A_diag);
 		hypre_CSRMatrixPrefetchToDevice(A_offd);
 		hypre_SeqVectorPrefetchToDevice(u_local);
 		hypre_SeqVectorPrefetchToDevice(f_local);
- ParRelaxL1Jacobi(n,l1_data_d, relax_weight, A_diag->i, A_diag->j, A_diag->data, A_offd->i, A_offd->j, A_offd->data, Vtemp_data_d, f_local->data, u_local->data);
+		if (num_procs >1){
+	
+		Vext_data_d = hypre_TAlloc(HYPRE_Real  , num_cols_offd,       HYPRE_MEMORY_DEVICE);
+			hypre_TMemcpy( Vext_data_d, Vext_data, HYPRE_Real, num_cols_offd, HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_HOST );
+		}
+
+		ParRelaxL1Jacobi((HYPRE_Int) n, 
+				(HYPRE_Real *)l1_data_d, 
+				(HYPRE_Real) relax_weight, 
+				(HYPRE_Int*) A_diag->i, 
+				(HYPRE_Int*) A_diag->j, 
+				(HYPRE_Real*) A_diag->data, 
+				(HYPRE_Int *)A_offd->i, 
+				(HYPRE_Int *)A_offd->j, 
+				(HYPRE_Real *) A_offd->data, 
+				(HYPRE_Real *)Vtemp_data_d,
+				(HYPRE_Real *)Vext_data_d, 
+				(HYPRE_Real *)f_local->data,
+				(HYPRE_Real *)u_local->data);
+	//	hypre_TMemcpy( u_data, u_local->data, HYPRE_Real, n, HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_DEVICE );
 
 
 #else
@@ -1151,10 +1174,51 @@ HYPRE_Int  hypre_ParCSRRelax_L1_Jacobi( hypre_ParCSRMatrix *A,
 	 *-----------------------------------------------------------------*/
 	else
 	{
+		//		printf("here 2\n");
+		//THIS, TOO GO TO THE GPU KS
+
+#if HYPRE_USE_GPU
+		//kernel
+		HYPRE_Real * Vtemp_data_d = hypre_TAlloc(HYPRE_Real  , n,       HYPRE_MEMORY_DEVICE);  
+		HYPRE_Int * cf_marker_d = hypre_TAlloc(HYPRE_Int  , n,       HYPRE_MEMORY_DEVICE);  
+		HYPRE_Real * Vext_data_d;
+		hypre_TMemcpy( Vtemp_data_d, u_data, HYPRE_Real, n, HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_HOST );
+		hypre_TMemcpy( cf_marker_d, cf_marker, HYPRE_Int, n, HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_HOST );
+
+
+		HYPRE_Real * l1_data_d = hypre_TAlloc(HYPRE_Real  , n,       HYPRE_MEMORY_DEVICE);  
+		hypre_TMemcpy( l1_data_d, l1_norms, HYPRE_Real, n, HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_HOST );
+
+
+		hypre_CSRMatrixPrefetchToDevice(A_diag);
+		hypre_CSRMatrixPrefetchToDevice(A_offd);
+		hypre_SeqVectorPrefetchToDevice(u_local);
+		hypre_SeqVectorPrefetchToDevice(f_local);
+		if (num_procs >1){
+			Vext_data_d = hypre_TAlloc(HYPRE_Real  , num_cols_offd,       HYPRE_MEMORY_DEVICE);
+			hypre_TMemcpy( Vext_data_d, Vext_data, HYPRE_Real, num_cols_offd, HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_HOST );
+		}
+
+		ParRelaxL1JacobiCF((HYPRE_Int) n, 
+				(HYPRE_Int *)cf_marker_d, 
+				(HYPRE_Int) relax_points, 
+				(HYPRE_Real)  relax_weight,
+				(HYPRE_Real*) l1_data_d,
+				(HYPRE_Int*) A_diag->i, 
+				(HYPRE_Int*) A_diag->j, 
+				(HYPRE_Real*) A_diag->data, 
+				(HYPRE_Int *)A_offd->i, 
+				(HYPRE_Int *)A_offd->j, 
+				(HYPRE_Real *) A_offd->data, 
+				(HYPRE_Real *)Vtemp_data_d,
+				(HYPRE_Real *)Vext_data_d, 
+				(HYPRE_Real *)f_local->data,
+				(HYPRE_Real *)u_local->data);
+
+#else
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i,ii,jj,res) HYPRE_SMP_SCHEDULE
 #endif
-		//THIS, TOO GO TO THE GPU KS
 		for (i = 0; i < n; i++)
 		{
 
@@ -1180,6 +1244,8 @@ HYPRE_Int  hypre_ParCSRRelax_L1_Jacobi( hypre_ParCSRMatrix *A,
 				u_data[i] += (relax_weight * res)/l1_norms[i];
 			}
 		}     
+
+#endif
 	}
 	if (num_procs > 1)
 	{

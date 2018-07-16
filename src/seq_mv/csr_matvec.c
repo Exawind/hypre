@@ -39,8 +39,46 @@ hypre_CSRMatrixMatvecOutOfPlace( HYPRE_Complex    alpha,
    HYPRE_Real time_begin = hypre_MPI_Wtime();
 #endif
 #ifdef HYPRE_USE_GPU
+HYPRE_Real * d_test1, *d_test2;
+HYPRE_Int numBytes = A->num_nonzeros*(sizeof(HYPRE_Real)+sizeof(HYPRE_Int)) + (1+ A->num_rows)*sizeof(HYPRE_Int)+2*sizeof(HYPRE_Real)*A->num_rows;
+numBytes/=2;
+
+cudaMallocManaged((void **)&d_test1, numBytes);
+cudaMallocManaged((void **)&d_test2, numBytes);
+cudaMemPrefetchAsync(d_test1, numBytes, HYPRE_DEVICE); 
+cudaMemPrefetchAsync(d_test2, numBytes, HYPRE_DEVICE); 
+
+int ii = 100;
+
+cudaEvent_t start, stop;
+cudaEventCreate(&start);
+cudaEventCreate(&stop);
+
+
+PUSH_RANGE("D2DCopyMatvec", 2);
+cudaEventRecord(start);
+for (ii=0; ii<100; ii++){
+cudaMemcpy(d_test1, d_test2, numBytes, cudaMemcpyDeviceToDevice);
+}
+cudaEventRecord(stop);
+POP_RANGE;
+printf("\n copying %d bytes \n", numBytes);
+cudaFree(d_test1);
+cudaFree(d_test2);
+
+cudaEventSynchronize(stop);
+float copyElapsed;
+
+cudaEventElapsedTime(&copyElapsed, start, stop);
+//now compute the bw and the roofline
+ double copyBandwidth = ((numBytes*100*2.)/(1000.*1000.*copyElapsed));
+numBytes*=2;
+int gflops = 2*A->num_nonzeros;
+ double roofline = (copyBandwidth*gflops)/(numBytes);
+printf("copyTime %16.16f effective BW: %16.16f, roofline %16.16f \n",copyElapsed, copyBandwidth, roofline);
    PUSH_RANGE_PAYLOAD("MATVEC",0, hypre_CSRMatrixNumRows(A));
-   HYPRE_Int ret=hypre_CSRMatrixMatvecDevice( alpha,A,x,beta,b,y,offset);
+HYPRE_Int ret;
+   ret=hypre_CSRMatrixMatvecDevice( alpha,A,x,beta,b,y,offset);
    POP_RANGE;
   return ret;
 #ifdef HYPRE_PROFILE
@@ -869,20 +907,44 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
     POP_RANGE;
   }
 
+
+
   PUSH_RANGE("PREFETCH+SPMV",2);
 
   hypre_SeqVectorPrefetchToDevice(x);
   hypre_SeqVectorPrefetchToDevice(y);
-  
+cudaEvent_t start, stop;
+cudaEventCreate(&start);
+cudaEventCreate(&stop);
+int ii;  
   if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
+cudaEventRecord(start);
+for (ii=0;ii<100; ++ii){
   cusparseErrchk(cusparseDcsrmv(handle ,
 				CUSPARSE_OPERATION_NON_TRANSPOSE, 
 				A->num_rows-offset, A->num_cols, A->num_nonzeros,
 				&alpha, descr,
 				A->data ,A->i+offset,A->j,
 				x->data, &beta, y->data+offset));
-  
-  if (!GetAsyncMode()){
+/*  cusparseErrchk(cusparseDcsrmv(handle ,
+				CUSPARSE_OPERATION_NON_TRANSPOSE, 
+				A->num_rows-offset, A->num_cols, A->num_nonzeros,
+				&alpha, descr,
+				d_Adata ,d_Ai,d_Aj,
+				d_xdata, &beta, d_ydata));
+*/
+  }
+cudaEventRecord(stop);
+cudaEventSynchronize(stop);
+float kernelElapsed;
+int gflops = 2*A->num_nonzeros;
+
+cudaEventElapsedTime(&kernelElapsed, start, stop);
+//kernelElapsed*=100.0;
+double kernelRes = gflops/(kernelElapsed*1000.*1000.);
+//printf("kernel time %16.16f gflops %16.16f nnz %d size %d x %d\n",kernelElapsed, kernelRes, A->num_nonzeros, A->num_rows, A->num_cols);
+ 
+ if (!GetAsyncMode()){
   hypre_CheckErrorDevice(cudaStreamSynchronize(s[4]));
   }
   POP_RANGE;
@@ -922,11 +984,85 @@ if (FirstCall){
   hypre_SeqVectorPrefetchToDevice(y);
   
   if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
+//experimental code
 
- MatvecTCSR(A->num_rows, alpha, A->data, A->i, A->j, x->data,0.0f, y->data);
+HYPRE_Real * d_Adata, *d_xdata, *d_ydata;
+HYPRE_Int *d_Ai, *d_Aj;
 
-  POP_RANGE;
-  
+//printf("Num rows in matrix-T matrix = %d num cols %d , nnz = %d \n", A->num_rows,A->num_cols,  A->i[A->num_rows]);
+/*cudaMalloc((void **)&d_Adata, A->num_nonzeros*sizeof(HYPRE_Real));
+cudaMalloc((void **)&d_xdata, A->num_rows*sizeof(HYPRE_Real));
+cudaMalloc((void **)&d_ydata, A->num_cols*sizeof(HYPRE_Real));
+cudaMalloc((void **)&d_Ai, (A->num_rows+1)*sizeof(HYPRE_Int));
+cudaMalloc((void **)&d_Aj, A->num_nonzeros*sizeof(HYPRE_Int));
+
+cudaMemcpy(d_Adata,A->data,A->num_nonzeros*sizeof(HYPRE_Real),cudaMemcpyDeviceToDevice);
+cudaMemcpy(d_xdata,x->data,A->num_rows*sizeof(HYPRE_Real),cudaMemcpyDeviceToDevice);
+cudaMemcpy(d_ydata,y->data,A->num_cols*sizeof(HYPRE_Real),cudaMemcpyDeviceToDevice);
+cudaMemcpy(d_Ai,A->i,(A->num_rows+1)*sizeof(HYPRE_Int),cudaMemcpyDeviceToDevice);
+cudaMemcpy(d_Aj,A->j,A->num_nonzeros*sizeof(HYPRE_Int),cudaMemcpyDeviceToDevice);
+
+cudaDeviceSynchronize();
+*/
+
+
+cudaEvent_t start, stop;
+cudaEventCreate(&start);
+cudaEventCreate(&stop);
+int ii;  
+
+
+HYPRE_Real * d_test1, *d_test2;
+HYPRE_Int numBytes = A->num_nonzeros*(sizeof(HYPRE_Real)+sizeof(HYPRE_Int)) + (1+ A->num_rows)*sizeof(HYPRE_Int)+2*sizeof(HYPRE_Real)*A->num_rows;
+numBytes/=2;
+
+cudaMallocManaged((void **)&d_test1, numBytes);
+cudaMallocManaged((void **)&d_test2, numBytes);
+cudaMemPrefetchAsync(d_test1, numBytes, HYPRE_DEVICE); 
+cudaMemPrefetchAsync(d_test2, numBytes, HYPRE_DEVICE); 
+
+
+
+PUSH_RANGE("D2DCopyMatvecT", 2);
+cudaEventRecord(start);
+for (ii=0; ii<100; ii++){
+cudaMemcpy(d_test1, d_test2, numBytes, cudaMemcpyDeviceToDevice);
+}
+cudaEventRecord(stop);
+POP_RANGE;
+printf("\n MatvecT: copying %d bytes \n", numBytes);
+cudaFree(d_test1);
+cudaFree(d_test2);
+
+cudaEventSynchronize(stop);
+float copyElapsed;
+
+cudaEventElapsedTime(&copyElapsed, start, stop);
+//now compute the bw and the roofline
+ double copyBandwidth = ((numBytes*100*2.)/(1000.*1000.*copyElapsed));
+numBytes*=2;
+int gflops = 2*A->num_nonzeros;
+ double roofline = (copyBandwidth*gflops)/(numBytes);
+printf("MatvecT copyTime %16.16f effective BW: %16.16f, roofline %16.16f \n",copyElapsed, copyBandwidth, roofline);
+
+
+
+cudaEventRecord(start);
+for (ii=0;ii<100; ++ii){
+ 
+MatvecTCSR(A->num_rows, alpha, A->data, A->i, A->j, x->data,0.0f, y->data);
+
+}
+cudaEventRecord(stop);
+cudaEventSynchronize(stop);
+float kernelElapsed;
+
+cudaEventElapsedTime(&kernelElapsed, start, stop);
+//kernelElapsed*=100.0;
+double kernelRes = gflops/(kernelElapsed*1000.*1000.);
+printf("matvecT time %16.16f gflops %16.16f nnz %d size %d x %d\n",kernelElapsed, kernelRes, A->num_nonzeros, A->num_rows, A->num_cols);
+
+  POP_RANGE;  
 //HYPRE_Int i, j, jj;
      /* for (i = 0; i < A->num_rows; i++)
       {

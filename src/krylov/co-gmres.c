@@ -341,8 +341,8 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
   //hh[i] = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
   //}
   //
-  hh = hypre_CTAllocF(HYPRE_Real, (k_dim+1)*k_dim, cogmres_functions, HYPRE_MEMORY_HOST);
-
+  hh = hypre_CTAllocF(HYPRE_Real, (k_dim+1)*k_dim, cogmres_functions, HYPRE_MEMORY_SHARED);
+  //cudaMallocManaged ( hh, sizeof(HYPRE_Real)*(k_dim+1)*k_dim); 
   (*(cogmres_functions->CopyVector))(b,p[0]);
 
   /* compute initial residual */
@@ -551,7 +551,7 @@ while (iter < max_iter)
         }*/
         // hypre_printf("about to start multi IP \n");  
         //(*(cogmres_functions->MassInnerProd))((void *) p[i], p,(HYPRE_Int) i, tmp);
-        time1=MPI_Wtime();
+time1=MPI_Wtime();
         PUSH_RANGE("COGMRES_DOTP", 4);
         (*(cogmres_functions->MassInnerProd))((void *) p[i], p,(HYPRE_Int) i, &hh[(i-1)*(k_dim+1)]);
         POP_RANGE;
@@ -1010,7 +1010,7 @@ massAxpyTime += time3-time4;
        {  
        hypre_TFreeF(hh[i],cogmres_functions);
        }*/
-    hypre_TFreeF(hh,cogmres_functions); 
+   // hypre_TFreeF(hh,cogmres_functions); 
 
     return hypre_error_flag;
   }

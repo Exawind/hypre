@@ -479,8 +479,12 @@ void  hypre_ParVectorMassInnerProd( hypre_ParVector *x,
     y_local[i] = (hypre_Vector*) hypre_ParVectorLocalVector(y[i]);
   }           
   //HYPRE_Real result = 0.0;
-  HYPRE_Real * local_result = (HYPRE_Real *)calloc(k, sizeof(HYPRE_Real)); 
-
+HYPRE_Real * local_result; 
+#ifdef HYPRE_USE_GPU
+ local_result = hypre_TAlloc(HYPRE_Real , k,       HYPRE_MEMORY_SHARED);
+#else
+  local_result= (HYPRE_Real *)calloc(k, sizeof(HYPRE_Real)); 
+#endif
   hypre_SeqVectorMassInnerProd(x_local, y_local,k, local_result);
 
 #ifdef HYPRE_PROFILE

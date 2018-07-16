@@ -1321,6 +1321,21 @@ void VecSet(double* tgt, int size, double value, cudaStream_t s);
 void VecScale(double *u, double *v, double *l1_norm, int num_rows,cudaStream_t s);
 void VecScaleSplit(double *u, double *v, double *l1_norm, int num_rows,cudaStream_t s);
 void CudaCompileFlagCheck();
+void ParRelaxL1Jacobi(
+                HYPRE_Int n,
+HYPRE_Real * __restrict__ l1_data,
+HYPRE_Real __restrict__ relax_weight,
+                HYPRE_Int *__restrict__ A_diag_i,
+                HYPRE_Int *__restrict__ A_diag_j,
+                HYPRE_Real *__restrict__ A_diag_data,
+                HYPRE_Int *__restrict__ A_offd_i,
+                HYPRE_Int *__restrict__ A_offd_j,
+                HYPRE_Real *__restrict__ A_offd_data,
+                HYPRE_Real *__restrict__ Vtemp_data,
+                HYPRE_Real *__restrict__ Vext_data,
+                HYPRE_Real *__restrict__ f_data,
+                HYPRE_Real *__restrict__ u_data);
+
 cudaStream_t getstreamOlde(hypre_int i);
 nvtxDomainHandle_t getdomain(hypre_int i);
 cudaEvent_t getevent(hypre_int i);
