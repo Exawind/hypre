@@ -549,6 +549,10 @@ hypre_SeqVectorAxpy( HYPRE_Complex alpha,
 				return ierr;
 }
 
+/*
+ * Mass AXPY GPU - GPU only version
+ * */
+
 /*--------------------------------------------------------------------------
  * hypre_SeqVectorMassAxpy
  *--------------------------------------------------------------------------*/
@@ -675,7 +679,21 @@ HYPRE_Real   hypre_SeqVectorInnerProd( hypre_Vector *x,
 /*--------------------------------------------------------------------------
  * hypre_SeqVectorMassInnerProd; written by KS
  *--------------------------------------------------------------------------*/
+//GPU ONLY: just for speed
 
+
+void  hypre_SeqVectorMassInnerProdGPU( HYPRE_Real *x,
+								HYPRE_Real *y, int k, int n, HYPRE_Real *result )
+{
+#ifdef HYPRE_USE_GPU
+				return hypre_SeqVectorMassInnerProdDeviceDevice(x,y, k,n, result );
+#endif
+//else: display some error message, like do not use this function unless using GPU
+}
+
+
+
+//UNIFIED - SLOW!
 void  hypre_SeqVectorMassInnerProd( hypre_Vector *x,
 								hypre_Vector **y, int k, HYPRE_Real *result )
 {
@@ -854,6 +872,9 @@ HYPRE_Real   hypre_SeqVectorInnerProdDevice( hypre_Vector *x,
 
 }
 
+void  hypre_SeqVectorMassInnerProdDeviceDevice( HYPRE_Real *x, HYPRE_Real *y, HYPRE_Int n, HYPRE_Int k, HYPRE_Real* result){
+
+}
 
 
 //KS code

@@ -8,6 +8,17 @@ void VecScaleSplit(double *u, double *v, double *l1_norm, int num_rows,cudaStrea
 void CudaCompileFlagCheck();
 void MatvecTCSR(int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_int *ia, hypre_int *ja, HYPRE_Complex *x, HYPRE_Complex beta, HYPRE_Complex *y);
 void MassInnerProd(HYPRE_Int n, HYPRE_Int k, HYPRE_Real **v, HYPRE_Real *u, HYPRE_Real *result);
+void MassAxpyGPUonly(int N,    int k,
+    const  double  * x_data,
+    double *y_data,
+    const  double   * alpha);
+void MassInnerProdGPUonly(const double * __restrict__ u,  
+		const double * __restrict__ v, 
+		double * result,  
+		const int k, 
+		const int N);
+
+
 
 void ParRelaxL1Jacobi(
 		HYPRE_Int n,

@@ -43,39 +43,39 @@ HYPRE_Real * d_test1, *d_test2;
 HYPRE_Int numBytes = A->num_nonzeros*(sizeof(HYPRE_Real)+sizeof(HYPRE_Int)) + (1+ A->num_rows)*sizeof(HYPRE_Int)+2*sizeof(HYPRE_Real)*A->num_rows;
 numBytes/=2;
 
-cudaMallocManaged((void **)&d_test1, numBytes);
-cudaMallocManaged((void **)&d_test2, numBytes);
-cudaMemPrefetchAsync(d_test1, numBytes, HYPRE_DEVICE); 
-cudaMemPrefetchAsync(d_test2, numBytes, HYPRE_DEVICE); 
+//cudaMallocManaged((void **)&d_test1, numBytes);
+//cudaMallocManaged((void **)&d_test2, numBytes);
+//cudaMemPrefetchAsync(d_test1, numBytes, HYPRE_DEVICE); 
+//cudaMemPrefetchAsync(d_test2, numBytes, HYPRE_DEVICE); 
 
 int ii = 100;
 
-cudaEvent_t start, stop;
-cudaEventCreate(&start);
-cudaEventCreate(&stop);
+//cudaEvent_t start, stop;
+//cudaEventCreate(&start);
+//cudaEventCreate(&stop);
 
 
-PUSH_RANGE("D2DCopyMatvec", 2);
-cudaEventRecord(start);
-for (ii=0; ii<100; ii++){
-cudaMemcpy(d_test1, d_test2, numBytes, cudaMemcpyDeviceToDevice);
-}
-cudaEventRecord(stop);
-POP_RANGE;
-printf("\n copying %d bytes \n", numBytes);
-cudaFree(d_test1);
-cudaFree(d_test2);
+//PUSH_RANGE("D2DCopyMatvec", 2);
+//cudaEventRecord(start);
+//for (ii=0; ii<100; ii++){
+//cudaMemcpy(d_test1, d_test2, numBytes, cudaMemcpyDeviceToDevice);
+//}
+//cudaEventRecord(stop);
+//POP_RANGE;
+//printf("\n copying %d bytes \n", numBytes);
+//cudaFree(d_test1);
+//cudaFree(d_test2);
 
-cudaEventSynchronize(stop);
-float copyElapsed;
+//cudaEventSynchronize(stop);
+//float copyElapsed;
 
-cudaEventElapsedTime(&copyElapsed, start, stop);
+//cudaEventElapsedTime(&copyElapsed, start, stop);
 //now compute the bw and the roofline
- double copyBandwidth = ((numBytes*100*2.)/(1000.*1000.*copyElapsed));
-numBytes*=2;
-int gflops = 2*A->num_nonzeros;
- double roofline = (copyBandwidth*gflops)/(numBytes);
-printf("copyTime %16.16f effective BW: %16.16f, roofline %16.16f \n",copyElapsed, copyBandwidth, roofline);
+// double copyBandwidth = ((numBytes*100*2.)/(1000.*1000.*copyElapsed));
+//numBytes*=2;
+//int gflops = 2*A->num_nonzeros;
+// double roofline = (copyBandwidth*gflops)/(numBytes);
+//printf("copyTime %16.16f effective BW: %16.16f, roofline %16.16f \n",copyElapsed, copyBandwidth, roofline);
    PUSH_RANGE_PAYLOAD("MATVEC",0, hypre_CSRMatrixNumRows(A));
 HYPRE_Int ret;
    ret=hypre_CSRMatrixMatvecDevice( alpha,A,x,beta,b,y,offset);

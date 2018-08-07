@@ -615,12 +615,13 @@ extern "C" {
         void *x, HYPRE_Complex beta, void *y );
     HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
     HYPRE_Real   (*InnerProd)     ( void *x, void *y );
-    void         (*MassInnerProd)( void *x, void **p, int k, void *result);
+    void         (*MassInnerProd)( void *x, void *p, int k, int n, void *result);
     HYPRE_Int    (*CopyVector)    ( void *x, void *y );
     HYPRE_Int    (*ClearVector)   ( void *x );
     HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );
     HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );
-    void         (*MassAxpy)      ( HYPRE_Real * alpha, void **x, void *y, HYPRE_Int k);
+    void         (*MassAxpy)      ( HYPRE_Real * alpha, void *x, void *y, HYPRE_Int k, HYPRE_Int n);
+    HYPRE_Int    (*VectorSize)  ( void *vector );
     HYPRE_Int    (*precond)       (void *vdata , void *A , void *b , void *x);
     HYPRE_Int    (*precond_setup) (void *vdata , void *A , void *b , void *x);
 
@@ -651,7 +652,7 @@ extern "C" {
     void  *r;
     void  *w;
     void  *w_2;
-    void  **p;
+    void  *p;
 
     void    *matvec_data;
     void    *precond_data;
@@ -699,12 +700,13 @@ extern "C" {
             void *x, HYPRE_Complex beta, void *y ),
           HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
           HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
-          void         (*MassInnerProd) (void *x, void **p, int k, void *result),
+          void         (*MassInnerProd) (void *x, void *p, int k, int n, void *result),
           HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
           HYPRE_Int    (*ClearVector)   ( void *x ),
           HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
           HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
-          void         (*MassAxpy)      ( HYPRE_Real *alpha, void **x, void *y, HYPRE_Int k),
+          void         (*MassAxpy)      ( HYPRE_Real *alpha, void *x, void *y, HYPRE_Int k, HYPRE_Int n),
+          HYPRE_Int    (*VectorSize)    ( void *vector ),
           HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
           HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
           );
@@ -1625,6 +1627,17 @@ extern "C" {
   HYPRE_Int hypre_PCGGetConverged ( void *pcg_vdata , HYPRE_Int *converged );
   HYPRE_Int hypre_PCGPrintLogging ( void *pcg_vdata , HYPRE_Int myid );
   HYPRE_Int hypre_PCGGetFinalRelativeResidualNorm ( void *pcg_vdata , HYPRE_Real *relative_residual_norm );
+
+void MassAxpyGPUonly(int N,    int k,
+    const  double  * x_data,
+    double *y_data,
+    const  double   * alpha);
+void MassInnerProdGPUonly(const double * __restrict__ u,
+    const double * __restrict__ v,
+    double * result,
+    const int k,
+    const int N);
+
 
 #ifdef __cplusplus
   }

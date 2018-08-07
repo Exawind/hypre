@@ -505,6 +505,7 @@ remainingTime += (time2-time1);
 time1 = MPI_Wtime();
            precond(precond_data, A, p[i-1], r);
            (*(gmres_functions->Matvec))(matvec_data, 1.0, A, r, 0.0, p[i]);
+
 time2 = MPI_Wtime();
 matvecPreconTime += (time2-time1);
 time1 = MPI_Wtime();
@@ -513,16 +514,21 @@ time1 = MPI_Wtime();
         /* modified Gram_Schmidt */
            for (j=0; j < i; j++)
            {
-              hh[j][i-1] = (*(gmres_functions->InnerProd))(p[j],p[i]);
-              (*(gmres_functions->Axpy))(-hh[j][i-1],p[j],p[i]);
+             hh[j][i-1] = (*(gmres_functions->InnerProd))(p[j],p[i]);
+             (*(gmres_functions->Axpy))(-hh[j][i-1],p[j],p[i]);
            }
            t = sqrt((*(gmres_functions->InnerProd))(p[i],p[i]));
-           hh[i][i-1] = t;	
+         
+  hh[i][i-1] = t;	
            if (t != 0.0)
            {
               t = 1.0/t;
               (*(gmres_functions->ScaleVector))(t,p[i]);
-           }
+              double rv =sqrt((*(gmres_functions->InnerProd))(p[i],p[i]));
+
+  
+
+         }
            /* done with modified Gram_schmidt and Arnoldi step.
               update factorization of hh */
 time2 = MPI_Wtime();

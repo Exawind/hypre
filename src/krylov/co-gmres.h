@@ -65,13 +65,15 @@ typedef struct
                                    void *x, HYPRE_Complex beta, void *y );
    HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
    HYPRE_Real   (*InnerProd)     ( void *x, void *y );
-   void         (*MassInnerProd) (void *x, void **p, int k, void *result);
+   void         (*MassInnerProd) (void *x, void *p, int k, int n, void *result);
    HYPRE_Int    (*CopyVector)    ( void *x, void *y );
    HYPRE_Int    (*ClearVector)   ( void *x );
    HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );
    HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );
-   void         (*MassAxpy)      ( HYPRE_Real *alpha, void **x, void *y, HYPRE_Int k);
-   HYPRE_Int    (*precond)       ();
+   void         (*MassAxpy)      ( HYPRE_Real *alpha, void *x, void *y, HYPRE_Int k, HYPRE_Int n);
+  
+   HYPRE_Int *       (*VectorSize)  ( void *vector );
+ HYPRE_Int    (*precond)       ();
    HYPRE_Int    (*precond_setup) ();
 
     HYPRE_Int    (*modify_pc)(void *precond_data, HYPRE_Int iteration, HYPRE_Real rel_residual_norm );
@@ -100,7 +102,7 @@ typedef struct
    void  *r;
    void  *w;
    void  *w_2;
-   void  **p;
+   void  *p;
 
    void    *matvec_data;
    void    *precond_data;
@@ -148,12 +150,13 @@ hypre_COGMRESFunctionsCreate(
                                    void *x, HYPRE_Complex beta, void *y ),
    HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
    HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
-   void         (*MassInnerProd) (void *x, void **p, int k, void *result),
+   void         (*MassInnerProd) (void *x, void *p, int k, int n,  void *result),
    HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
    HYPRE_Int    (*ClearVector)   ( void *x ),
    HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
    HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
-   void         (*MassAxpy)      ( HYPRE_Real *alpha, void **x, void *y, HYPRE_Int k),   
+   void         (*MassAxpy)      ( HYPRE_Real *alpha, void *x, void *y, HYPRE_Int k, HYPRE_Int n),   
+   HYPRE_Int *       (*VectorSize)  ( void *vector ),
 HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
    HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
    );

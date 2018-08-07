@@ -251,6 +251,16 @@ extern "C" {
 	void MatvecTCSR(int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_int *ia, hypre_int *ja, HYPRE_Complex *x, HYPRE_Complex beta, HYPRE_Complex *y);
 	void VecSet(double* tgt, int size, double value, cudaStream_t s);
 	void VecScale(double *u, double *v, double *l1_norm, int num_rows,cudaStream_t s);
+void MassAxpyGPUonly(int N,    int k,
+    const  double  * x_data,
+    double *y_data,
+    const  double   * alpha);
+void MassInnerProdGPUonly(const double * __restrict__ u,
+    const double * __restrict__ v,
+    double * result,
+    const int k,
+    const int N);
+
 
 	void VecScaleSplit(double *u, double *v, double *l1_norm, int num_rows,cudaStream_t s);
 	void CudaCompileFlagCheck();
@@ -407,6 +417,8 @@ extern "C" {
 	HYPRE_Real hypre_SeqVectorInnerProdDevice ( hypre_Vector *x , hypre_Vector *y );
 	void  hypre_SeqVectorMassInnerProdDevice ( hypre_Vector *x , hypre_Vector **y, HYPRE_Int k, HYPRE_Real * result);
 	void hypre_SeqVectorMassAxpyDevice(HYPRE_Real * alpha, hypre_Vector **x, hypre_Vector *y, HYPRE_Int k);
+
+	void  hypre_SeqVectorMassInnerProdDeviceDevice ( HYPRE_Real *x ,  HYPRE_Real *y, HYPRE_Int n,HYPRE_Int k, HYPRE_Real * result);
 void MassInnerProd(HYPRE_Int n, HYPRE_Int k, HYPRE_Real **v, HYPRE_Real *u, HYPRE_Real *result);
 	void hypre_SeqVectorPrefetchToDevice(hypre_Vector *x);
 	void hypre_SeqVectorPrefetchToHost(hypre_Vector *x);

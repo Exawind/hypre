@@ -458,15 +458,9 @@ hypre_ParVectorInnerProd( hypre_ParVector *x,
 
   return result;
 }
-/* --------
- * hypre_parVectorMassInnerProd: mass inner product; y is multiple vectors.
- */
-/*
-void hypre_ParVectorMassInnerProd ( hypre_ParVector *x , hypre_ParVector **y , HYPRE_Int k, HYPRE_Real *prod );
 
-void hypre_ParVectorMassInnerProd ( hypre_ParVector *x , hypre_ParVector **y , HYPRE_Int k, HYPRE_Real *prod );
 
-*/
+
 void  hypre_ParVectorMassInnerProd( hypre_ParVector *x,
     hypre_ParVector **y, HYPRE_Int k, HYPRE_Real *result  ){
 
@@ -498,6 +492,18 @@ HYPRE_Real * local_result;
 free(y_local);
 }
 
+
+void  hypre_ParVectorMassInnerProdGPU(HYPRE_Real *x,
+    HYPRE_Real *y, HYPRE_Int k, HYPRE_Int n,  HYPRE_Real *result  ){
+int a;
+printf("n+k  = %d\n",  (n+k));
+
+}
+
+void  hypre_ParVectorMassAxpyGPU(HYPRE_Real *x,
+    HYPRE_Real *y, HYPRE_Int k, HYPRE_Int n){
+
+}
 
 /*--------------------------------------------------------------------------
  * hypre_VectorToParVector:
