@@ -18,6 +18,17 @@ void MassInnerProdGPUonly(const double * __restrict__ u,
 		const int k, 
 		const int N);
 
+void ScaleGPUonly(double * __restrict__ u, 
+		const double alpha, 
+		const int N);
+void AxpyGPUonly(const double * __restrict__ u,  
+		 double * __restrict__ v,
+		const double alpha, 
+		const int N); 
+void InnerProdGPUonly(const double * __restrict__ u,  
+		const double * __restrict__ v, 
+		double *result, 
+		const int N);
 
 
 void ParRelaxL1Jacobi(

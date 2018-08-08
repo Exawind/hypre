@@ -919,7 +919,7 @@ cudaEventCreate(&stop);
 int ii;  
   if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
 cudaEventRecord(start);
-for (ii=0;ii<100; ++ii){
+for (ii=0;ii<1; ++ii){
   cusparseErrchk(cusparseDcsrmv(handle ,
 				CUSPARSE_OPERATION_NON_TRANSPOSE, 
 				A->num_rows-offset, A->num_cols, A->num_nonzeros,
@@ -1025,12 +1025,12 @@ cudaMemPrefetchAsync(d_test2, numBytes, HYPRE_DEVICE);
 
 PUSH_RANGE("D2DCopyMatvecT", 2);
 cudaEventRecord(start);
-for (ii=0; ii<100; ii++){
-cudaMemcpy(d_test1, d_test2, numBytes, cudaMemcpyDeviceToDevice);
-}
+//for (ii=0; ii<100; ii++){
+//cudaMemcpy(d_test1, d_test2, numBytes, cudaMemcpyDeviceToDevice);
+//}
 cudaEventRecord(stop);
 POP_RANGE;
-printf("\n MatvecT: copying %d bytes \n", numBytes);
+//printf("\n MatvecT: copying %d bytes \n", numBytes);
 cudaFree(d_test1);
 cudaFree(d_test2);
 
@@ -1043,24 +1043,24 @@ cudaEventElapsedTime(&copyElapsed, start, stop);
 numBytes*=2;
 int gflops = 2*A->num_nonzeros;
  double roofline = (copyBandwidth*gflops)/(numBytes);
-printf("MatvecT copyTime %16.16f effective BW: %16.16f, roofline %16.16f \n",copyElapsed, copyBandwidth, roofline);
+//printf("MatvecT copyTime %16.16f effective BW: %16.16f, roofline %16.16f \n",copyElapsed, copyBandwidth, roofline);
 
 
 
 cudaEventRecord(start);
-for (ii=0;ii<100; ++ii){
+//for (ii=0;ii<100; ++ii){
  
 MatvecTCSR(A->num_rows, alpha, A->data, A->i, A->j, x->data,0.0f, y->data);
 
-}
+//}
 cudaEventRecord(stop);
 cudaEventSynchronize(stop);
 float kernelElapsed;
 
 cudaEventElapsedTime(&kernelElapsed, start, stop);
 //kernelElapsed*=100.0;
-double kernelRes = gflops/(kernelElapsed*1000.*1000.);
-printf("matvecT time %16.16f gflops %16.16f nnz %d size %d x %d\n",kernelElapsed, kernelRes, A->num_nonzeros, A->num_rows, A->num_cols);
+//double kernelRes = gflops/(kernelElapsed*1000.*1000.);
+//printf("matvecT time %16.16f gflops %16.16f nnz %d size %d x %d\n",kernelElapsed, kernelRes, A->num_nonzeros, A->num_rows, A->num_cols);
 
   POP_RANGE;  
 //HYPRE_Int i, j, jj;

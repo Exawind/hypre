@@ -348,13 +348,14 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 
 	HYPRE_Int sz;
 	sz = (*(cogmres_functions->VectorSize))(r);
-HYPRE_Real * tempH;
+	HYPRE_Real * tempH;
 	//  if ((cogmres_drc/parcsr_ls/HYPRE_parcsr_cogmres.ca -> p) == NULL)
 	cudaMalloc ( &cogmres_data -> p, sz*sizeof(HYPRE_Real)*(k_dim+1)); 
-	
-	cudaMalloc ( &tempH, sizeof(HYPRE_Real)*(k_dim+1)); 
-p = (HYPRE_Real*) cogmres_data->p;
 
+	cudaMalloc ( &tempH, sizeof(HYPRE_Real)*(k_dim+1)); 
+	p = (HYPRE_Real*) cogmres_data->p;
+  HYPRE_Real * tempV;
+	cudaMalloc ( &tempV, sizeof(HYPRE_Real)*(sz)); 
 	//hh = hypre_CTAllocF(HYPRE_Real*,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST);
 	//for (i=0; i < k_dim+1; i++)
 	//{ 
@@ -375,10 +376,10 @@ p = (HYPRE_Real*) cogmres_data->p;
 	//(*(gmres_functions->CopyVector))(b,p[0]);
 	(*(cogmres_functions->CopyVector))(b,bb);
 	(*(cogmres_functions->Matvec))(matvec_data,-1.0, A, x, 1.0, bb);
-HYPRE_Int testError;
-		testError = cudaMemcpy (&p[0],bb->local_vector->data, 
-				sz*sizeof(HYPRE_Real),
-				cudaMemcpyDeviceToDevice ); 
+	HYPRE_Int testError;
+	testError = cudaMemcpy (&p[0],bb->local_vector->data, 
+			sz*sizeof(HYPRE_Real),
+			cudaMemcpyDeviceToDevice ); 
 
 	b_norm = sqrt((*(cogmres_functions->InnerProd))(b,b));
 	real_r_norm_old = b_norm;
@@ -502,7 +503,8 @@ tol only is checked  */
 	{
 		/* initialize first term of hessenberg system */
 		time1 = MPI_Wtime();
-		rs[0] = r_norm;
+	
+  	rs[0] = r_norm;
 		rv[0] = 1.0;
 		if (r_norm == 0.0)
 		{
@@ -547,19 +549,54 @@ tol only is checked  */
 
 
 		t = 1.0 / r_norm;
-				testError = cudaMemcpy ( bb->local_vector->data, cogmres_data -> p, 
-					sz*sizeof(HYPRE_Real),
-					cudaMemcpyDeviceToDevice ); 
-		(*(cogmres_functions->ScaleVector))(t,bb);
-		testError = cudaMemcpy (&p[0],bb->local_vector->data, 
-				sz*sizeof(HYPRE_Real),
-				cudaMemcpyDeviceToDevice ); 
+		//	testError = cudaMemcpy ( bb->local_vector->data, cogmres_data -> p, 
+		//			sz*sizeof(HYPRE_Real),
+		//		cudaMemcpyDeviceToDevice ); 
 
+		// (*(cogmres_functions->ScaleVector))(t,bb);
+		//	testError = cudaMemcpy (&p[0],bb->local_vector->data, 
+		//		sz*sizeof(HYPRE_Real),
+		//	cudaMemcpyDeviceToDevice ); 
+		//printf("scaling by %f \n", t);	
 
+//double wtf;
+ /*InnerProdGPUonly(p,  
+       p, 
+       &wtf, 
+       sz);
+
+	  //printf("before  scaling , norm %f \n", sqrt( wtf ));
+*/	
+	ScaleGPUonly(p, 
+				t, 
+				sz);
+/* InnerProdGPUonly(p,  
+       p, 
+       &wtf, 
+       sz);
+
+	  printf("after scaling , norm %f \n", sqrt( wtf ));*/
 		i = 0;
 		time2 = MPI_Wtime();
 		remainingTime += (time2-time1);
 		/***RESTART CYCLE (right-preconditioning) ***/
+		/*
+
+			 void ScaleGPUonly(double * __restrict__ u, 
+			 const double alpha, 
+			 const int N);
+			 void AxpyGPUonly(const double * __restrict__ u,  
+			 double * __restrict__ v,
+			 const double alpha, 
+			 const int N); 
+			 void InnerProdGPUonly(const double * __restrict__ u,  
+			 const double * __restrict__ v, 
+			 double result, 
+			 const int N);
+
+		 * */		
+
+
 		while (i < k_dim && iter < max_iter)
 		{
 
@@ -579,12 +616,15 @@ tol only is checked  */
 
 			//  precond(precond_data, A, &p[(i-1)*sz], r);
 			precond(precond_data, A, bb, r);
+			//printf("norm aftet precond %f, \n", sqrt( (*(cogmres_functions->InnerProd))(r,r) ));
 
 			POP_RANGE;
 			time3 = MPI_Wtime();
 			preconTime += (time3 - time1);
 			PUSH_RANGE("COGMRES_MATVEC1", 3);
 			(*(cogmres_functions->Matvec))(matvec_data, 1.0, A, r, 0.0, bb);
+			//printf("after matvec %f, ", sqrt( (*(cogmres_functions->InnerProd))(bb,bb) ));
+
 			testError = cudaMemcpy ( (HYPRE_Real*) (&p[(i)*sz]), bb->local_vector->data,
 					sz*sizeof(HYPRE_Real),
 					cudaMemcpyDeviceToDevice ); 
@@ -610,13 +650,13 @@ tol only is checked  */
 
 			MassInnerProdGPUonly(&p[i*sz],
 					p,
-tempH,				
+					tempH,				
 					i,
 					sz);
 
- cudaMemcpy ( &hh[idx(0, i-1,k_dim+1)],tempH,
-	i*sizeof(HYPRE_Real),
-				cudaMemcpyDeviceToHost );
+			cudaMemcpy ( &hh[idx(0, i-1,k_dim+1)],tempH,
+					i*sizeof(HYPRE_Real),
+					cudaMemcpyDeviceToHost );
 
 
 			POP_RANGE;
@@ -628,13 +668,14 @@ tempH,
 			HYPRE_Real t2 = 0.0;
 			for (j=0; j<i; j++){
 				HYPRE_Int id = idx(j, i-1,k_dim+1);
-			  hh[id]       = (2.0f-rv[j])*hh[id];
-        t2          += (hh[id]*hh[id]);        
+				hh[id]       = (2.0f-rv[j])*hh[id];
+				//printf("hh[%d] = %f \n",id, hh[id]);		
+				t2          += (hh[id]*hh[id]);        
 			}
 
- cudaMemcpy ( tempH,&hh[idx(0, i-1,k_dim+1)],
-	i*sizeof(HYPRE_Real),
-				cudaMemcpyHostToDevice );
+			cudaMemcpy ( tempH,&hh[idx(0, i-1,k_dim+1)],
+					i*sizeof(HYPRE_Real),
+					cudaMemcpyHostToDevice );
 
 			PUSH_RANGE("COGMRES_AXPY", 5);
 			//		(*(cogmres_functions->MassAxpy))(&hh[(i-1)*(k_dim+1)],p,w,i,sz);
@@ -642,14 +683,14 @@ tempH,
 
 			time4 = MPI_Wtime();
 			MassAxpyGPUonly(sz,  i,
-      p,				
-	    &p[sz*i],
-tempH);	
-//		&hh[(i-1)*(k_dim+1)]);
+					p,				
+					&p[sz*i],
+					tempH);	
+			//		&hh[(i-1)*(k_dim+1)]);
 
- cudaMemcpy ( &hh[idx(0, i-1,k_dim+1)],tempH,
-	i*sizeof(HYPRE_Real),
-				cudaMemcpyDeviceToHost );
+			cudaMemcpy ( &hh[idx(0, i-1,k_dim+1)],tempH,
+					i*sizeof(HYPRE_Real),
+					cudaMemcpyDeviceToHost );
 			POP_RANGE;
 			time3 = MPI_Wtime();
 			massAxpyTime += time3-time4;      
@@ -658,49 +699,56 @@ tempH);
 				hh[id]       = hh[id];
 			}
 
-			
+
 			//testError = cudaMemcpy ( tempH,&hh[idx(0, i-1,k_dim+1)],
-				//	i*sizeof(HYPRE_Real),
-				//	cudaMemcpyDeviceToDevice );
+			//	i*sizeof(HYPRE_Real),
+			//	cudaMemcpyDeviceToDevice );
 
-      PUSH_RANGE("COGMRES_DOTP1", 6);
+			PUSH_RANGE("COGMRES_DOTP1", 6);
 			t2 = sqrt(t2)*sqrt(rv[i-1]);
-		
 
-	t = sqrt( (*(cogmres_functions->InnerProd))(bb,bb) );
-   
-   hh[idx(i, i-1,k_dim+1)] = sqrt(t-t2)*sqrt(t2+t);
+
+			t = sqrt( (*(cogmres_functions->InnerProd))(bb,bb) );
+			//printf("t = %f t2 = %f \n", t, t2);
+			hh[idx(i, i-1,k_dim+1)] = sqrt(t-t2)*sqrt(t2+t);
 			POP_RANGE;
 
 
 
 			/** KS & ST: end of our code **/
 
-					(*(cogmres_functions->ClearVector))(bb);
+			//		(*(cogmres_functions->ClearVector))(bb);
 
-			testError = cudaMemcpy ( bb->local_vector->data,&p[i*sz],
-					sz*sizeof(HYPRE_Real),
-					cudaMemcpyDeviceToDevice );
-  
+			//	testError = cudaMemcpy ( bb->local_vector->data,&p[i*sz],
+			//		sz*sizeof(HYPRE_Real),
+			//	cudaMemcpyDeviceToDevice );
+
 			PUSH_RANGE("COGMRES_GS", 1);
 			if (hh[idx(i,i-1,k_dim+1)] != 0.0)
 			{
 				t = 1.0/hh[idx(i,i-1,k_dim+1)];
-	      (*(cogmres_functions->ScaleVector))(t,bb);
-				
-			testError = cudaMemcpy (&p[sz*i], bb->local_vector->data,
-					sz*sizeof(HYPRE_Real),
-					cudaMemcpyDeviceToDevice ); 
+				// (*(cogmres_functions->ScaleVector))(t,bb);
+				ScaleGPUonly(&p[sz*i], 
+						t, 
+						sz);
+
+				//testError = cudaMemcpy (&p[sz*i], bb->local_vector->data,
+				//	sz*sizeof(HYPRE_Real),
+				//	cudaMemcpyDeviceToDevice ); 
 
 
-        rv[i] = sqrt( (*(cogmres_functions->InnerProd))(bb, bb) );
-
+				//  rv[i] = sqrt( (*(cogmres_functions->InnerProd))(bb, bb) );
+				InnerProdGPUonly(&p[i*sz],  
+						&p[i*sz], 
+						&rv[i], 
+						sz);
+				//printf("NORM IS %f \n", rv[i]);
 
 			}
 
-			testError = cudaMemcpy (&p[(i)*sz],bb->local_vector->data , 
-					sz*sizeof(HYPRE_Real),
-					cudaMemcpyDeviceToDevice ); 
+			//	testError = cudaMemcpy (&p[(i)*sz],bb->local_vector->data , 
+			//		sz*sizeof(HYPRE_Real),
+			//	cudaMemcpyDeviceToDevice ); 
 
 
 			POP_RANGE;
@@ -729,6 +777,7 @@ tempH);
 			// determine residual norm 
 			hh[idx(i-1,i-1, k_dim+1)] = s[i-1]*hh[idx(i,i-1, k_dim+1)] + c[i-1]*hh[idx(i-1,i-1, k_dim+1)];
 			r_norm = fabs(rs[i]);
+			//printf("r_norm %f \n", r_norm);	
 			time2 = MPI_Wtime();
 			linSolveTime  += (time2-time1);
 			/* print ? */
@@ -815,22 +864,34 @@ tempH);
 						rs_2[k] = t/hh[idx(k,k, k_dim+1)];
 					}
 
-					testError = cudaMemcpy (w->local_vector->data ,&p[(i-1)*sz], 
-							sz*sizeof(HYPRE_Real),
-							cudaMemcpyDeviceToDevice ); 
-					//(*(cogmres_functions->CopyVector))(w, bb);
-					(*(cogmres_functions->ScaleVector))(rs_2[i-1],w);
+					//					testError = cudaMemcpy (w->local_vector->data ,&p[(i-1)*sz], 
+					//						sz*sizeof(HYPRE_Real),
+					//					cudaMemcpyDeviceToDevice ); 
+
+					//(*(cogmres_functions->ScaleVector))(rs_2[i-1],w);
+					ScaleGPUonly(&p[(i-1)*sz],
+							rs_2[i-1],
+							sz);
+
 
 					for (j = i-2; j >=0; j--){
 
-						testError = cudaMemcpy (bb->local_vector->data,&p[(j)*sz],
-								sz*sizeof(HYPRE_Real),
-								cudaMemcpyDeviceToDevice ); 
-						(*(cogmres_functions->Axpy))(rs_2[j], bb, w);
-
+						//	testError = cudaMemcpy (bb->local_vector->data,&p[(j)*sz],
+						//		sz*sizeof(HYPRE_Real),
+						//	cudaMemcpyDeviceToDevice ); 
+						//			(*(cogmres_functions->Axpy))(rs_2[j], bb, w);
+						AxpyGPUonly(&p[j*sz],  
+								&p[(i-1)*sz],
+								rs_2[j], 
+								sz); 
 					}
 					(*(cogmres_functions->ClearVector))(r);
 					/* find correction (in r) */
+					testError = cudaMemcpy (w->local_vector->data ,&p[(i-1)*sz], 
+							sz*sizeof(HYPRE_Real),
+							cudaMemcpyDeviceToDevice ); 
+
+
 					precond(precond_data, A, w, r);
 					/* copy current solution (x) to w (don't want to over-write x)*/
 					(*(cogmres_functions->CopyVector))(x,w);
@@ -907,23 +968,10 @@ tempH);
 			remainingTime += (time2-time1);
 
 		} /*** end of restart cycle ***/
-
+//error somewhere below here
 		/* now compute solution, first solve upper triangular system */
 		time1 = MPI_Wtime();
 		if (break_value) break;
-		/*
-			 rs[i-1] = rs[i-1]/hh[i-1][i-1];
-			 for (k = i-2; k >= 0; k--)
-			 {
-			 t = 0.0;
-			 for (j = k+1; j < i; j++)
-			 {
-			 t -= hh[k][j]*rs[j];
-			 }
-			 t+= rs[k];
-			 rs[k] = t/hh[k][k];
-			 }
-			 */
 		rs[i-1] = rs[i-1]/hh[idx(i-1,i-1, k_dim+1)];
 		for (k = i-2; k >= 0; k--)
 		{
@@ -936,26 +984,44 @@ tempH);
 			rs[k] = t/hh[idx(k,k, k_dim+1)];
 		}
 
-		//		(*(cogmres_functions->CopyVector))(&p[(i-1)*sz],w);
 
-		testError = cudaMemcpy (w->local_vector->data,&p[(i-1)*sz],
-				sz*sizeof(HYPRE_Real),
+		//		testError = cudaMemcpy (w->local_vector->data,&p[(i-1)*sz],
+		//			sz*sizeof(HYPRE_Real),
+		//		cudaMemcpyDeviceToDevice ); 
+		//	(*(cogmres_functions->ScaleVector))(rs[i-1],w);
+				testError = cudaMemcpy (tempV,&p[(i-1)*sz],
+					sz*sizeof(HYPRE_Real),
 				cudaMemcpyDeviceToDevice ); 
-		(*(cogmres_functions->ScaleVector))(rs[i-1],w);
+		//	(*(cogmres_functions->ScaleVector))(rs[i-1],w);
+		//printf("ONE scaling by %f \n", rs[i-1]);	  
+		ScaleGPUonly(tempV,
+				rs[i-1],
+				sz);	
 		for (j = i-2; j >=0; j--){
 
-			testError = cudaMemcpy (bb->local_vector->data,&p[(j)*sz],
-					sz*sizeof(HYPRE_Real),
-					cudaMemcpyDeviceToDevice ); 
-			(*(cogmres_functions->Axpy))(rs[j],bb, w);
+			//	testError = cudaMemcpy (bb->local_vector->data,&p[(j)*sz],
+			//		sz*sizeof(HYPRE_Real),
+			//	cudaMemcpyDeviceToDevice ); 
+			//	(*(cogmres_functions->Axpy))(rs[j],bb, w);
+			//printf("TWO scaling by %f \n", rs[j]);	  
+
+			AxpyGPUonly(&p[j*sz],tempV,	
+					rs[j],
+					sz);		
 		}
+
+		testError = cudaMemcpy (w->local_vector->data,tempV,
+				sz*sizeof(HYPRE_Real),
+				cudaMemcpyDeviceToDevice ); 
 		(*(cogmres_functions->ClearVector))(r);
 		/* find correction (in r) */
 		precond(precond_data, A, w, r);
+		//printf("THREE, after precond %f, \n", sqrt( (*(cogmres_functions->InnerProd))(r,r) ));
 
 		/* update current solution x (in x) */
 		(*(cogmres_functions->Axpy))(1.0,r,x);
 
+		//printf("FOUR, norm of new x  %f, \n", sqrt( (*(cogmres_functions->InnerProd))(x,x) ));
 
 		/* check for convergence by evaluating the actual residual */
 		if (r_norm  <= epsilon && iter >= min_iter)
@@ -970,7 +1036,7 @@ tempH);
 			(*(cogmres_functions->CopyVector))(b,r);
 			(*(cogmres_functions->Matvec))(matvec_data,-1.0,A,x,1.0,r);
 			real_r_norm_new = r_norm = sqrt( (*(cogmres_functions->InnerProd))(r,r) );
-
+			//printf("FIVE new norm %f \n", real_r_norm_new);
 			if (r_norm <= epsilon)
 			{
 				if (rel_change && !rel_change_passed) /* calculate the relative change */
@@ -1053,7 +1119,9 @@ tempH);
 				if ( print_level>0 && my_id == 0)
 					hypre_printf("false convergence 2, L2 norm of residual: %e\n", r_norm);
 				//			(*(cogmres_functions->CopyVector))(r,&p[0]);
-				hypre_ParVector * rrr = (hypre_ParVector *)r;		
+				hypre_ParVector * rrr = (hypre_ParVector *)r;
+				//printf("SIX, norm of p[0] %f, ", sqrt( (*(cogmres_functions->InnerProd))(r,r) ));
+
 				testError = cudaMemcpy (&p[0],rrr->local_vector->data,
 						sz*sizeof(HYPRE_Real),
 						cudaMemcpyDeviceToDevice ); 
@@ -1098,6 +1166,8 @@ tempH);
 		testError = cudaMemcpy (&p[0], w->local_vector->data,
 				sz*sizeof(HYPRE_Real),
 				cudaMemcpyDeviceToDevice ); 
+		//printf("THREE and a halfnorm od p[0] %f, \n", sqrt( (*(cogmres_functions->InnerProd))(w,w) ));
+
 		time2 = MPI_Wtime();
 		remainingTime += (time2-time1);
 

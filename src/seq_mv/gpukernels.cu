@@ -724,6 +724,56 @@ const double * __restrict__ u,
 */
 
 
+void InnerProdGPUonly(const double * __restrict__ u,  
+		const double * __restrict__ v, 
+		double *result, 
+		const int N) {
+cublasHandle_t myHandle;
+  cublasCreate(&myHandle);
+ cublasDdot (myHandle, N,
+                           u, 1,
+                           v, 1,
+                           &result[0]);
+
+}
+void AxpyGPUonly(const double * __restrict__ u,  
+		 double * __restrict__ v,
+		const double alpha, 
+		const int N) {
+cublasHandle_t myHandle;
+  cublasCreate(&myHandle);
+cublasDaxpy(myHandle, N,
+            &alpha,
+            u, 1,
+            v, 1);
+
+}
+
+void ScaleGPUonly(double * __restrict__ u, 
+		const double alpha, 
+		const int N) {
+cublasHandle_t myHandle;
+  cublasCreate(&myHandle);
+int test;
+test = cublasDscal(myHandle, N,
+                            &alpha,
+                            u, 1);
+//printf("GPU returned %d \n", test);
+}
+
+/*
+void ScaleGPUonly(const double * __restrict__ u, 
+		const double alpha, 
+		const int N);
+void AxpyGPUonly(const double * __restrict__ u,  
+		 double * __restrict__ v,
+		const double alpha, 
+		const int N); 
+void InnerProdGPUonly(const double * __restrict__ u,  
+		const double * __restrict__ v, 
+		double result, 
+		const int N);
+*/
 void MassInnerProdGPUonly(const double * __restrict__ u,  
 		const double * __restrict__ v, 
 		double * result,  
