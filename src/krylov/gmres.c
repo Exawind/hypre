@@ -516,6 +516,7 @@ time1 = MPI_Wtime();
            {
              hh[j][i-1] = (*(gmres_functions->InnerProd))(p[j],p[i]);
              (*(gmres_functions->Axpy))(-hh[j][i-1],p[j],p[i]);
+printf("h[%d][%d]= %f \n", j, i-1, hh[j][i-1]);
            }
            t = sqrt((*(gmres_functions->InnerProd))(p[i],p[i]));
          
@@ -540,7 +541,8 @@ for (j = 1; j < i; j++)
               t = hh[j-1][i-1];
               hh[j-1][i-1] = s[j-1]*hh[j][i-1] + c[j-1]*t;
               hh[j][i-1] = -s[j-1]*t + c[j-1]*hh[j][i-1];
-           }
+printf("h[%d][%d] =  %f and h[%d][%d] = %f \n", j-1, i-1, hh[j-1][i-1], j, i-1, hh[j][i-1]);          
+ }
            t= hh[i][i-1]*hh[i][i-1];
            t+= hh[i-1][i-1]*hh[i-1][i-1];
            gamma = sqrt(t);
@@ -714,6 +716,7 @@ time1 = MPI_Wtime();
 	if (break_value) break;
 	
 	rs[i-1] = rs[i-1]/hh[i-1][i-1];
+printf("rs[%d] = %f  \n", i-1, rs[i-1]);	
 	for (k = i-2; k >= 0; k--)
 	{
            t = 0.0;
@@ -723,6 +726,7 @@ time1 = MPI_Wtime();
            }
            t+= rs[k];
            rs[k] = t/hh[k][k];
+printf("rs[%d] = %f \n", k, rs[k]);
 	}
 
         (*(gmres_functions->CopyVector))(p[i-1],w);
