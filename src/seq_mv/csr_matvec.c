@@ -920,7 +920,8 @@ int ii;
   if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
 cudaEventRecord(start);
 for (ii=0;ii<1; ++ii){
-  cusparseErrchk(cusparseDcsrmv(handle ,
+printf("DIMENSIONS %d %d %d \n", A->num_rows-offset,  A->num_cols, A->num_nonzeros);  
+cusparseErrchk(cusparseDcsrmv(handle ,
 				CUSPARSE_OPERATION_NON_TRANSPOSE, 
 				A->num_rows-offset, A->num_cols, A->num_nonzeros,
 				&alpha, descr,

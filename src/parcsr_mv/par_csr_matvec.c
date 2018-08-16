@@ -286,7 +286,8 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
 #ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD   
    UpdateHRC(x_tmp);
 #endif
-   if (num_cols_offd) hypre_CSRMatrixMatvec( alpha, offd, x_tmp, 1.0, y_local);  
+//printf("num cols of diag %d \n", num_cols_offd);
+   if (num_cols_offd) {hypre_CSRMatrixMatvec( alpha, offd, x_tmp, 1.0, y_local); } 
    //if (num_cols_offd) hypre_SeqVectorUpdateHost(y_local);  
    //hypre_SeqVectorUpdateHost(x_tmp); 
 #ifdef HYPRE_PROFILE

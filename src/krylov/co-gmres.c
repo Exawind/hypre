@@ -258,6 +258,20 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	HYPRE_Real            *p            = (HYPRE_Real*) (cogmres_data -> p);
 
 
+//debug to be removed
+
+  // void             *r            = (cogmres_data -> r);
+  // void             *w            = (cogmres_data -> w);
+      (cogmres_data -> r) = (*(cogmres_functions->CreateVector))(b);
+      (cogmres_data -> w) = (*(cogmres_functions->CreateVector))(b);
+      (cogmres_data -> matvec_data) = (*(cogmres_functions->MatvecCreate))(A, x);
+
+
+	hypre_ParVector * r =  (hypre_ParVector*) (cogmres_data -> r) ;
+
+	hypre_ParVector * w =  (hypre_ParVector*) (cogmres_data -> w) ;
+//end of debug
+
 	HYPRE_Int (*precond)(void*,void*,void*,void*) = (cogmres_functions -> precond);
 	HYPRE_Int  *precond_data                      = (HYPRE_Int*)(cogmres_data -> precond_data);
 
@@ -364,7 +378,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	cudaMalloc ( &x_GPUonly, sizeof(HYPRE_Real)*(sz)); 
 	cudaMemcpy (x_GPUonly,
 			xx->local_vector->data, 
-			(sz)*sizeof(HYPRE_Int),
+			(sz)*sizeof(HYPRE_Real),
 			cudaMemcpyDeviceToDevice ); 
 
 	//cudaMalloc ( &r_GPUonly, sizeof(HYPRE_Real)*(sz)); 
@@ -406,30 +420,69 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	{
 
 		printf("iter %d \n", iter);
-if (iter == 0){	
-	cudaMemcpy (p,b_GPUonly, 
-				(sz)*sizeof(HYPRE_Int),
-				cudaMemcpyDeviceToDevice ); 
+		if (iter == 0){	
+			cudaMemcpy (tempV,b_GPUonly, 
+					(sz)*sizeof(HYPRE_Real),
+					cudaMemcpyDeviceToDevice ); 
 
-		cusparseDcsrmv(myHandle ,
-				CUSPARSE_OPERATION_NON_TRANSPOSE,
-				num_rows, num_cols, num_nonzeros,
-				&minusone, myDescr,
-				A_dataGPUonly,A_iGPUonly,A_jGPUonly,
-				x_GPUonly, &one, p);
+			cusparseDcsrmv(myHandle ,
+					CUSPARSE_OPERATION_NON_TRANSPOSE,
+					num_rows, num_cols, num_nonzeros,
+					&minusone, myDescr,
+					A_dataGPUonly,A_iGPUonly,A_jGPUonly,
+					x_GPUonly, &one, tempV);
 
+cudaDeviceSynchronize();
+printf("num_rows %d num_cols %d nnz %d \n", num_rows, num_cols, num_nonzeros);
+double *temp1 = (double *) calloc(sz, sizeof(double));
+double *temp2 = (double *) calloc(sz, sizeof(double));
 
+	cudaMemcpy(temp1,
+			tempV,
+			(sz)*sizeof(HYPRE_Real),
+			cudaMemcpyDeviceToHost ); 
 
-		InnerProdGPUonly(p,  
-				p, 
-				&r_norm, 
-				sz);
-		r_norm = sqrt(r_norm);
+//debug
+
+	cudaMemcpy(r->local_vector->data,
+			b_GPUonly,
+			(sz)*sizeof(HYPRE_Real),
+			cudaMemcpyDeviceToDevice ); 
+  
+	cudaMemcpy(w->local_vector->data,
+			x_GPUonly,
+			(sz)*sizeof(HYPRE_Real),
+			cudaMemcpyDeviceToDevice ); 
+
+ (*(cogmres_functions->Matvec))(matvec_data,-1.0, A, w, 1.0, r);
+	cudaMemcpy (p,r->local_vector->data,	
+			(sz)*sizeof(HYPRE_Real),
+			cudaMemcpyDeviceToDevice ); 
+
+	cudaMemcpy(temp2,
+			r->local_vector->data,
+			(sz)*sizeof(HYPRE_Real),
+			cudaMemcpyDeviceToHost ); 
+for (i =0; i<sz; i++){
+if (temp1[i] != temp2[i]){
+printf("i= %d, cusparse %16.16f hypre %16.16f difference %16.16f \n", i, temp1[i], temp2[i], temp1[i]-temp2[i]);
 }
 
-//otherwise, we already have p[0] from previous cycle
+}
 
-		printf("r norm at the start of the cycle %f \n", r_norm);
+//end of debug
+
+
+			InnerProdGPUonly(p,  
+					p, 
+					&r_norm, 
+					sz);
+			r_norm = sqrt(r_norm);
+		}
+
+		//otherwise, we already have p[0] from previous cycle
+
+		printf("r norm at the start of the cycle %16.16f \n", r_norm);
 
 		if ( logging>0 || print_level > 0)
 		{
@@ -457,19 +510,19 @@ if (iter == 0){
 			/* conv criteria */
 
 			epsilon = hypre_max(a_tol,r_tol*r_norm);
-printf("conv crit %f \n", epsilon);		
-}
+			printf("conv crit %f \n", epsilon);		
+		}
 		i = 0; 
 
-		rv[0] = 1.0;
 		rs[0] = r_norm;
-	//debug, to be removed
+		//debug, to be removed
 		InnerProdGPUonly(p,  
 				p, 
 				&t, 
 				sz);
-printf("beginning of cycle, norm of the first vector is %f \n", t);
-	while (i < k_dim && iter < max_iter)
+		printf("beginning of cycle, norm of the first vector is %16.16f \n", t);
+		rv[0] = t;
+		while (i < k_dim && iter < max_iter)
 		{
 
 			time1 = MPI_Wtime();
@@ -478,6 +531,7 @@ printf("beginning of cycle, norm of the first vector is %f \n", t);
 
 			printf("i = %d, will be computing p[%d] \n", i, i);
 
+cudaDeviceSynchronize();
 			cusparseDcsrmv(myHandle ,
 					CUSPARSE_OPERATION_NON_TRANSPOSE,
 					num_rows, num_cols, num_nonzeros,
@@ -495,7 +549,7 @@ printf("beginning of cycle, norm of the first vector is %f \n", t);
 					&t, 
 					sz);
 			t = sqrt(t);
-			printf("initial norm of p[%d] = %f\n", i, t);
+			printf("initial norm of p[%d] = %16.16f\n", i, t);
 			/* GRAM SCHMIDT */
 
 			time1=MPI_Wtime();
@@ -517,7 +571,7 @@ printf("beginning of cycle, norm of the first vector is %f \n", t);
 			HYPRE_Real t2 = 0.0;
 			for (j=0; j<i; j++){
 				HYPRE_Int id = idx(j, i-1,k_dim+1);
-				printf("hh[%d, %d] = %f, scaling by %f  \n",j, i-1, hh[id], (2.0f-rv[j]));		
+				printf("hh[%d, %d] = %16.16f, scaling by %16.16f, which gives %16.16f  \n",j, i-1, hh[id], (2.0f-rv[j]), (2.0f-rv[j])*hh[id]);		
 				hh[id]       = (2.0f-rv[j])*hh[id];
 				t2          += (hh[id]*hh[id]);        
 			}
@@ -563,7 +617,7 @@ printf("beginning of cycle, norm of the first vector is %f \n", t);
 				printf("t = %f \n", t);
 				hh[idx(j-1,i-1,k_dim+1)] = s[j-1]*hh[idx(j,i-1,k_dim+1)] + c[j-1]*t;
 				hh[idx(j,i-1, k_dim+1)]  = -s[j-1]*t + c[j-1]*hh[idx(j,i-1,k_dim+1)];
-        printf("h[%d, %d] = %f and h[%d, %d ]= %f \n", j-1, i-1, hh[idx(j-1,i-1,k_dim+1)],j, i-1,  hh[idx(j,i-1, k_dim+1)] );
+				printf("h[%d, %d] = %f and h[%d, %d ]= %f \n", j-1, i-1, hh[idx(j-1,i-1,k_dim+1)],j, i-1,  hh[idx(j,i-1, k_dim+1)] );
 			}
 			t     = hh[idx(i, i-1, k_dim+1)]*hh[idx(i,i-1, k_dim+1)];
 			t    += hh[idx(i-1,i-1, k_dim+1)]*hh[idx(i-1,i-1, k_dim+1)];
@@ -600,32 +654,32 @@ printf("beginning of cycle, norm of the first vector is %f \n", t);
 		/*compute solution */
 		printf("computing solution, i = %d \n", i);
 		/*rs[i-1] = rs[i-1]/hh[idx(i-1,i-1, k_dim+1)];
-		for (int ii = 1; ii<=i; ii++){
+			for (int ii = 1; ii<=i; ii++){
 			k = i-ii+1;
 			int k1 = k+1;
 			t = rs[k];
-			
-     for (j=k1; j<i; ++j){
-				t -= hh[idx(k,j, k_dim+1)]*rs[j];
+
+			for (j=k1; j<i; ++j){
+			t -= hh[idx(k,j, k_dim+1)]*rs[j];
 			}
 			rs[k] = t/hh[idx(k,k, k_dim+1)];
-printf("rs[%d] = %f \n", k, rs[k]);		
-}	
-*/
+			printf("rs[%d] = %f \n", k, rs[k]);		
+			}	
+			*/
 
-	rs[i-1] = rs[i-1]/hh[idx(i-1,i-1, k_dim+1)];
-printf("rs[%d] = %f  \n", i-1, rs[i-1]);	
-for (k = i-2; k >= 0; k--)
-	{
-           t = 0.0;
-           for (j = k+1; j < i; j++)
-           {
-              t -= hh[idx(k,j, k_dim+1)]*rs[j];
-           }
-           t+= rs[k];
-           rs[k] = t/hh[idx(k,k, k_dim+1)];
-printf("rs[%d] = %f \n", k, rs[k]);
-	}
+		rs[i-1] = rs[i-1]/hh[idx(i-1,i-1, k_dim+1)];
+		printf("rs[%d] = %f  \n", i-1, rs[i-1]);	
+		for (k = i-2; k >= 0; k--)
+		{
+			t = 0.0;
+			for (j = k+1; j < i; j++)
+			{
+				t -= hh[idx(k,j, k_dim+1)]*rs[j];
+			}
+			t+= rs[k];
+			rs[k] = t/hh[idx(k,k, k_dim+1)];
+			printf("rs[%d] = %f \n", k, rs[k]);
+		}
 		/*	for (k = i-2; k >= 0; k--)
 				{
 				t = 0.0;
@@ -638,65 +692,81 @@ printf("rs[%d] = %f \n", k, rs[k]);
 				}*/
 
 		printf("running AXPY!  \n");
-//		for (j=0; j<i-1; ++j){
-        for (j = i-2; j >=0; j--){
-printf("using vector p[%d] \n", j);		
-//			printf("i = %d \n", i);
-	AxpyGPUonly(&p[j*sz],x_GPUonly,	
+		for (j = i-1; j >=0; j--){
+			printf("using vector p[%d] \n", j);		
+			AxpyGPUonly(&p[j*sz],x_GPUonly,	
 					rs[j],
 					sz);
-		
-		InnerProdGPUonly(x_GPUonly,  
-				x_GPUonly, 
+
+			InnerProdGPUonly(x_GPUonly,  
+					x_GPUonly, 
+					&t, 
+					sz);
+			printf("norm of x is %f \n", sqrt(t));
+		}
+
+		//	AxpyGPUonly(&p[(i-1)*sz],x_GPUonly,	
+		//				rs[i-1],
+		//			sz);
+		/*test solution */
+		//debug - to be remopved
+		cudaMemcpy (tempV,b_GPUonly, 
+				(sz)*sizeof(HYPRE_Real),
+				cudaMemcpyDeviceToDevice ); 
+
+cudaDeviceSynchronize();
+		cusparseDcsrmv(myHandle ,
+				CUSPARSE_OPERATION_NON_TRANSPOSE,
+				num_rows, num_cols, num_nonzeros,
+				&minusone, myDescr,
+				A_dataGPUonly,A_iGPUonly,A_jGPUonly,
+				x_GPUonly, &one, tempV);
+
+		InnerProdGPUonly(tempV,  
+				tempV, 
 				&t, 
 				sz);
-printf("norm of x is %f \n", sqrt(t));
-		}
- 
-	AxpyGPUonly(&p[(i-1)*sz],x_GPUonly,	
-					rs[i-1],
-					sz);
-		/*test solution */
+		printf("norm of r is %f \n", sqrt(t));
 		if (r_norm < epsilon){
 
-			(cogmres_data -> converged) = 0;
+			(cogmres_data -> converged) = 1;
 			break;
 		}
-//update p if appropriate
+		//update p if appropriate
 
-	for (j=i ; j > 0; j--)
-	{
-           rs[j-1] = -s[j-1]*rs[j];
-           rs[j] = c[j-1]*rs[j];
-	}
-        
-        if (i){ 
+		for (j=i ; j > 0; j--)
+		{
+			rs[j-1] = -s[j-1]*rs[j];
+			rs[j] = c[j-1]*rs[j];
+		}
 
-	AxpyGPUonly(&p[i*sz],&p[i*sz],	
+		if (i){ 
+
+			AxpyGPUonly(&p[i*sz],&p[i*sz],	
 					rs[i]-1.0f,
 					sz);
-}
-        for (j=i-1 ; j > 0; j--){
+		}
+		for (j=i-1 ; j > 0; j--){
 
-	AxpyGPUonly(&p[j*sz],&p[i*sz],	
+			AxpyGPUonly(&p[j*sz],&p[i*sz],	
 					rs[j],
 					sz);
-}
-        //   (*(gmres_functions->Axpy))(rs[j],p[j],p[i]);
-        
-        if (i)
-        {
-          // (*(gmres_functions->Axpy))(rs[0]-1.0,p[0],p[0]);
-          // (*(gmres_functions->Axpy))(1.0,p[i],p[0]);
-        
-	AxpyGPUonly(&p[0*sz],&p[0*sz],	
+		}
+		//   (*(gmres_functions->Axpy))(rs[j],p[j],p[i]);
+
+		if (i)
+		{
+			// (*(gmres_functions->Axpy))(rs[0]-1.0,p[0],p[0]);
+			// (*(gmres_functions->Axpy))(1.0,p[i],p[0]);
+
+			AxpyGPUonly(&p[0*sz],&p[0*sz],	
 					rs[0]-1.0f,
 					sz);
 
-	AxpyGPUonly(&p[i*sz],&p[0*sz],	
+			AxpyGPUonly(&p[i*sz],&p[0*sz],	
 					1.0f,
 					sz);
-}
+		}
 
 
 		/* final tolerance */
@@ -707,7 +777,7 @@ printf("norm of x is %f \n", sqrt(t));
 	}//while (outer)
 
 	cudaMemcpy (xx->local_vector->data,x_GPUonly, 
-			(sz)*sizeof(HYPRE_Int),
+			(sz)*sizeof(HYPRE_Real),
 			cudaMemcpyDeviceToDevice ); 
 }//Solve
 

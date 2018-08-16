@@ -503,8 +503,12 @@ time1 = MPI_Wtime();
 time2 = MPI_Wtime();
 remainingTime += (time2-time1);
 time1 = MPI_Wtime();
+printf ("norm of p[%d] before precond %16.16f \n", i-1, (*(gmres_functions->InnerProd))(p[i-1],p[i-1]));
            precond(precond_data, A, p[i-1], r);
+printf ("norm of p[%d] AFTER precond %16.16f \n", i-1, (*(gmres_functions->InnerProd))(r,r));
            (*(gmres_functions->Matvec))(matvec_data, 1.0, A, r, 0.0, p[i]);
+
+printf ("norm of p[%d] after MV, before normalization  %16.16f \n", i, (*(gmres_functions->InnerProd))(p[i],p[i]));
 
 time2 = MPI_Wtime();
 matvecPreconTime += (time2-time1);
@@ -516,7 +520,7 @@ time1 = MPI_Wtime();
            {
              hh[j][i-1] = (*(gmres_functions->InnerProd))(p[j],p[i]);
              (*(gmres_functions->Axpy))(-hh[j][i-1],p[j],p[i]);
-printf("h[%d][%d]= %f \n", j, i-1, hh[j][i-1]);
+printf("h[%d][%d]= %16.16f \n", j, i-1, hh[j][i-1]);
            }
            t = sqrt((*(gmres_functions->InnerProd))(p[i],p[i]));
          
@@ -740,7 +744,17 @@ printf("rs[%d] = %f \n", k, rs[k]);
 
         /* update current solution x (in x) */
 	(*(gmres_functions->Axpy))(1.0,r,x);
+
+//debug to be removed
+	(*(gmres_functions->ClearVector))(w);
+           (*(gmres_functions->CopyVector))(b,w);
+           (*(gmres_functions->Matvec))(matvec_data,-1.0,A,x,1.0,w);
+           real_r_norm_new = r_norm = sqrt( (*(gmres_functions->InnerProd))(w,w) );
+printf("Real residual norm is %f \n", real_r_norm_new);
          
+              HYPRE_Real deb_norm = sqrt((*(gmres_functions->InnerProd))(x,x));
+printf("norm of x is %f \n", deb_norm);
+
 
         /* check for convergence by evaluating the actual residual */
 	if (r_norm  <= epsilon && iter >= min_iter)
@@ -755,7 +769,7 @@ printf("rs[%d] = %f \n", k, rs[k]);
            (*(gmres_functions->CopyVector))(b,r);
            (*(gmres_functions->Matvec))(matvec_data,-1.0,A,x,1.0,r);
            real_r_norm_new = r_norm = sqrt( (*(gmres_functions->InnerProd))(r,r) );
-
+printf("Real residual norm is %f \n", real_r_norm_new);
            if (r_norm <= epsilon)
            {
               if (rel_change && !rel_change_passed) /* calculate the relative change */
