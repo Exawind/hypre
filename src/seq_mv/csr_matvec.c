@@ -913,14 +913,14 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
 
   hypre_SeqVectorPrefetchToDevice(x);
   hypre_SeqVectorPrefetchToDevice(y);
-cudaEvent_t start, stop;
-cudaEventCreate(&start);
-cudaEventCreate(&stop);
+//cudaEvent_t start, stop;
+//cudaEventCreate(&start);
+//cudaEventCreate(&stop);
 int ii;  
   if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
-cudaEventRecord(start);
+//cudaEventRecord(start);
 for (ii=0;ii<1; ++ii){
-printf("DIMENSIONS %d %d %d \n", A->num_rows-offset,  A->num_cols, A->num_nonzeros);  
+//printf("DIMENSIONS %d %d %d \n", A->num_rows-offset,  A->num_cols, A->num_nonzeros);  
 cusparseErrchk(cusparseDcsrmv(handle ,
 				CUSPARSE_OPERATION_NON_TRANSPOSE, 
 				A->num_rows-offset, A->num_cols, A->num_nonzeros,
@@ -935,14 +935,14 @@ cusparseErrchk(cusparseDcsrmv(handle ,
 				d_xdata, &beta, d_ydata));
 */
   }
-cudaEventRecord(stop);
-cudaEventSynchronize(stop);
-float kernelElapsed;
-int gflops = 2*A->num_nonzeros;
+//cudaEventRecord(stop);
+//cudaEventSynchronize(stop);
+//float kernelElapsed;
+//int gflops = 2*A->num_nonzeros;
 
-cudaEventElapsedTime(&kernelElapsed, start, stop);
+//cudaEventElapsedTime(&kernelElapsed, start, stop);
 //kernelElapsed*=100.0;
-double kernelRes = gflops/(kernelElapsed*1000.*1000.);
+//double kernelRes = gflops/(kernelElapsed*1000.*1000.);
 //printf("kernel time %16.16f gflops %16.16f nnz %d size %d x %d\n",kernelElapsed, kernelRes, A->num_nonzeros, A->num_rows, A->num_cols);
  
  if (!GetAsyncMode()){

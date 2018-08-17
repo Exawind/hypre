@@ -387,7 +387,7 @@ time1 = MPI_Wtime();
       norms[0] = r_norm;
       if ( print_level>1 && my_id == 0 )
       {
-  	 hypre_printf("L2 norm of b: %e\n", b_norm);
+  	// hypre_printf("L2 norm of b: %e\n", b_norm);
          if (b_norm == 0.0)
             hypre_printf("Rel_resid_norm actually contains the residual norm\n");
          hypre_printf("Initial L2 norm of residual: %e\n", r_norm);
@@ -503,12 +503,12 @@ time1 = MPI_Wtime();
 time2 = MPI_Wtime();
 remainingTime += (time2-time1);
 time1 = MPI_Wtime();
-printf ("norm of p[%d] before precond %16.16f \n", i-1, (*(gmres_functions->InnerProd))(p[i-1],p[i-1]));
+//printf ("norm of p[%d] before precond %16.16f \n", i-1, (*(gmres_functions->InnerProd))(p[i-1],p[i-1]));
            precond(precond_data, A, p[i-1], r);
-printf ("norm of p[%d] AFTER precond %16.16f \n", i-1, (*(gmres_functions->InnerProd))(r,r));
+//printf ("norm of p[%d] AFTER precond %16.16f \n", i-1, (*(gmres_functions->InnerProd))(r,r));
            (*(gmres_functions->Matvec))(matvec_data, 1.0, A, r, 0.0, p[i]);
 
-printf ("norm of p[%d] after MV, before normalization  %16.16f \n", i, (*(gmres_functions->InnerProd))(p[i],p[i]));
+//printf ("norm of p[%d] after MV, before normalization  %16.16f \n", i, (*(gmres_functions->InnerProd))(p[i],p[i]));
 
 time2 = MPI_Wtime();
 matvecPreconTime += (time2-time1);
@@ -520,7 +520,7 @@ time1 = MPI_Wtime();
            {
              hh[j][i-1] = (*(gmres_functions->InnerProd))(p[j],p[i]);
              (*(gmres_functions->Axpy))(-hh[j][i-1],p[j],p[i]);
-printf("h[%d][%d]= %16.16f \n", j, i-1, hh[j][i-1]);
+//printf("h[%d][%d]= %16.16f \n", j, i-1, hh[j][i-1]);
            }
            t = sqrt((*(gmres_functions->InnerProd))(p[i],p[i]));
          
@@ -545,7 +545,7 @@ for (j = 1; j < i; j++)
               t = hh[j-1][i-1];
               hh[j-1][i-1] = s[j-1]*hh[j][i-1] + c[j-1]*t;
               hh[j][i-1] = -s[j-1]*t + c[j-1]*hh[j][i-1];
-printf("h[%d][%d] =  %f and h[%d][%d] = %f \n", j-1, i-1, hh[j-1][i-1], j, i-1, hh[j][i-1]);          
+//printf("h[%d][%d] =  %f and h[%d][%d] = %f \n", j-1, i-1, hh[j-1][i-1], j, i-1, hh[j][i-1]);          
  }
            t= hh[i][i-1]*hh[i][i-1];
            t+= hh[i-1][i-1]*hh[i-1][i-1];
@@ -720,7 +720,7 @@ time1 = MPI_Wtime();
 	if (break_value) break;
 	
 	rs[i-1] = rs[i-1]/hh[i-1][i-1];
-printf("rs[%d] = %f  \n", i-1, rs[i-1]);	
+//printf("rs[%d] = %f  \n", i-1, rs[i-1]);	
 	for (k = i-2; k >= 0; k--)
 	{
            t = 0.0;
@@ -730,7 +730,7 @@ printf("rs[%d] = %f  \n", i-1, rs[i-1]);
            }
            t+= rs[k];
            rs[k] = t/hh[k][k];
-printf("rs[%d] = %f \n", k, rs[k]);
+//printf("rs[%d] = %f \n", k, rs[k]);
 	}
 
         (*(gmres_functions->CopyVector))(p[i-1],w);
@@ -750,10 +750,10 @@ printf("rs[%d] = %f \n", k, rs[k]);
            (*(gmres_functions->CopyVector))(b,w);
            (*(gmres_functions->Matvec))(matvec_data,-1.0,A,x,1.0,w);
            real_r_norm_new = r_norm = sqrt( (*(gmres_functions->InnerProd))(w,w) );
-printf("Real residual norm is %f \n", real_r_norm_new);
+//printf("Real residual norm is %f \n", real_r_norm_new);
          
-              HYPRE_Real deb_norm = sqrt((*(gmres_functions->InnerProd))(x,x));
-printf("norm of x is %f \n", deb_norm);
+//              HYPRE_Real deb_norm = sqrt((*(gmres_functions->InnerProd))(x,x));
+//printf("norm of x is %f \n", deb_norm);
 
 
         /* check for convergence by evaluating the actual residual */
@@ -769,7 +769,7 @@ printf("norm of x is %f \n", deb_norm);
            (*(gmres_functions->CopyVector))(b,r);
            (*(gmres_functions->Matvec))(matvec_data,-1.0,A,x,1.0,r);
            real_r_norm_new = r_norm = sqrt( (*(gmres_functions->InnerProd))(r,r) );
-printf("Real residual norm is %f \n", real_r_norm_new);
+//printf("Real residual norm is %f \n", real_r_norm_new);
            if (r_norm <= epsilon)
            {
               if (rel_change && !rel_change_passed) /* calculate the relative change */
