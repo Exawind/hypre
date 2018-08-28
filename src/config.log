@@ -31,10 +31,10 @@ PATH: /sw/sources/lsf-tools/bin
 PATH: /sw/summitdev/xalt/0.7.5/bin
 PATH: /sw/summitdev/cuda/9.0.69/bin
 PATH: /autofs/nccs-svm1_sw/summitdev/.swci/0-core/opt/spack/20180406/linux-rhel7-ppc64le/gcc-4.8.5/cmake-3.11.3-kkoglxdru2cse4f3r4mc7xqonmni3ctc/bin
-PATH: /sw/sources/hpss/bin
 PATH: /autofs/nccs-svm1_sw/summitdev/.swci/1-compute/opt/spack/20180406/linux-rhel7-ppc64le/xl-20180125/spectrum-mpi-10.2.0.0-20180110-6vu23crcx4bo5vw4fwfenq7q32po2mwk/bin
 PATH: /sw/summitdev/xl/20180125/xlC/13.1.6/bin
 PATH: /sw/summitdev/xl/20180125/xlf/15.1.6/bin
+PATH: /sw/sources/hpss/bin
 PATH: /opt/ibm/spectrumcomputing/lsf/10.1/linux3.10-glibc2.17-ppc64le-csm/etc
 PATH: /opt/ibm/spectrumcomputing/lsf/10.1/linux3.10-glibc2.17-ppc64le-csm/bin
 PATH: /opt/ibm/csm/bin
@@ -146,7 +146,7 @@ configure:5702: $? = 0
 configure:5743: result: yes
 configure:6677: checking for MPI_Init
 configure:6677: nvcc -o conftest -g -O2   conftest.c  >&5
-/tmp/tmpxft_00020bf7_00000000-4_conftest.o: In function `main':
+/tmp/tmpxft_00019b8a_00000000-4_conftest.o: In function `main':
 /ccs/home/kswirydo/hypre-mini-app/build_cuda/hypre/src/conftest.c:60: undefined reference to `MPI_Init'
 /usr/bin/ld: link errors found, deleting executable `conftest'
 /usr/bin/sha1sum: conftest: No such file or directory
@@ -315,7 +315,7 @@ configure: failed program was:
 configure:6778: result: no
 configure:6835: checking for MPI_Comm_f2c
 configure:6835: nvcc -o conftest -g -O2   conftest.c  >&5
-/tmp/tmpxft_00020dc2_00000000-4_conftest.o: In function `main':
+/tmp/tmpxft_00019c42_00000000-4_conftest.o: In function `main':
 /ccs/home/kswirydo/hypre-mini-app/build_cuda/hypre/src/conftest.c:60: undefined reference to `MPI_Comm_f2c'
 /usr/bin/ld: link errors found, deleting executable `conftest'
 /usr/bin/sha1sum: conftest: No such file or directory

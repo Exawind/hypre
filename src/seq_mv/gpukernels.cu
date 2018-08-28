@@ -690,8 +690,73 @@ __global__ void massIPV7part1(const double * __restrict__ u,
 	} 
 
 }
+// get IPs AND SCALE
 
 
+__global__ void MassIPV7part1withScaling(const double * __restrict__ u,  
+		const double * __restrict__ v,
+    const double * scaleFactors, 
+		double * result,  
+		const int k, 
+		const int N){
+
+	int b = blockIdx.x;
+	int t = threadIdx.x;
+	int bsize = blockDim.x;
+
+	// assume T threads per thread block (and k reductions to be performed)
+	volatile __shared__ HYPRE_Real s_tmp[Tv5];
+  double s;
+	// map between thread index space and the problem index space
+	int j = blockIdx.x;
+	s_tmp[t] = 0.0f;
+	int nn =t;
+	//printf ("nn = %d bsize = %d N = %d gridDim = %d j = %d\n", nn, bsize, N, gridDim.x, j);      
+	while (nn<N){
+		double can =  u[nn];
+
+		double cbn = v[N*j+nn];
+		//double can2, cbn2;
+		s_tmp[t] += can*cbn;
+		if ((nn+bsize)<N){
+			can = u[nn+bsize];
+			cbn = v[N*j +(nn+bsize)];
+			s_tmp[t] += can*cbn;
+		}
+		//	else {can2 = 0.0f; cbn2=0.0f;}
+		//		s_tmp[t] += (can*cbn + can2*cbn2);
+
+		nn+=2*bsize;
+	}
+
+
+	__syncthreads();
+	//if (j == 0)	printf("I am block %d, t=%d, s_tmp[%d] = %f\n", j, t,t, s_tmp[t]);
+	if(Tv5>=1024) {if (t<512) {s_tmp[t] += s_tmp[t+512];} __syncthreads(); }	
+	if (Tv5>=512) { if (t < 256) { s_tmp[t] += s_tmp[t + 256]; } __syncthreads(); }
+	{ if (t < 128) { s_tmp[t] += s_tmp[t + 128]; } __syncthreads(); }
+	{ if (t < 64) { s_tmp[t] += s_tmp[t + 64]; } __syncthreads(); }
+
+
+	//if (t==0) printf("I am block %d, t=%d, s_tmp[%d] = %f\n", j, t,t, s_tmp[t]);
+	if (t < 32)
+	{
+		s_tmp[t] += s_tmp[t+32];
+		s_tmp[t] += s_tmp[t+16];
+
+		s_tmp[t] += s_tmp[t+8];
+		s_tmp[t] += s_tmp[t+4];
+		s_tmp[t] += s_tmp[t+2];
+		s_tmp[t] += s_tmp[t+1];
+	}
+	if (t == 0) {
+s = scaleFactors[blockIdx.x];
+//printf("scaling by %f \n", s);
+		result[blockIdx.x] = s*s_tmp[0];
+	//	printf("putting %f in place %d and mult by %f \n", s_tmp[0], blockIdx.x,s);
+	} 
+
+}
 __global__ void massAxpy3(int N, 
 		int k, 
 		const  double  * x_data, 
@@ -784,6 +849,16 @@ massIPV7part1<<<k, 1024>>>(u, v, result, k, N);
 	//hypre_CheckErrorDevice(cudaDeviceSynchronize());
 }
 
+void MassInnerProdWithScalingGPUonly(const double * __restrict__ u,  
+		const double * __restrict__ v,
+const double * __restrict__ scaleFactors, 
+		double * result,  
+		const int k, 
+		const int N) {
+MassIPV7part1withScaling<<<k, 1024>>>(u, v,scaleFactors, result, k, N);
+
+	//hypre_CheckErrorDevice(cudaDeviceSynchronize());
+}
 /*
 void MassAxpyGPUonly(int N,    int k,
     const  double  * x_data,

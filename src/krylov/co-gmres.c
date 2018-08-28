@@ -236,16 +236,301 @@ HYPRE_Int idx(HYPRE_Int r, HYPRE_Int c, HYPRE_Int n){
 	return c*n+r;
 }
 
+/*======
+ * KS: THIS IS for using various orth method; user can choose some options 
+ * ============================*/
+
+#define GSoption 1
+// 0 is modified gram-schmidt as in "normal" GMRES straight from SAADs book
+// 1 is co-gmres, version 0 by ST and KS
+// allocate spaces for GPU (copying does not happen inside) prior to calling
+
+void GramSchmidt (HYPRE_Int option,
+		HYPRE_Int i,
+		HYPRE_Int sz, 
+		HYPRE_Int k_dim,
+		HYPRE_Real * Vspace, 
+		HYPRE_Real * w, 
+		HYPRE_Real * Hcolumn,
+		HYPRE_Real * HcolumnGPU,  
+		HYPRE_Real* rv, 
+		HYPRE_Real * rvGPU,
+		HYPRE_Real * L){
+
+	HYPRE_Int j;
+	HYPRE_Real t;
+	if (option == 0){
+		for (j=0; j<i; ++j){ 
+			InnerProdGPUonly(&Vspace[j*sz],  
+					w, 
+					&Hcolumn[idx(j, i-1, k_dim+1)], 
+					sz);
+			//printf("h[%d] = %f \n",j, Hcolumn[idx(j, i-1, k_dim+1)]);
+			AxpyGPUonly(&Vspace[j*sz],w,	
+					(-1.0)*Hcolumn[idx(j, i-1, k_dim+1)],
+					sz);
+		}
+
+		InnerProdGPUonly(w,  
+				w, 
+				&t, 
+				sz);
+		t = sqrt(t);
+		//printf("h[%d] = %f \n",i, Hcolumn[idx(i, i-1, k_dim+1)]);
+		Hcolumn[idx(i, i-1, k_dim+1)] = t;
+		if (t != 0){
+			t = 1/t;
+
+			ScaleGPUonly(w, 
+					t, 
+					sz);
+			//printf("scaling by %f \n", t);
+			/*InnerProdGPUonly(w,  
+				w, 
+				&t, 
+				sz);
+				printf("vector %d has norm %f \n", i, sqrt(t));
+				*/
+		}
+
+	}
+	if (option == 1){
+
+		InnerProdGPUonly(w,  
+				w, 
+				&t, 
+				sz);
+		t = sqrt(t);
+		MassInnerProdWithScalingGPUonly(w,
+				Vspace,
+				rvGPU, 
+				HcolumnGPU,				
+				i,
+				sz);
+
+		cudaMemcpy ( &Hcolumn[idx(0, i-1,k_dim+1)],HcolumnGPU,
+				i*sizeof(HYPRE_Real),
+				cudaMemcpyDeviceToHost );
+		MassAxpyGPUonly(sz,  i,
+				Vspace,				
+				w,
+				HcolumnGPU);	
+
+		HYPRE_Real t2= 0.0f;
+
+		for (j=0; j<i; j++){
+			HYPRE_Int id = idx(j, i-1,k_dim+1);
+			t2          += (Hcolumn[id]*Hcolumn[id]);        
+		}
+		t2 = sqrt(t2)*sqrt(rv[i-1]);
+
+		Hcolumn[idx(i, i-1, k_dim+1)] = sqrt(t-t2)*sqrt(t2+t);
+		//printf("t = %f t2 = %f Hcol = %f \n", t, t2,Hcolumn[idx(i, i-1, k_dim+1)]  ); 
+		if (Hcolumn[idx(i, i-1, k_dim+1)] != 0.0)
+		{
+			t = 1.0/Hcolumn[idx(i, i-1, k_dim+1)]; 
+			//      printf("scaling by 1/%f = %f\n", Hcolumn[idx(i, i-1, k_dim+1)], t);
+			ScaleGPUonly(w, 
+					t, 
+					sz);
+
+			InnerProdGPUonly(w,  
+					w, 
+					&rv[i], 
+					sz);
+			//   printf("NORM OF vector %d is %f \n", i, rv[i]);
+			double dd = 2.0f - rv[i];
+			cudaMemcpy (&rvGPU[i], &dd,
+					sizeof(HYPRE_Real),
+					cudaMemcpyHostToDevice );
+		}//if
+
+	}
+
+	if (option == 2){
+		//CGS2 -- straight from Ruhe
+
+		MassInnerProdGPUonly(w,
+				Vspace,
+				HcolumnGPU,				
+				i,
+				sz);
+
+		cudaMemcpy ( &Hcolumn[idx(0, i-1,k_dim+1)],HcolumnGPU,
+				i*sizeof(HYPRE_Real),
+				cudaMemcpyDeviceToHost );
+		MassAxpyGPUonly(sz,  i,
+				Vspace,				
+				w,
+				HcolumnGPU);	
+		//k=2
+		//do it again
+		MassInnerProdGPUonly(w,
+				Vspace,
+				HcolumnGPU,				
+				i,
+				sz);
+
+		cudaMemcpy ( &rv[0],HcolumnGPU,
+				i*sizeof(HYPRE_Real),
+				cudaMemcpyDeviceToHost );
+
+		for (j=0; j<i; j++){
+			HYPRE_Int id = idx(j, i-1,k_dim+1);
+			Hcolumn[id]+=rv[j];        
+		}
+
+		MassAxpyGPUonly(sz,  i,
+				Vspace,				
+				w,
+				HcolumnGPU);	
+
+
+		InnerProdGPUonly(w,  
+				w, 
+				&t, 
+				sz);
+		t = sqrt(t);
+		Hcolumn[idx(i, i-1, k_dim+1)] = t;
+		if (Hcolumn[idx(i, i-1, k_dim+1)] != 0.0)
+		{
+			t = 1.0/Hcolumn[idx(i, i-1, k_dim+1)]; 
+			ScaleGPUonly(w, 
+					t, 
+					sz);
+
+		}//if
+
+	}
+	if (option == 3){
+		//Alg 3 from paper
+		//C version of orth_cgs2_new by ST
+		//remember: U NEED L IN THIS CODE AND NEED TO KEEP IT!! 
+		//L(1:i, i) = V(:, 1:i)'*V(:,i);
+		//
+//printf("option = %d, i = %d \n", option, i );
+		MassInnerProdGPUonly(&Vspace[(i-1)*sz],
+				Vspace,
+				rvGPU,				
+				i,
+				sz);
+
+		//copy rvGPU to L
+
+//printf("test 2\n");
+		cudaMemcpy ( &L[(i-1)*(k_dim+1)],rvGPU,
+				i*sizeof(HYPRE_Real),
+				cudaMemcpyDeviceToHost );
+		//aux = V(:,i)'*w;
+
+//printf("test 3\n");
+		MassInnerProdGPUonly(w,
+				Vspace,
+				rvGPU,				
+				i,
+				sz);
+
+//printf("test 4\n");
+		cudaMemcpy ( rv,rvGPU,
+				i*sizeof(HYPRE_Real),
+				cudaMemcpyDeviceToHost );
+		//H(1:i, i) = D*aux - Lp*aux - Lp'*aux
+/*for (int j=0; j<i; ++j){
+   printf("L[%d, %d] = %16f \n",j, i-1,L[(i-1)*(k_dim+1)+j]);
+}
+printf("L matrix as is!!\n");
+
+for (int j=0; j<i; ++j){
+	for (int k=0; k<i; ++k){
+
+printf(" %16.16f ", L[k*(k_dim+1) +j]);
+
+}
+printf("\n");
+}*/
+
+//printf("rv as is \n");
+
+for (int j=0; j<i; ++j){
+//printf(" %16.16f \n ", rv[j]);
+Hcolumn[(i-1)*(k_dim+1)+j] = 0.0f;
+}
+
+//printf("test 5, i = %d\n", i);
+		for (int j=0; j<i; ++j){
+			for (int k=0; k<i; ++k){
+				//we are processing H[j*(k_dim+1)+k]
+				if (j==k){Hcolumn[(i-1)*(k_dim+1)+k] += L[j*(k_dim+1)+k]*rv[j];
+  //        printf("DIAGONAL L(%d, %d) = %16.16f , aux[%d] = %f, adding to: H(%d,%d) \n",k, j,L[j*(k_dim+1)+k], j, rv[j], k, i-1);
+
+} 
+
+				if (j<k){
+					Hcolumn[(i-1)*(k_dim+1)+j] -= L[k*(k_dim+1)+j]*rv[k];
+//printf("LpT L(%d, %d) = %16.16f , aux[%d] = %f, adding to: H(%d,%d) \n", j,k, L[k*(k_dim+1)+j], k, rv[k], j, i -1);
+				}
+				if (j>k){
+
+					Hcolumn[(i-1)*(k_dim+1)+j] -= L[j*(k_dim+1)+k]*rv[k];
+  //        printf("Lp L(%d, %d) = %16.16f , aux[%d] = %f adding to: H(%d,%d) \n",j, k, L[j*(k_dim+1)+k], k, rv[k], j, i-1 );
+				}
+			}//for k 
+		}//for j
+
+/*printf("Hcolumn AFTER \n");
+
+for (int j=0; j<i; ++j){
+printf(" %16.16f \n ", Hcolumn[(i-1)*(k_dim+1)+j]);
+}
+		//z = z -H*V
+
+printf("test 6\n");
+*/
+		cudaMemcpy ( HcolumnGPU,&Hcolumn[(i-1)*(k_dim+1)],
+				i*sizeof(HYPRE_Real),
+				cudaMemcpyHostToDevice);
+
+
+//printf("test 7\n");
+		MassAxpyGPUonly(sz,  i,
+				Vspace,				
+				w,
+				HcolumnGPU);	
+		//normalize
+		InnerProdGPUonly(w,  
+				w, 
+				&t, 
+				sz);
+		t = sqrt(t);
+
+//printf("test 8, t = %f\n", t);
+		Hcolumn[idx(i, i-1, k_dim+1)] = t;
+		if (Hcolumn[idx(i, i-1, k_dim+1)] != 0.0)
+		{
+			t = 1.0/Hcolumn[idx(i, i-1, k_dim+1)]; 
+			ScaleGPUonly(w, 
+					t, 
+					sz);
+
+		}//if
+
+	}
+}
 
 /*--------------------------------------------------------------------------
  * hypre_COGMRESSolve
  *-------------------------------------------------------------------------*/
+
+
 
 HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 		void  *A,
 		void  *b,
 		void  *x)
 {
+
+
+          printf("starting with  %d \n", GSoption);				
 	HYPRE_Real time1, time2, time3, time4;
 	if (solverTimers)
 		time1                                     = MPI_Wtime(); 
@@ -271,7 +556,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	HYPRE_Int  break_value = 0;
 	HYPRE_Int  i, j, k;
 	/*KS: rv is the norm history */
-	HYPRE_Real *rs, *hh, *c, *s, *rs_2, *rv;
+	HYPRE_Real *rs, *hh, *c, *s, *rs_2, *rv, *L;
 	HYPRE_Real *x_GPUonly, *b_GPUonly;
 	HYPRE_Int  iter; 
 	HYPRE_Int  my_id, num_procs;
@@ -332,22 +617,29 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 			(num_nonzeros)*sizeof(HYPRE_Int),
 			cudaMemcpyDeviceToDevice ); 
 
+          printf("alloc 1 \n");				
 
 	HYPRE_Int sz = num_cols;	
 	HYPRE_Real * tempH;
+	HYPRE_Real * tempRV;
 
 	/* allocate Krylov space */
 	cudaMalloc ( &cogmres_data -> p, sz*sizeof(HYPRE_Real)*(k_dim+1)); 
 	p = (HYPRE_Real*) cogmres_data->p;
-
-	cudaMalloc ( &tempH, sizeof(HYPRE_Real)*(k_dim+1)); 
+	if (GSoption != 0){
+		//printf("allocating tempRV and tempH \n");
+		cudaMalloc ( &tempRV, sizeof(HYPRE_Real)*(k_dim+1)); 
+		cudaMalloc ( &tempH, sizeof(HYPRE_Real)*(k_dim+1)); 
+	}
 	HYPRE_Real * tempV;
 	cudaMalloc ( &tempV, sizeof(HYPRE_Real)*(sz)); 
 
+          printf("alloc 2 \n");				
 
 	hh = hypre_CTAllocF(HYPRE_Real, (k_dim+1)*k_dim, cogmres_functions, HYPRE_MEMORY_HOST);
-
-
+if (GSoption >=3){
+	L = hypre_CTAllocF(HYPRE_Real, (k_dim+1)*k_dim, cogmres_functions, HYPRE_MEMORY_HOST);
+}
 	/* copy x and b to the GPU - ONCE */
 	hypre_ParVector * cc =  (hypre_ParVector*) b;
 
@@ -424,6 +716,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 					A_dataGPUonly,A_iGPUonly,A_jGPUonly,
 					x_GPUonly, &one, p);
 
+          printf("mv 1 \n");				
 
 			InnerProdGPUonly(p,  
 					p, 
@@ -445,7 +738,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 			/* conv criteria */
 
 			epsilon = hypre_max(a_tol,r_tol*r_norm);
-			//printf("conv crit %f \n", epsilon);		
+			printf("conv crit %f \n", epsilon);		
 		}//if
 
 		//otherwise, we already have p[0] from previous cycle
@@ -453,20 +746,32 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 
 		t = 1.0f/r_norm;
 		/* scale the initial vector */
-
+printf("before scaling \n");
 		ScaleGPUonly(p, 
 				t, 
 				sz);
 
+printf("after scaling \n");
 		i = 0; 
 
 		rs[0] = r_norm;
 		rv[0] = 1.0;
+    L[0] = 1.0f;
 
+printf("before copying \n");
+		if (GSoption != 0){
+			cudaMemcpy (&tempRV[0], &rv[0],
+					sizeof(HYPRE_Real),
+					cudaMemcpyHostToDevice );
+		}
+
+printf("after copying \n");
 		if (solverTimers){
 			time2 = MPI_Wtime();
 			remainingTime += (time2-time1);
 		}
+
+printf("before inner while \n");
 		while (i < k_dim && iter < max_iter)
 		{
 			if (solverTimers)
@@ -475,6 +780,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 			iter++;
 
 
+printf("before mv 2 \n");
 			cusparseDcsrmv(myHandle ,
 					CUSPARSE_OPERATION_NON_TRANSPOSE,
 					num_rows, num_cols, num_nonzeros,
@@ -482,88 +788,65 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 					A_dataGPUonly,A_iGPUonly,A_jGPUonly,
 					&p[(i-1)*sz], &zero, &p[i*sz]);
 
+printf("after mv2 \n");
 			time2 = MPI_Wtime();
 			if (solverTimers){
 				mvTime += (time2-time1);
 				matvecPreconTime += (time2-time1);   
 			}
 
-			InnerProdGPUonly(&p[i*sz],  
-					&p[i*sz], 
-					&t, 
-					sz);
-			t = sqrt(t);
+
+          printf("starting GS \n");				
 			/* GRAM SCHMIDT */
 			if (solverTimers)
 				time1=MPI_Wtime();
+			if (GSoption == 0){
 
-
-			MassInnerProdGPUonly(&p[i*sz],
-					p,
-					tempH,				
-					i,
-					sz);
-
-			if (solverTimers){
-				time3 = MPI_Wtime();
-				massIPTime += time3-time1;
-			}
-			cudaMemcpy ( &hh[idx(0, i-1,k_dim+1)],tempH,
-					i*sizeof(HYPRE_Real),
-					cudaMemcpyDeviceToHost );
-
-
-
-			HYPRE_Real t2 = 0.0;
-			for (j=0; j<i; j++){
-				HYPRE_Int id = idx(j, i-1,k_dim+1);
-				//printf("hh[%d, %d] = %16.16f, scaling by %16.16f, which gives %16.16f  \n",j, i-1, hh[id], (2.0f-rv[j]), (2.0f-rv[j])*hh[id]);		
-				hh[id]       = (2.0f-rv[j])*hh[id];
-				t2          += (hh[id]*hh[id]);        
-			}
-
-			cudaMemcpy ( tempH,&hh[idx(0, i-1,k_dim+1)],
-					i*sizeof(HYPRE_Real),
-					cudaMemcpyHostToDevice );
-
-			if (solverTimers){
-
-				time4 = MPI_Wtime();
-
-				gsOtherTime += time4-time3;
-			}
-			MassAxpyGPUonly(sz,  i,
-					p,				
-					&p[sz*i],
-					tempH);	
-
-			if (solverTimers){
-				time3 = MPI_Wtime();
-				massAxpyTime += time3-time4;      
-			}
-
-			t2 = sqrt(t2)*sqrt(rv[i-1]);
-
-			//printf("t = %f t2 = %f \n", t, t2);
-			hh[idx(i, i-1,k_dim+1)] = sqrt(t-t2)*sqrt(t2+t);
-
-			if (hh[idx(i,i-1,k_dim+1)] != 0.0)
-			{
-				t = 1.0/hh[idx(i,i-1,k_dim+1)]; 
-
-				ScaleGPUonly(&p[sz*i], 
-						t, 
-						sz);
-
-				InnerProdGPUonly(&p[i*sz],  
+				GramSchmidt (0, 
+						i, 
+						sz,
+						k_dim, 
+						p, 
 						&p[i*sz], 
-						&rv[i], 
-						sz);
-			}//if
+						hh, 
+						NULL,  
+						rv, 
+						NULL, NULL );
+			}
 
+			if ((GSoption >0) &&(GSoption <3)){
+          printf("calling %d \n", GSoption);				
+          GramSchmidt (GSoption, 
+						i, 
+						sz, 
+						k_dim,
+						p, 
+						&p[i*sz], 
+						hh, 
+						tempH,  
+						rv, 
+						tempRV, NULL );
+			}
+
+
+
+			if ((GSoption >=3)){
+//printf("starting Alg 3!I have  i = %d vectors in space and ONE new\n", i);		
+		GramSchmidt (GSoption, 
+						i, 
+						sz, 
+						k_dim,
+						p, 
+						&p[i*sz], 
+						hh, 
+						tempH,  
+						rv, 
+						tempRV, L );
+			}
+			// CALL IT HERE
 			if (solverTimers){
 				time2 = MPI_Wtime();
-				gsOtherTime +=  time2-time3;
+				//gsOtherTime +=  time2-time3;
 				gsTime += time2-time1;
 			}
 			for (j = 1; j < i; j++)
@@ -696,8 +979,12 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 
 	cudaFree(p);
 	cudaFree(tempV);
-	cudaFree(tempH);
 
+	if (GSoption != 0){
+		cudaFree(tempH);
+
+		cudaFree(tempRV);
+	}
 
 	cudaFree(x_GPUonly);
 	cudaFree(b_GPUonly);

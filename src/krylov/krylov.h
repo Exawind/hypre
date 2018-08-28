@@ -1637,6 +1637,18 @@ void MassInnerProdGPUonly(const double * __restrict__ u,
     double * result,
     const int k,
     const int N);
+
+void MassInnerProdGPUonly(const double * __restrict__ u,  
+		const double * __restrict__ v, 
+		double * result,  
+		const int k, 
+		const int N);
+void MassInnerProdWithScalingGPUonly(const double * __restrict__ u,  
+		const double * __restrict__ v, 
+const double * scaleFactors, 
+		double * result, 
+		const int k, 
+		const int N);
 void ScaleGPUonly( double * __restrict__ u, 
 		const double alpha, 
 		const int N);
