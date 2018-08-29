@@ -662,6 +662,7 @@ extern "C" {
     /* log info (always logged) */
     HYPRE_Int      num_iterations;
 
+HYPRE_Int GSoption;
     HYPRE_Int     print_level; /* printing when print_level>0 */
     HYPRE_Int     logging;  /* extra computations for logging when logging>0 */
     HYPRE_Real  *norms;
@@ -1360,6 +1361,8 @@ extern "C" {
   HYPRE_Int hypre_COGMRESSetPrecond ( void *gmres_vdata , HYPRE_Int (*precond )(void*,void*,void*,void*), HYPRE_Int (*precond_setup )(void*,void*,void*,void*), void *precond_data );
   HYPRE_Int hypre_COGMRESGetPrecond ( void *gmres_vdata , HYPRE_Solver *precond_data_ptr );
   HYPRE_Int hypre_COGMRESSetPrintLevel ( void *gmres_vdata , HYPRE_Int level );
+
+  HYPRE_Int hypre_COGMRESSetGSoption ( void *gmres_vdata , HYPRE_Int GSoption);
   HYPRE_Int hypre_COGMRESGetPrintLevel ( void *gmres_vdata , HYPRE_Int *level );
   HYPRE_Int hypre_COGMRESSetLogging ( void *gmres_vdata , HYPRE_Int level );
   HYPRE_Int hypre_COGMRESGetLogging ( void *gmres_vdata , HYPRE_Int *level );

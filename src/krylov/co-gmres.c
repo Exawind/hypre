@@ -240,7 +240,7 @@ HYPRE_Int idx(HYPRE_Int r, HYPRE_Int c, HYPRE_Int n){
  * KS: THIS IS for using various orth method; user can choose some options 
  * ============================*/
 
-#define GSoption 1
+//#define GSoption 1
 // 0 is modified gram-schmidt as in "normal" GMRES straight from SAADs book
 // 1 is co-gmres, version 0 by ST and KS
 // allocate spaces for GPU (copying does not happen inside) prior to calling
@@ -530,7 +530,6 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 {
 
 
-          printf("starting with  %d \n", GSoption);				
 	HYPRE_Real time1, time2, time3, time4;
 	if (solverTimers)
 		time1                                     = MPI_Wtime(); 
@@ -553,6 +552,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	HYPRE_Int print_level = (cogmres_data -> print_level);
 	HYPRE_Int logging     = (cogmres_data -> logging);
 
+ HYPRE_Int GSoption = (cogmres_data -> GSoption);
 	HYPRE_Int  break_value = 0;
 	HYPRE_Int  i, j, k;
 	/*KS: rv is the norm history */
@@ -617,7 +617,6 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 			(num_nonzeros)*sizeof(HYPRE_Int),
 			cudaMemcpyDeviceToDevice ); 
 
-          printf("alloc 1 \n");				
 
 	HYPRE_Int sz = num_cols;	
 	HYPRE_Real * tempH;
@@ -634,7 +633,6 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	HYPRE_Real * tempV;
 	cudaMalloc ( &tempV, sizeof(HYPRE_Real)*(sz)); 
 
-          printf("alloc 2 \n");				
 
 	hh = hypre_CTAllocF(HYPRE_Real, (k_dim+1)*k_dim, cogmres_functions, HYPRE_MEMORY_HOST);
 if (GSoption >=3){
@@ -716,7 +714,6 @@ if (GSoption >=3){
 					A_dataGPUonly,A_iGPUonly,A_jGPUonly,
 					x_GPUonly, &one, p);
 
-          printf("mv 1 \n");				
 
 			InnerProdGPUonly(p,  
 					p, 
@@ -738,7 +735,6 @@ if (GSoption >=3){
 			/* conv criteria */
 
 			epsilon = hypre_max(a_tol,r_tol*r_norm);
-			printf("conv crit %f \n", epsilon);		
 		}//if
 
 		//otherwise, we already have p[0] from previous cycle
@@ -746,32 +742,28 @@ if (GSoption >=3){
 
 		t = 1.0f/r_norm;
 		/* scale the initial vector */
-printf("before scaling \n");
 		ScaleGPUonly(p, 
 				t, 
 				sz);
 
-printf("after scaling \n");
 		i = 0; 
 
 		rs[0] = r_norm;
-		rv[0] = 1.0;
-    L[0] = 1.0f;
-
-printf("before copying \n");
+	rv[0] = 1.0;
+if (GSoption >=3){  
+  L[0] = 1.0f;
+}
 		if (GSoption != 0){
 			cudaMemcpy (&tempRV[0], &rv[0],
 					sizeof(HYPRE_Real),
 					cudaMemcpyHostToDevice );
 		}
 
-printf("after copying \n");
 		if (solverTimers){
 			time2 = MPI_Wtime();
 			remainingTime += (time2-time1);
 		}
 
-printf("before inner while \n");
 		while (i < k_dim && iter < max_iter)
 		{
 			if (solverTimers)
@@ -780,7 +772,6 @@ printf("before inner while \n");
 			iter++;
 
 
-printf("before mv 2 \n");
 			cusparseDcsrmv(myHandle ,
 					CUSPARSE_OPERATION_NON_TRANSPOSE,
 					num_rows, num_cols, num_nonzeros,
@@ -788,7 +779,6 @@ printf("before mv 2 \n");
 					A_dataGPUonly,A_iGPUonly,A_jGPUonly,
 					&p[(i-1)*sz], &zero, &p[i*sz]);
 
-printf("after mv2 \n");
 			time2 = MPI_Wtime();
 			if (solverTimers){
 				mvTime += (time2-time1);
@@ -796,7 +786,6 @@ printf("after mv2 \n");
 			}
 
 
-          printf("starting GS \n");				
 			/* GRAM SCHMIDT */
 			if (solverTimers)
 				time1=MPI_Wtime();
@@ -815,7 +804,6 @@ printf("after mv2 \n");
 			}
 
 			if ((GSoption >0) &&(GSoption <3)){
-          printf("calling %d \n", GSoption);				
           GramSchmidt (GSoption, 
 						i, 
 						sz, 
@@ -1314,6 +1302,19 @@ hypre_COGMRESSetPrintLevel( void *cogmres_vdata,
 
 
 	(cogmres_data -> print_level) = level;
+
+	return hypre_error_flag;
+}
+
+
+	HYPRE_Int
+hypre_COGMRESSetGSoption( void *cogmres_vdata,
+		HYPRE_Int   level)
+{
+	hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+
+
+	(cogmres_data -> GSoption) = level;
 
 	return hypre_error_flag;
 }

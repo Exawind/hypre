@@ -112,6 +112,7 @@ typedef struct
    /* log info (always logged) */
    HYPRE_Int      num_iterations;
  
+HYPRE_Int GSoption;
    HYPRE_Int     print_level; /* printing when print_level>0 */
    HYPRE_Int     logging;  /* extra computations for logging when logging>0 */
    HYPRE_Real  *norms;

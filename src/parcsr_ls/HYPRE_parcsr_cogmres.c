@@ -231,6 +231,11 @@ HYPRE_ParCSRCOGMRESSetPrintLevel( HYPRE_Solver solver,
 	return( HYPRE_COGMRESSetPrintLevel( solver, print_level ) );
 }
 
+HYPRE_Int HYPRE_ParCSRCOGMRESSetGSoption( HYPRE_Solver solver,
+		HYPRE_Int GSoption)
+{
+	return( HYPRE_COGMRESSetGSoption( solver, GSoption ) );
+}
 /*--------------------------------------------------------------------------
  * HYPRE_ParCSRCOGMRESGetNumIterations
  *--------------------------------------------------------------------------*/

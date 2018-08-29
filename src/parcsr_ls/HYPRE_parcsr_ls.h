@@ -2374,6 +2374,8 @@ HYPRE_Int HYPRE_ParCSRCOGMRESSetLogging(HYPRE_Solver solver,
 HYPRE_Int HYPRE_ParCSRCOGMRESSetPrintLevel(HYPRE_Solver solver,
                                          HYPRE_Int    print_level);
 
+HYPRE_Int HYPRE_ParCSRCOGMRESSetGSoption(HYPRE_Solver solver,
+                                         HYPRE_Int    GSoption);
 HYPRE_Int HYPRE_ParCSRCOGMRESGetNumIterations(HYPRE_Solver  solver,
                                             HYPRE_Int    *num_iterations);
 

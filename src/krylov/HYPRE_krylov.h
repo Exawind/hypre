@@ -879,6 +879,8 @@ HYPRE_Int HYPRE_COGMRESSetLogging(HYPRE_Solver solver,
 HYPRE_Int HYPRE_COGMRESSetPrintLevel(HYPRE_Solver solver,
                                  HYPRE_Int          level);
 
+HYPRE_Int HYPRE_COGMRESSetGSoption(HYPRE_Solver solver,
+                                 HYPRE_Int  GSoption);
 /**
  * Return the number of iterations taken.
  **/

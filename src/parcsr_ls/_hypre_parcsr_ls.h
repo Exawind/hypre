@@ -1017,6 +1017,7 @@ HYPRE_Int HYPRE_ParCSRCOGMRESSetPrecond ( HYPRE_Solver solver , HYPRE_PtrToParSo
 HYPRE_Int HYPRE_ParCSRCOGMRESGetPrecond ( HYPRE_Solver solver , HYPRE_Solver *precond_data_ptr );
 HYPRE_Int HYPRE_ParCSRCOGMRESSetLogging ( HYPRE_Solver solver , HYPRE_Int logging );
 HYPRE_Int HYPRE_ParCSRCOGMRESSetPrintLevel ( HYPRE_Solver solver , HYPRE_Int print_level );
+HYPRE_Int HYPRE_ParCSRCOGMRESSetGSoption ( HYPRE_Solver solver , HYPRE_Int gsOption );
 HYPRE_Int HYPRE_ParCSRCOGMRESGetNumIterations ( HYPRE_Solver solver , HYPRE_Int *num_iterations );
 HYPRE_Int HYPRE_ParCSRCOGMRESGetFinalRelativeResidualNorm ( HYPRE_Solver solver , HYPRE_Real *norm );
 
