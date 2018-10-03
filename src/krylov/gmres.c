@@ -896,6 +896,8 @@ remainingTime += (time2-time1);
    }
    hypre_TFreeF(hh,gmres_functions); 
     if (my_id == 0){
+ 
+      hypre_printf("iter                 = %d \n", iter);
       hypre_printf("TIME for GMRES\n");
       hypre_printf("matvec+precon        = %16.16f \n", matvecPreconTime);
       hypre_printf("gram-schmidt (total) = %16.16f \n", gsTime);

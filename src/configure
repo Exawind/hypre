@@ -40,6 +40,8 @@ esac
 fi
 
 
+		NVCCFLAGS="-O3 -arch=sm_60  -ccbin=xlc  -I ../hypre/include -I /usr/tcetmp/packages/spectrum_mpi/spectrum_mpi-10.1-xl-gcc-4.9.3/mpi/include/ -DUSE_NVTX -c -DHYPRE_USE_GPU -DHYPRE_USE_MANAGED -I${CUDA_HOME}/include"
+   		NVCCLIBS="-L /usr/local/cuda/lib64 -lcusparse -lcudart -lcublas -lnvToolsExt"
 as_nl='
 '
 export as_nl
@@ -5978,7 +5980,6 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
-
 ac_ext=${ac_fc_srcext-f}
 ac_compile='$FC -c $FCFLAGS $ac_fcflags_srcext conftest.$ac_ext >&5'
 ac_link='$FC -o conftest$ac_exeext $FCFLAGS $LDFLAGS $ac_fcflags_srcext conftest.$ac_ext $LIBS >&5'
@@ -8072,8 +8073,14 @@ then
    	CXXFLAGS+=" -ccbin=$CUDACXX -expt-extended-lambda -gencode arch=compute_60,\"code=sm_60\" -dc --std=c++11 -Xcompiler -fopenmp --x cu -lcudart -lcuda -DHYPRE_USE_RAJA -Xcompiler -Wno-deprecated-register  $RAJAFLAGS "
    	if test "$hypre_using_um" != "yes"
    	then
-		CFLAGS+=" -DHYPRE_MEMORY_GPU=1 "
-	   	CXXFLAGS+=" -DHYPRE_MEMORY_GPU=1 "
+		CFLAGS+=" -DHYPRE_MEMORY_GPU"
+	   	CXXFLAGS+=" -DHYPRE_MEMORY_GPU "
+		LDFLAGS+="-L /usr/local/cuda/lib64 -lcusparse -lcudart -lcublas -lnvToolsExt"
+$as_echo "#define HYPRE_USING_NVCC 1" >>confdefs.h
+
+		NVCCFLAGS="-O3 -arch=sm_60  -ccbin=xlc  -I ../hypre/include -I /usr/tcetmp/packages/spectrum_mpi/spectrum_mpi-10.1-xl-gcc-4.9.3/mpi/include/ -DUSE_NVTX=1 -c -DHYPRE_USE_GPU -DHYPRE_USE_MANAGED -I${CUDA_HOME}/include"
+   		NVCCLIBS="-L /usr/local/cuda/lib64 -lcusparse -lcudart -lcublas -lnvToolsExt"
+   		HYPRE_NVCC_MAKEFILE="Makefile.nvcc"
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: *******************************************************" >&5
 $as_echo "$as_me: *******************************************************" >&6;}
        		{ $as_echo "$as_me:${as_lineno-$LINENO}: Configuring with --with-raja and --with-cuda without unified memory." >&5
@@ -8087,13 +8094,13 @@ $as_echo "$as_me: to use the cuda feature for the whole package" >&6;}
        		{ $as_echo "$as_me:${as_lineno-$LINENO}: *******************************************************" >&5
 $as_echo "$as_me: *******************************************************" >&6;}
 	else
-		CFLAGS+=" -DUSE_NVTX -DHYPRE_USE_GPU "
-		CXXFLAGS+=" -DUSE_NVTX -DHYPRE_USE_GPU "
+		CFLAGS+=" -DUSE_NVTX=1 -DHYPRE_USE_GPU "
+		CXXFLAGS+=" -DUSE_NVTX=1 -DHYPRE_USE_GPU "
 		LDFLAGS+="-L /usr/local/cuda/lib64 -lcusparse -lcudart -lcublas -lnvToolsExt"
 
 $as_echo "#define HYPRE_USING_NVCC 1" >>confdefs.h
 
-		NVCCFLAGS="-O3 -arch=sm_60  -ccbin=xlc  -I ../hypre/include -I /usr/tcetmp/packages/spectrum_mpi/spectrum_mpi-10.1-xl-gcc-4.9.3/mpi/include/ -DUSE_NVTX -c -DHYPRE_USE_GPU -DHYPRE_USE_MANAGED -I${CUDA_HOME}/include"
+		NVCCFLAGS="-O3 -arch=sm_60  -ccbin=xlc  -I ../hypre/include -I /usr/tcetmp/packages/spectrum_mpi/spectrum_mpi-10.1-xl-gcc-4.9.3/mpi/include/ -DUSE_NVTX=1 -c -DHYPRE_USE_GPU -DHYPRE_USE_MANAGED -I${CUDA_HOME}/include"
    		NVCCLIBS="-L /usr/local/cuda/lib64 -lcusparse -lcudart -lcublas -lnvToolsExt"
    		HYPRE_NVCC_MAKEFILE="Makefile.nvcc"
    	fi
@@ -8133,7 +8140,16 @@ then
       then
           CFLAGS+=" -DHYPRE_MEMORY_GPU=1 "
 	  CXXFLAGS+=" -DHYPRE_MEMORY_GPU=1 "
-          { $as_echo "$as_me:${as_lineno-$LINENO}: *******************************************************" >&5
+	 LDFLAGS+="-L /usr/local/cuda/lib64 -lcusparse -lcudart -lcublas -lnvToolsExt" 
+	  CFLAGS+=" -DUSE_NVTX -DHYPRE_USE_GPU "
+	  CXXFLAGS+=" -DUSE_NVTX -DHYPRE_USE_GPU "
+	  LDFLAGS+="-L /usr/local/cuda/lib64 -lcusparse -lcudart -lcublas -lnvToolsExt"
+$as_echo "#define HYPRE_USING_NVCC 1" >>confdefs.h
+
+	NVCCFLAGS="-O3 -arch=sm_60  -ccbin=xlc  -I ../hypre/include -I /usr/tcetmp/packages/spectrum_mpi/spectrum_mpi-10.1-xl-gcc-4.9.3/mpi/include/ -DUSE_NVTX -c -DHYPRE_USE_GPU -DHYPRE_USE_MANAGED -I /usr/local/cuda/include"
+   NVCCLIBS="-L /usr/local/cuda/lib64 -lcusparse -lcudart -lcublas -lnvToolsExt"
+   HYPRE_NVCC_MAKEFILE="Makefile.nvcc"
+         { $as_echo "$as_me:${as_lineno-$LINENO}: *******************************************************" >&5
 $as_echo "$as_me: *******************************************************" >&6;}
 	  { $as_echo "$as_me:${as_lineno-$LINENO}: Configuring with --with-kokkos and --with-cuda, but not with unified memory" >&5
 $as_echo "$as_me: Configuring with --with-kokkos and --with-cuda, but not with unified memory" >&6;}
@@ -8190,8 +8206,13 @@ then
    CXXFLAGS+=" -ccbin=$CUDACXX -expt-extended-lambda -gencode arch=compute_60,\"code=sm_60\" -dc --std=c++11 -Xcompiler -fopenmp -Xcompiler -Wno-deprecated-register --x cu -DHYPRE_USE_CUDA $NEWCFLAGS"
    if test "$hypre_using_um" != "yes"
    then
-	CFLAGS+=" -DHYPRE_MEMORY_GPU"
-	CXXFLAGS+=" -DHYPRE_MEMORY_GPU"
+	CFLAGS+=" -DUSE_NVTX -DHYPRE_USE_GPU -DHYPRE_MEMORY_GPU"
+   	CXXFLAGS+=" -DUSE_NVTX -DHYPRE_USE_GPU -DHYPRE_MEMORY_GPU"
+$as_echo "#define HYPRE_USING_NVCC 1" >>confdefs.h
+
+	NVCCFLAGS="-O3 -arch=sm_60  -ccbin=xlc  -I ../hypre/include -I /usr/tcetmp/packages/spectrum_mpi/spectrum_mpi-10.1-xl-gcc-4.9.3/mpi/include/ -DUSE_NVTX -c -DHYPRE_USE_GPU -DHYPRE_USE_MANAGED -DHYPRE_MEMORY_GPU -I${CUDA_HOME}/include"
+   NVCCLIBS="-L${CUDA_HOME}/lib64 -lcusparse -lcudart -lcublas -lnvToolsExt"
+   HYPRE_NVCC_MAKEFILE="Makefile.nvcc"
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: *******************************************************" >&5
 $as_echo "$as_me: *******************************************************" >&6;}
        	{ $as_echo "$as_me:${as_lineno-$LINENO}: Configuring with --with-cuda=yes without unified memory." >&5
@@ -8219,6 +8240,10 @@ then
    LDFLAGS+=" -lcudart -lcuda "
    CFLAGS+=" -DHYPRE_USE_MANAGED -I${CUDA_HOME}/include "
    CXXFLAGS+=" -DHYPRE_USE_MANAGED -I${CUDA_HOME}/include "
+else
+   LDFLAGS+=" -lcudart -lcuda "
+   CFLAGS+=" -I${CUDA_HOME}/include "
+   CXXFLAGS+="-I${CUDA_HOME}/include "
 fi
 
 if test "$hypre_using_openmp" = "yes"

@@ -16,7 +16,7 @@ size_t memsize(const void *ptr){
 
 #if defined(HYPRE_USE_GPU) || defined(HYPRE_USE_MANAGED)
 
-#if defined(HYPRE_USE_MANAGED)
+//#if defined(HYPRE_USE_MANAGED)
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -435,7 +435,7 @@ hypre_int pointerIsManaged(const void *ptr){
   return ptr_att.isManaged;
 }
 
-#endif /* HYPRE_USE_MANAGED */
+//#endif /* HYPRE_USE_MANAGED */
 
 /* C version of mempush using linked lists */
 

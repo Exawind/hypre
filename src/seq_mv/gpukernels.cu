@@ -7,6 +7,9 @@
 #define MaxSpace 100
 #define maxk 80
 #define Tv5 1024
+
+  static HYPRE_Int FirstCall=1; 
+static cublasHandle_t myHandle;
 extern "C"{
 __global__
 void VecScaleKernelText(HYPRE_Complex *__restrict__ u, const HYPRE_Complex *__restrict__ v, const HYPRE_Complex *__restrict__ l1_norm, hypre_int num_rows){
@@ -793,8 +796,11 @@ void InnerProdGPUonly(const double * __restrict__ u,
 		const double * __restrict__ v, 
 		double *result, 
 		const int N) {
-cublasHandle_t myHandle;
+//static cublasHandle_t myHandle;
+if (FirstCall){
   cublasCreate(&myHandle);
+FirstCall = 0;
+}
  cublasDdot (myHandle, N,
                            u, 1,
                            v, 1,
@@ -805,8 +811,13 @@ void AxpyGPUonly(const double * __restrict__ u,
 		 double * __restrict__ v,
 		const double alpha, 
 		const int N) {
-cublasHandle_t myHandle;
+//cublasHandle_t myHandle;
+ // cublasCreate(&myHandle);
+if (FirstCall){
+//cublasHandle_t myHandle;
   cublasCreate(&myHandle);
+FirstCall = 0;
+}
 cublasDaxpy(myHandle, N,
             &alpha,
             u, 1,
@@ -817,8 +828,14 @@ cublasDaxpy(myHandle, N,
 void ScaleGPUonly(double * __restrict__ u, 
 		const double alpha, 
 		const int N) {
-cublasHandle_t myHandle;
+//cublasHandle_t myHandle;
+  //cublasCreate(&myHandle);
+//static cublasHandle_t myHandle;
+if (FirstCall){
+//cublasHandle_t myHandle;
   cublasCreate(&myHandle);
+FirstCall = 0;
+}
 int test;
 test = cublasDscal(myHandle, N,
                             &alpha,

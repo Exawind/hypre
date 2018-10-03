@@ -17,7 +17,7 @@
 #define HYPRE_USE_MANAGED_SCALABLE 1
 #define HYPRE_GPU_USE_PINNED 1
 
-#if defined(HYPRE_USE_MANAGED)
+//#if defined(HYPRE_USE_MANAGED)
 #include <cuda_runtime_api.h>
 void hypre_GPUInit(hypre_int use_device);
 void hypre_GPUFinalize();
@@ -85,7 +85,7 @@ extern struct hypre__global_struct hypre__global_handle ;
 #define HYPRE_GPU_CMA hypre__global_handle.concurrent_managed_access
 #define HYPRE_GPU_HWM hypre__global_handle.memoryHWM
 
-#endif /* HYPRE_USE_MANAGED */
+//#endif /* HYPRE_USE_MANAGED */
 
 typedef struct node {
   const void *ptr;

@@ -402,7 +402,7 @@ hypre_CSRMatrixMatvecOutOfPlaceOOMP( HYPRE_Complex    alpha,
 #endif
 
 
-#ifdef HYPRE_USE_MANAGED
+#if defined(HYPRE_USE_MANAGED) || defined(HYPRE_USE_GPU) 
    hypre_CSRMatrixPrefetchToDevice(A);
    hypre_SeqVectorPrefetchToDevice(x);
    hypre_SeqVectorPrefetchToDevice(y);

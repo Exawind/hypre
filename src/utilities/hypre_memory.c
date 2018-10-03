@@ -47,7 +47,7 @@ size_t hypre__target_dtoh_bytes = 0;
 /* Device memory with    unified memory */
 #define DEVC_MEM_WTUM 2
 
-#if defined(HYPRE_USE_MANAGED)
+#if defined(HYPRE_USE_MANAGED) || defined(HYPRE_USE_GPU)
 #define HYPRE_MEMORY_ENV DEVC_MEM_WTUM
 #elif defined(HYPRE_USE_CUDA) || defined(HYPRE_USE_OMP45)
 #define HYPRE_MEMORY_ENV DEVC_MEM_WOUM
