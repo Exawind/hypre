@@ -102,18 +102,38 @@ hypre_CSRMatrixInitialize( hypre_CSRMatrix *matrix )
 
    HYPRE_Int  ierr=0;
 
-   if ( ! hypre_CSRMatrixData(matrix) && num_nonzeros )
+   if ( ! hypre_CSRMatrixData(matrix) && num_nonzeros ){
       hypre_CSRMatrixData(matrix) = hypre_CTAlloc(HYPRE_Complex,  num_nonzeros, HYPRE_MEMORY_SHARED);
+//printf("passed 1\n");
+#if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
+//printf("passed 2\n");
+      hypre_CSRMatrixDeviceData(matrix)    = hypre_CTAlloc(HYPRE_Complex,  num_nonzeros, HYPRE_MEMORY_DEVICE);
+//printf("passed 3\n");
+#endif
+}
    else {
      //if (PointerAttributes(hypre_CSRMatrixData(matrix))==HYPRE_HOST_POINTER) printf("MATREIX INITIAL WITH JHOST DATA\n");
    }
-   if ( ! hypre_CSRMatrixI(matrix) )
+   if ( ! hypre_CSRMatrixI(matrix) ){
       hypre_CSRMatrixI(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_rows + 1, HYPRE_MEMORY_SHARED);
+//printf("passed 4\n");
+#if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
+//printf("passed 5\n");
+      hypre_CSRMatrixDeviceI(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_rows + 1, HYPRE_MEMORY_DEVICE);
+printf("passed 6\n");
+#endif
+}
 /*   if ( ! hypre_CSRMatrixRownnz(matrix) )
      hypre_CSRMatrixRownnz(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_rownnz, HYPRE_MEMORY_SHARED);*/
    if ( ! hypre_CSRMatrixJ(matrix) && num_nonzeros )
-      hypre_CSRMatrixJ(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_nonzeros, HYPRE_MEMORY_SHARED);
-
+//printf("passed 7\n");
+    hypre_CSRMatrixJ(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_nonzeros, HYPRE_MEMORY_SHARED);
+//printf("passed 8\n");
+#if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
+//printf("passed 9\n");
+    hypre_CSRMatrixDeviceJ(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_nonzeros, HYPRE_MEMORY_DEVICE);
+//printf("passed 10\n");
+#endif
    return ierr;
 }
 
@@ -683,7 +703,7 @@ HYPRE_Int hypre_CSRMatrixGetLoadBalancedPartitionEnd(hypre_CSRMatrix *A)
 {
    return hypre_CSRMatrixGetLoadBalancedPartitionBoundary(A, hypre_GetThreadNum() + 1);
 }
-#ifdef HYPRE_USE_MANAGED
+#if defined(HYPRE_USE_MANAGED) || defined(HYPRE_USE_GPU)
 void hypre_CSRMatrixPrefetchToDevice(hypre_CSRMatrix *A){
   if (hypre_CSRMatrixNumNonzeros(A)==0) return;
 

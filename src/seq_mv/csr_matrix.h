@@ -42,6 +42,9 @@ typedef struct
    HYPRE_Int     *rownnz;
    HYPRE_Int      num_rownnz;
 
+   /* KS: for GPU storage - only used when unified memory not used */
+   HYPRE_Int *d_i, *d_j, *d_rownnz;
+   HYPRE_Complex *d_data;
 } hypre_CSRMatrix;
 
 /*--------------------------------------------------------------------------
@@ -58,6 +61,10 @@ typedef struct
 #define hypre_CSRMatrixNumRownnz(matrix)    ((matrix) -> num_rownnz)
 #define hypre_CSRMatrixOwnsData(matrix)     ((matrix) -> owns_data)
 
+
+#define hypre_CSRMatrixDeviceData(matrix)         ((matrix) -> d_data)
+#define hypre_CSRMatrixDeviceI(matrix)            ((matrix) -> d_i)
+#define hypre_CSRMatrixDeviceJ(matrix)            ((matrix) -> d_j)
 HYPRE_Int hypre_CSRMatrixGetLoadBalancedPartitionBegin( hypre_CSRMatrix *A );
 HYPRE_Int hypre_CSRMatrixGetLoadBalancedPartitionEnd( hypre_CSRMatrix *A );
 

@@ -37,16 +37,24 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
                                     hypre_ParVector    *b,
                                     hypre_ParVector    *y )
 {
+printf("starting matvec out of place \n");
    hypre_ParCSRCommHandle **comm_handle;
    hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
+
+printf("comm set \n");
    hypre_CSRMatrix   *diag   = hypre_ParCSRMatrixDiag(A);
    hypre_CSRMatrix   *offd   = hypre_ParCSRMatrixOffd(A);
+printf("diag and off-diag set \n");
    hypre_Vector      *x_local  = hypre_ParVectorLocalVector(x);   
+printf("x set \n");
    hypre_Vector      *b_local  = hypre_ParVectorLocalVector(b);   
+printf("b set \n");
    hypre_Vector      *y_local  = hypre_ParVectorLocalVector(y);   
+printf("y set \n");
    HYPRE_Int          num_rows = hypre_ParCSRMatrixGlobalNumRows(A);
    HYPRE_Int          num_cols = hypre_ParCSRMatrixGlobalNumCols(A);
 
+printf("vectors digged put \n");
    hypre_Vector      *x_tmp;
    HYPRE_Int          x_size = hypre_ParVectorGlobalSize(x);
    HYPRE_Int          b_size = hypre_ParVectorGlobalSize(b);
@@ -59,6 +67,7 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
    HYPRE_Int          vecstride = hypre_VectorVectorStride( x_local );
    HYPRE_Int          idxstride = hypre_VectorIndexStride( x_local );
 
+printf("b_size %d y_size %d \n", b_size, y_size);
    HYPRE_Complex     *x_tmp_data, **x_buf_data;
    HYPRE_Complex     *x_local_data = hypre_VectorData(x_local);
 
@@ -320,6 +329,8 @@ hypre_ParCSRMatrixMatvec( HYPRE_Complex       alpha,
                           HYPRE_Complex       beta,
                           hypre_ParVector    *y )
 {
+
+printf("ParCSRMatvec\n");
 /*# ifdef HYPRE_USE_GPU
 PUSH_RANGE_PAYLOAD("MATVEC_CUDA", 0, hypre_CSRMatrixNumRows(A));
 HYPRE_Int ret=hypre_CSRMatrixMatvecDevice(alpha, A, x, beta, y, y, 1);

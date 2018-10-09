@@ -895,8 +895,9 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
     
     cusparseSetMatType(descr,CUSPARSE_MATRIX_TYPE_GENERAL);
     cusparseSetMatIndexBase(descr,CUSPARSE_INDEX_BASE_ZERO);
-  hypre_CSRMatrixPrefetchToDevice(A);
-    
+#ifdef HYPRE_USE_MANAGED 
+ hypre_CSRMatrixPrefetchToDevice(A);
+#endif    
     FirstCall=0;
     hypre_int jj;
     for(jj=0;jj<5;jj++)
@@ -911,30 +912,35 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
 
   PUSH_RANGE("PREFETCH+SPMV",2);
 
+#ifdef HYPRE_USE_MANAGED 
   hypre_SeqVectorPrefetchToDevice(x);
   hypre_SeqVectorPrefetchToDevice(y);
+#endif
 //cudaEvent_t start, stop;
 //cudaEventCreate(&start);
 //cudaEventCreate(&stop);
 int ii;  
   if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
-//cudaEventRecord(start);
+#ifdef HYPRE_USE_MANAGED 
 for (ii=0;ii<1; ++ii){
-//printf("DIMENSIONS %d %d %d \n", A->num_rows-offset,  A->num_cols, A->num_nonzeros);  
 cusparseErrchk(cusparseDcsrmv(handle ,
 				CUSPARSE_OPERATION_NON_TRANSPOSE, 
 				A->num_rows-offset, A->num_cols, A->num_nonzeros,
 				&alpha, descr,
 				A->data ,A->i+offset,A->j,
 				x->data, &beta, y->data+offset));
-/*  cusparseErrchk(cusparseDcsrmv(handle ,
+  }
+#endif
+#if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
+for (ii=0;ii<1; ++ii){
+cusparseErrchk(cusparseDcsrmv(handle ,
 				CUSPARSE_OPERATION_NON_TRANSPOSE, 
 				A->num_rows-offset, A->num_cols, A->num_nonzeros,
 				&alpha, descr,
-				d_Adata ,d_Ai,d_Aj,
-				d_xdata, &beta, d_ydata));
-*/
+				A->d_data ,A->d_i+offset,A->d_j,
+				x->d_data, &beta, y->d_data+offset));
   }
+#endif
 //cudaEventRecord(stop);
 //cudaEventSynchronize(stop);
 //float kernelElapsed;

@@ -38,6 +38,8 @@ hypre_ParKrylovFree( void *ptr )
 	return ierr;
 }
 
+
+
 /*--------------------------------------------------------------------------
  * hypre_ParKrylovCreateVector
  *--------------------------------------------------------------------------*/
@@ -126,6 +128,8 @@ hypre_ParKrylovMatvec( void   *matvec_data,
 		HYPRE_Complex  beta,
 		void   *y           )
 {
+
+printf("ParKrylovMatvec \n");
 	return ( hypre_ParCSRMatrixMatvec ( alpha,
 				(hypre_ParCSRMatrix *) A,
 				(hypre_ParVector *) x,

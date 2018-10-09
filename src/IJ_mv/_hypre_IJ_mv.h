@@ -415,7 +415,9 @@ HYPRE_Int hypre_IJVectorAddToValuesPar ( hypre_IJVector *vector , HYPRE_Int num_
 HYPRE_Int hypre_IJVectorAssemblePar ( hypre_IJVector *vector );
 HYPRE_Int hypre_IJVectorGetValuesPar ( hypre_IJVector *vector , HYPRE_Int num_values , const HYPRE_Int *indices , HYPRE_Complex *values );
 HYPRE_Int hypre_IJVectorAssembleOffProcValsPar ( hypre_IJVector *vector , HYPRE_Int max_off_proc_elmts , HYPRE_Int current_num_elmts , HYPRE_Int *off_proc_i , HYPRE_Complex *off_proc_data );
+HYPRE_Int hypre_IJVectorCopyDataGPUtoCPUPar(hypre_IJVector  *vector);
 
+HYPRE_Int hypre_IJVectorCopyDataCPUtoGPUPar(hypre_IJVector  *vector);
 /* HYPRE_IJMatrix.c */
 HYPRE_Int HYPRE_IJMatrixCreate ( MPI_Comm comm , HYPRE_Int ilower , HYPRE_Int iupper , HYPRE_Int jlower , HYPRE_Int jupper , HYPRE_IJMatrix *matrix );
 HYPRE_Int HYPRE_IJMatrixDestroy ( HYPRE_IJMatrix matrix );
@@ -455,6 +457,10 @@ HYPRE_Int HYPRE_IJVectorGetObject ( HYPRE_IJVector vector , void **object );
 HYPRE_Int HYPRE_IJVectorRead ( const char *filename , MPI_Comm comm , HYPRE_Int type , HYPRE_IJVector *vector_ptr );
 HYPRE_Int HYPRE_IJVectorPrint ( HYPRE_IJVector vector , const char *filename );
 
+
+
+HYPRE_Int HYPRE_IJVectorCopyDataGPUtoCPU ( HYPRE_IJVector vector );
+HYPRE_Int HYPRE_IJVectorCopyDataCPUtoGPU ( HYPRE_IJVector vector );
 #ifdef __cplusplus
 }
 #endif

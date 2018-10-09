@@ -48,6 +48,8 @@ typedef struct
   HYPRE_Int drc; /* device ref count */
   HYPRE_Int hrc; /* host ref count */
 #endif
+/*KS for GPU */
+HYPRE_Complex *d_data;
 } hypre_Vector;
 
 /*--------------------------------------------------------------------------
@@ -55,6 +57,7 @@ typedef struct
  *--------------------------------------------------------------------------*/
 
 #define hypre_VectorData(vector)      ((vector) -> data)
+#define hypre_VectorDeviceData(vector)      ((vector) -> d_data)
 #define hypre_VectorSize(vector)      ((vector) -> size)
 #define hypre_VectorOwnsData(vector)  ((vector) -> owns_data)
 #define hypre_VectorNumVectors(vector) ((vector) -> num_vectors)

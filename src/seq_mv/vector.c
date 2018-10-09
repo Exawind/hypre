@@ -26,6 +26,8 @@
 
 #define NUM_TEAMS 128
 #define NUM_THREADS 1024
+
+
 /*--------------------------------------------------------------------------
  * hypre_SeqVectorCreate
  *--------------------------------------------------------------------------*/
@@ -34,6 +36,7 @@
 hypre_SeqVectorCreate( HYPRE_Int size )
 {
 				hypre_Vector  *vector;
+//this is ok both for GPU and CPU
 
 				vector =  hypre_CTAlloc(hypre_Vector,  1, HYPRE_MEMORY_HOST);
 
@@ -96,6 +99,46 @@ hypre_SeqVectorDestroy( hypre_Vector *vector )
 				return ierr;
 }
 
+/**** ==============================
+ * hypre_SeqVectorCopyDataCPUtoGPU
+ * =================================*/
+HYPRE_Int
+
+hypre_SeqVectorCopyDataCPUtoGPU( hypre_Vector *vector )
+{
+				HYPRE_Int  size = hypre_VectorSize(vector);
+				HYPRE_Int  ierr = 0;
+HYPRE_Complex *data, *d_data;
+
+data =								hypre_VectorData(vector); 
+d_data = hypre_VectorDeviceData(vector);			
+
+		cudaMemcpy ( d_data,data,
+				size*sizeof(HYPRE_Complex),
+				cudaMemcpyHostToDevice );
+	return ierr;
+}
+
+
+/**** ==============================
+ * hypre_SeqVectorCopyDataGPUtoCPU
+ * =================================*/
+HYPRE_Int
+
+hypre_SeqVectorCopyDataGPUtoCPU( hypre_Vector *vector )
+{
+				HYPRE_Int  size = hypre_VectorSize(vector);
+				HYPRE_Int  ierr = 0;
+HYPRE_Complex *data, *d_data;
+
+data =								hypre_VectorData(vector); 
+d_data = hypre_VectorDeviceData(vector);			
+
+		cudaMemcpy (data,d_data,
+				size*sizeof(HYPRE_Complex),
+				cudaMemcpyDeviceToHost );
+	return ierr;
+}
 /*--------------------------------------------------------------------------
  * hypre_SeqVectorInitialize
  *--------------------------------------------------------------------------*/
@@ -108,9 +151,12 @@ hypre_SeqVectorInitialize( hypre_Vector *vector )
 				HYPRE_Int  num_vectors = hypre_VectorNumVectors(vector);
 				HYPRE_Int  multivec_storage_method = hypre_VectorMultiVecStorageMethod(vector);
 
-				if ( ! hypre_VectorData(vector) )
+				if ( ! hypre_VectorData(vector) ){
+#if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
+								hypre_VectorDeviceData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_DEVICE);
+#endif
 								hypre_VectorData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_SHARED);
-
+}
 				if ( multivec_storage_method == 0 )
 				{
 								hypre_VectorVectorStride(vector) = size;
@@ -268,11 +314,14 @@ hypre_SeqVectorPrint( hypre_Vector *vector,
 hypre_SeqVectorSetConstantValues( hypre_Vector *v,
 								HYPRE_Complex value )
 {
-#ifdef HYPRE_USE_GPU
+#ifdef HYPRE_USE_MANAGED
 				VecSet(hypre_VectorData(v),hypre_VectorSize(v),value,HYPRE_STREAM(4));
 				return 0;
 #endif
 
+#if !defined(HYPRE_USE_MANAGED) && defined(HYPRE_USE_GPU)
+				VecSet(hypre_VectorDeviceData(v), hypre_VectorSize(v), value, HYPRE_STREAM(4));
+#endif
 
 #ifdef HYPRE_PROFILE
 				hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
@@ -289,7 +338,7 @@ hypre_SeqVectorSetConstantValues( hypre_Vector *v,
 #if defined(HYPRE_USING_MAPPED_OPENMP_OFFLOAD)
 				if (!v->mapped) hypre_SeqVectorMapToDevice(v);
 #endif
-#ifdef HYPRE_USE_MANAGED
+#if defined(HYPRE_USE_MANAGED)
 				hypre_SeqVectorPrefetchToDevice(v);
 #endif
 #if defined(HYPRE_USING_OPENMP_OFFLOAD)
@@ -524,7 +573,7 @@ hypre_SeqVectorAxpy( HYPRE_Complex alpha,
 				else SyncVectorToHost(y);
 #endif
 
-#ifdef HYPRE_USE_MANAGED
+#if defined(HYPRE_USE_MANAGED) && defined(HYPRE_USE_GPU)
 				hypre_SeqVectorPrefetchToDevice(x);
 				hypre_SeqVectorPrefetchToDevice(y);
 #endif
@@ -765,7 +814,7 @@ HYPRE_Complex hypre_VectorSumElts( hypre_Vector *vector )
 				return sum;
 }
 
-#ifdef HYPRE_USE_MANAGED
+#if defined(HYPRE_USE_MANAGED) || defined(HYPRE_USE_GPU)
 /* Sums of the absolute value of the elements for comparison to cublas device side routine */
 HYPRE_Complex hypre_VectorSumAbsElts( hypre_Vector *vector )
 {

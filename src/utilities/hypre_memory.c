@@ -224,7 +224,7 @@ hypre_DeviceMalloc(size_t size, HYPRE_Int zeroinit)
 #else
    /* cudaMalloc */
    hypre_CheckErrorDevice( cudaMalloc(&ptr, size + sizeof(size_t)*MEM_PAD_LEN) );
-   hypre_CheckErrorDevice( cudaDeviceSynchronize() );
+ //  hypre_CheckErrorDevice( cudaDeviceSynchronize() );
    hypre_Memcpy(ptr, &size, sizeof(size_t), HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_HOST);
    size_t *sp = (size_t*) ptr;
    ptr = (void*) (&sp[MEM_PAD_LEN]);

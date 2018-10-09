@@ -397,7 +397,10 @@ HYPRE_Int HYPRE_IJVectorAddToValues(HYPRE_IJVector       vector,
  * Finalize the construction of the vector before using.
  **/
 HYPRE_Int HYPRE_IJVectorAssemble(HYPRE_IJVector vector);
+/* for GPU use only */
 
+HYPRE_Int HYPRE_IJVectorCopyDataCPUtoGPU(HYPRE_IJVector vector);
+HYPRE_Int HYPRE_IJVectorCopyDataGPUtoCPU(HYPRE_IJVector vector);
 /**
  * Gets values in vector.  Usage details are analogous to
  * \Ref{HYPRE_IJVectorSetValues}.

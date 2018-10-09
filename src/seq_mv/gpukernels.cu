@@ -79,11 +79,19 @@ void VecSetKernel(HYPRE_Complex* __restrict__ tgt, const HYPRE_Complex value,hyp
 void VecSet(HYPRE_Complex* tgt, hypre_int size, HYPRE_Complex value, cudaStream_t s){
 	hypre_int tpb=64;
 	//cudaDeviceSynchronize();
+#if defined(HYPRE_USE_MANAGED)
+printf("using managed fucking memory! %d\n", HYPRE_USE_MANAGED);
 	MemPrefetchSized(tgt,size*sizeof(HYPRE_Complex),HYPRE_DEVICE,s);
 	hypre_int num_blocks=size/tpb+1;
 	VecSetKernel<<<num_blocks,tpb,0,s>>>(tgt,value,size);
 	cudaStreamSynchronize(s);
 	//cudaDeviceSynchronize();
+#endif
+#if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
+// not using unified
+cudaMemset(tgt,value,size*sizeof(HYPRE_Complex));		
+#endif
+
 }
 }
 extern "C"{

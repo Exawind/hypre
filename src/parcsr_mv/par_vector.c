@@ -23,6 +23,7 @@
 HYPRE_Int hypre_FillResponseParToVectorAll(void*, HYPRE_Int, HYPRE_Int, void*, MPI_Comm, void**, HYPRE_Int*);
 #endif
 
+
 /*--------------------------------------------------------------------------
  * hypre_ParVectorCreate
  *--------------------------------------------------------------------------*/
@@ -127,6 +128,38 @@ hypre_ParVectorDestroy( hypre_ParVector *vector )
     hypre_TFree(vector, HYPRE_MEMORY_HOST);
   }
 
+  return hypre_error_flag;
+}
+/* ==============
+ * hypre_ParVectorCopyDataCPUtoGPU
+ */
+HYPRE_Int hypre_ParVectorCopyDataCPUtoGPU( hypre_ParVector *vector )
+{
+  if (!vector)
+  {
+    hypre_error_in_arg(1);
+    return hypre_error_flag;
+  }
+
+
+  hypre_SeqVectorCopyDataCPUtoGPU(hypre_ParVectorLocalVector(vector));
+  return hypre_error_flag;
+}
+
+
+/* ==============
+ * hypre_ParVectorCopyDataGPUtoCPU
+ */
+HYPRE_Int hypre_ParVectorCopyDataGPUtoCPU( hypre_ParVector *vector )
+{
+  if (!vector)
+  {
+    hypre_error_in_arg(1);
+    return hypre_error_flag;
+  }
+
+
+  hypre_SeqVectorCopyDataGPUtoCPU(hypre_ParVectorLocalVector(vector));
   return hypre_error_flag;
 }
 
@@ -1149,7 +1182,7 @@ HYPRE_Complex hypre_ParVectorLocalSumElts( hypre_ParVector * vector )
 {
   return hypre_VectorSumElts( hypre_ParVectorLocalVector(vector) );
 }
-#ifdef HYPRE_USE_MANAGED
+#if defined(HYPRE_USE_MANAGED) || defined(HYPRE_USE_GPU)
 hypre_int hypre_ParVectorIsManaged(hypre_ParVector *vector){
   if (vector==NULL) return 1;
   return hypre_SeqVectorIsManaged(hypre_ParVectorLocalVector(vector));
