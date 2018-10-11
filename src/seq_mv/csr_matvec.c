@@ -933,13 +933,14 @@ cusparseErrchk(cusparseDcsrmv(handle ,
 #endif
 #if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
 for (ii=0;ii<1; ++ii){
-cusparseErrchk(cusparseDcsrmv(handle ,
+status = cusparseDcsrmv(handle ,
 				CUSPARSE_OPERATION_NON_TRANSPOSE, 
 				A->num_rows-offset, A->num_cols, A->num_nonzeros,
 				&alpha, descr,
 				A->d_data ,A->d_i+offset,A->d_j,
-				x->d_data, &beta, y->d_data+offset));
-  }
+				x->d_data, &beta, y->d_data+offset);
+printf("status %d \n", status); 
+ }
 #endif
 //cudaEventRecord(stop);
 //cudaEventSynchronize(stop);

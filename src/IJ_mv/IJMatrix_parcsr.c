@@ -237,6 +237,53 @@ hypre_IJMatrixSetMaxOffProcElmtsParCSR(hypre_IJMatrix *matrix,
 
 /******************************************************************************
  *
+ * hypre_IJMatrixCopyGPUtoCPUParCSR
+ *
+ * copy GPU data to CPU in  ParCSRMatrix as necessary
+ *
+ *****************************************************************************/
+
+HYPRE_Int
+hypre_IJMatrixCopyGPUtoCPUParCSR(hypre_IJMatrix *matrix){
+	hypre_ParCSRMatrix *par_matrix = (hypre_ParCSRMatrix *) hypre_IJMatrixObject(matrix);
+   
+   if (!par_matrix){
+
+      hypre_error_in_arg(1);
+         hypre_printf("error!i cant copy Gpu to Cpu data because the matrix is not initilized!!!\n");
+}
+
+      hypre_ParCSRMatrixCopyGPUtoCPU(par_matrix);
+   return hypre_error_flag;
+}
+
+
+
+/******************************************************************************
+ *
+ * hypre_IJMatrixCopyCPUtoGPUParCSR
+ *
+ * copy CPU data to GPU in  ParCSRMatrix as necessary
+ *
+ *****************************************************************************/
+
+
+HYPRE_Int
+hypre_IJMatrixCopyCPUtoGPUParCSR(hypre_IJMatrix *matrix){
+	hypre_ParCSRMatrix *par_matrix = (hypre_ParCSRMatrix *) hypre_IJMatrixObject(matrix);
+
+      if (!par_matrix){
+
+      hypre_error_in_arg(1);
+         hypre_printf("error!i cant copy cpu to gpu data because the matrix is not initilized!!!\n");
+}
+
+      hypre_ParCSRMatrixCopyCPUtoGPU(par_matrix);
+
+   return hypre_error_flag;
+}
+/******************************************************************************
+ *
  * hypre_IJMatrixInitializeParCSR
  *
  * initializes AuxParCSRMatrix and ParCSRMatrix as necessary

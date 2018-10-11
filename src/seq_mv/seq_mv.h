@@ -324,6 +324,8 @@ void InnerProdGPUonly(const double * __restrict__ u,
 	hypre_CSRMatrix *hypre_CSRMatrixCreate ( HYPRE_Int num_rows , HYPRE_Int num_cols , HYPRE_Int num_nonzeros );
 	HYPRE_Int hypre_CSRMatrixDestroy ( hypre_CSRMatrix *matrix );
 	HYPRE_Int hypre_CSRMatrixInitialize ( hypre_CSRMatrix *matrix );
+	HYPRE_Int hypre_CSRMatrixCopyGPUtoCPU ( hypre_CSRMatrix *matrix );
+	HYPRE_Int hypre_CSRMatrixCopyCPUtoGPU ( hypre_CSRMatrix *matrix );
 	HYPRE_Int hypre_CSRMatrixSetDataOwner ( hypre_CSRMatrix *matrix , HYPRE_Int owns_data );
 	HYPRE_Int hypre_CSRMatrixSetRownnz ( hypre_CSRMatrix *matrix );
 	hypre_CSRMatrix *hypre_CSRMatrixRead ( char *file_name );
@@ -361,7 +363,7 @@ void InnerProdGPUonly(const double * __restrict__ u,
 	/* HYPRE_csr_matrix.c */
 	HYPRE_CSRMatrix HYPRE_CSRMatrixCreate ( HYPRE_Int num_rows , HYPRE_Int num_cols , HYPRE_Int *row_sizes );
 	HYPRE_Int HYPRE_CSRMatrixDestroy ( HYPRE_CSRMatrix matrix );
-	HYPRE_Int HYPRE_CSRMatrixInitialize ( HYPRE_CSRMatrix matrix );
+	HYPRE_Int HYPRECopyCPUtoGPUInitialize ( HYPRE_CSRMatrix matrix );
 	HYPRE_CSRMatrix HYPRE_CSRMatrixRead ( char *file_name );
 	void HYPRE_CSRMatrixPrint ( HYPRE_CSRMatrix matrix , char *file_name );
 	HYPRE_Int HYPRE_CSRMatrixGetNumRows ( HYPRE_CSRMatrix matrix , HYPRE_Int *num_rows );
@@ -436,6 +438,7 @@ void InnerProdGPUonly(const double * __restrict__ u,
 	HYPRE_Int hypre_SeqVectorScale ( HYPRE_Complex alpha , hypre_Vector *y );
 	HYPRE_Int hypre_SeqVectorAxpy ( HYPRE_Complex alpha , hypre_Vector *x , hypre_Vector *y );
 	HYPRE_Real hypre_SeqVectorInnerProd ( hypre_Vector *x , hypre_Vector *y );
+	HYPRE_Real hypre_SeqVectorInnerProdOneOfMult ( hypre_Vector *x ,HYPRE_Int k1, hypre_Vector *y, HYPRE_Int k2 );
 	void  hypre_SeqVectorMassInnerProd(hypre_Vector *x, hypre_Vector **y,int k,  HYPRE_Real * result);
 	void hypre_SeqVectorMassAxpy(HYPRE_Real * alpha, hypre_Vector **x, hypre_Vector *y, HYPRE_Int k);
 	HYPRE_Complex hypre_VectorSumElts ( hypre_Vector *vector );

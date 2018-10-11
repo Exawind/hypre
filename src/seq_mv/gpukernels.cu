@@ -59,6 +59,7 @@ void VecCopyKernel(HYPRE_Complex* __restrict__ tgt, const HYPRE_Complex* __restr
 	if (i<size) tgt[i]=src[i];
 }
 void VecCopy(HYPRE_Complex* tgt, const HYPRE_Complex* src, hypre_int size,cudaStream_t s){
+#if defined HYPRE_USE_MANAGED
 	hypre_int tpb=64;
 	hypre_int num_blocks=size/tpb+1;
 	PUSH_RANGE_PAYLOAD("VecCopy",5,size);
@@ -66,7 +67,11 @@ void VecCopy(HYPRE_Complex* tgt, const HYPRE_Complex* src, hypre_int size,cudaSt
 	//MemPrefetch(src,0,s);
 	VecCopyKernel<<<num_blocks,tpb,0,s>>>(tgt,src,size);
 	//hypre_CheckErrorDevice(cudaStreamSynchronize(s));
-	POP_RANGE;
+	
+POP_RANGE;
+#else
+		 cudaMemcpy(tgt, src,  size* sizeof(HYPRE_Complex), cudaMemcpyDeviceToDevice);
+#endif
 }
 }
 extern "C"{

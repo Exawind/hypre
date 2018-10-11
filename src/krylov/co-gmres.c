@@ -588,12 +588,12 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	{
 		norms          = (cogmres_data -> norms);
 	}
-	if (usePrecond) { 
+//	if (usePrecond) { 
 		
     (cogmres_data -> w) = (*(cogmres_functions->CreateVector))(b);
 //Initialize
 	//	w2=  (hypre_ParVector*) (cogmres_data->w_2);
-	}
+//	}
 	/* initialize work arrays */
 	rs = hypre_CTAllocF(HYPRE_Real,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST);
 	c  = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
@@ -750,24 +750,25 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 			if (solverTimers){
 				time3 = MPI_Wtime();
 			}
-/*			cusparseDcsrmv(myHandle ,
+			cusparseDcsrmv(myHandle ,
 					CUSPARSE_OPERATION_NON_TRANSPOSE,
 					num_rows, num_cols, num_nonzeros,
 					&minusone, myDescr,
 					A_dataGPUonly,A_iGPUonly,A_jGPUonly,
 					x_GPUonly, &one, p);
-*/
+
 
     w =  (hypre_ParVector*) (cogmres_data->w);
-printf("about to initialize! \n");
-hypre_ParVectorInitialize(w);
+(*(cogmres_functions->CopyVector))(b, w);
+//printf("about to initialize! \n");
+//hypre_ParVectorInitialize(w);
 
 	//	(cogmres_data -> w_2) = (*(cogmres_functions->CreateVector))(b);
 		
-printf("about to grab w local\n");
-  hypre_Vector *w_local = hypre_ParVectorLocalVector(w);
-printf("I have w local\n");
-   (*(cogmres_functions->Matvec))(matvec_data,-1.0, A, x, 1.0, w);
+//printf("about to grab w local\n");
+ // hypre_Vector *w_local = hypre_ParVectorLocalVector(w);
+//printf("I have w local, size %d \n", w_local->size);
+ //  (*(cogmres_functions->Matvec))(matvec_data,-1.0, A, x, 1.0, w);
 
 			if (solverTimers){
 				time4 = MPI_Wtime();
@@ -777,13 +778,13 @@ printf("I have w local\n");
 
 			//copy BACK
 			//
-			/*
+			
 if (usePrecond){
 				cudaMemcpy (x_GPUonly,
 						w->local_vector->data, 
 						(sz)*sizeof(HYPRE_Real),
 						cudaMemcpyDeviceToDevice ); 
-			}*/
+			}
 			InnerProdGPUonly(p,  
 					p, 
 					&r_norm, 

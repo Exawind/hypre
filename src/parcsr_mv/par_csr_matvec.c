@@ -45,12 +45,12 @@ printf("comm set \n");
    hypre_CSRMatrix   *diag   = hypre_ParCSRMatrixDiag(A);
    hypre_CSRMatrix   *offd   = hypre_ParCSRMatrixOffd(A);
 printf("diag and off-diag set \n");
-   hypre_Vector      *x_local  = hypre_ParVectorLocalVector(x);   
-printf("x set \n");
    hypre_Vector      *b_local  = hypre_ParVectorLocalVector(b);   
 printf("b set \n");
    hypre_Vector      *y_local  = hypre_ParVectorLocalVector(y);   
 printf("y set \n");
+   hypre_Vector      *x_local  = hypre_ParVectorLocalVector(x);   
+printf("x set \n");
    HYPRE_Int          num_rows = hypre_ParCSRMatrixGlobalNumRows(A);
    HYPRE_Int          num_cols = hypre_ParCSRMatrixGlobalNumCols(A);
 
@@ -59,6 +59,7 @@ printf("vectors digged put \n");
    HYPRE_Int          x_size = hypre_ParVectorGlobalSize(x);
    HYPRE_Int          b_size = hypre_ParVectorGlobalSize(b);
    HYPRE_Int          y_size = hypre_ParVectorGlobalSize(y);
+printf("sizes: %d %d %d ", x_size, b_size, y_size);
    HYPRE_Int          num_vectors = hypre_VectorNumVectors(x_local);
    HYPRE_Int          num_cols_offd = hypre_CSRMatrixNumCols(offd);
    HYPRE_Int          ierr = 0;
@@ -163,26 +164,35 @@ printf("b_size %d y_size %d \n", b_size, y_size);
 #ifdef HYPRE_USE_GPU
       PUSH_RANGE("PERCOMM2DEVICE",4);
 #ifdef HYPRE_USING_PERSISTENT_COMM
+
+printf("packing on device using persistent comm\n");    
       PackOnDevice((HYPRE_Complex*)persistent_comm_handle->send_data,x_local_data,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),begin,end,HYPRE_STREAM(4));
       //PrintPointerAttributes(persistent_comm_handle->send_data);
 #else
 #if defined(DEBUG_PACK_ON_DEVICE)
+
+printf("packing on device using MANAGED\n");    
       hypre_CheckErrorDevice(cudaPeekAtLastError());
       hypre_CheckErrorDevice(cudaDeviceSynchronize());
       ASSERT_MANAGED(x_buf_data[0]);
       ASSERT_MANAGED(x_local_data);
       ASSERT_MANAGED(hypre_ParCSRCommPkgSendMapElmts(comm_pkg));
 #endif
-      PackOnDevice((HYPRE_Complex*)x_buf_data[0],x_local_data,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),begin,end,HYPRE_STREAM(4));
+
+#if defined (HYPRE_USE_MANAGED) 
+printf("packing on device 0\n");    
+     PackOnDevice((HYPRE_Complex*)x_buf_data[0],x_local_data,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),begin,end,HYPRE_STREAM(4));
+#endif
 #if defined(DEBUG_PACK_ON_DEVICE)
-      hypre_CheckErrorDevice(cudaPeekAtLastError());
+printf("packing on device\n");    
+  hypre_CheckErrorDevice(cudaPeekAtLastError());
       hypre_CheckErrorDevice(cudaDeviceSynchronize());
 #endif
 #endif
       POP_RANGE;
       SetAsyncMode(1);
       hypre_CheckErrorDevice(cudaPeekAtLastError());
-      hypre_CheckErrorDevice(cudaDeviceSynchronize());
+ //     hypre_CheckErrorDevice(cudaDeviceSynchronize());
       hypre_CSRMatrixMatvecOutOfPlace( alpha, diag, x_local, beta, b_local, y_local, 0);
       //hypre_SeqVectorUpdateHost(y_local);
       //hypre_SeqVectorUpdateHost(x_local);

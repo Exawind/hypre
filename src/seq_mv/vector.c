@@ -53,7 +53,7 @@ hypre_SeqVectorCreate( HYPRE_Int size )
 
 				hypre_VectorNumVectors(vector) = 1;
 				hypre_VectorMultiVecStorageMethod(vector) = 0;
-
+printf("woohoo! creating seq vector \n");
 				/* set defaults */
 				hypre_VectorOwnsData(vector) = 1;
 
@@ -147,13 +147,16 @@ d_data = hypre_VectorDeviceData(vector);
 hypre_SeqVectorInitialize( hypre_Vector *vector )
 {
 				HYPRE_Int  size = hypre_VectorSize(vector);
+printf("seq vector, local size %d \n", size);
 				HYPRE_Int  ierr = 0;
 				HYPRE_Int  num_vectors = hypre_VectorNumVectors(vector);
 				HYPRE_Int  multivec_storage_method = hypre_VectorMultiVecStorageMethod(vector);
 
 				if ( ! hypre_VectorData(vector) ){
 #if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
-								hypre_VectorDeviceData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_DEVICE);
+							
+printf("SEQ vector:  GPU data init \n");
+	hypre_VectorDeviceData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_DEVICE);
 #endif
 								hypre_VectorData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_SHARED);
 }
@@ -229,6 +232,56 @@ hypre_SeqVectorRead( char *file_name )
 				hypre_assert( hypre_VectorNumVectors(vector) == 1 );
 
 				return vector;
+}
+
+
+/*--------------------------------------------------------------------------
+ * hypre_SeqVectorInnerProdOneOfMult
+ * written by KS. Inner Prod for mult-vectors (stored columnwise) 
+ * but we multiply ONLY ONE VECTOR BY ONE VECTOR
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Real   hypre_SeqVectorInnerProdOneOfMult( hypre_Vector *x, HYPRE_Int k1,
+								hypre_Vector *y, HYPRE_Int k2 ){
+
+
+				HYPRE_Int size   = hypre_VectorSize(x);
+        HYPRE_Int	num_vectors = hypre_VectorNumVectors(x);
+				HYPRE_Int vecstride = hypre_VectorVectorStride(x);
+
+
+				HYPRE_Real     result = 0.0;
+
+
+#if defined(HYPRE_USE_GPU)
+
+				static cublasHandle_t handle;
+				static HYPRE_Int firstcall=1;
+				HYPRE_Complex *x_data = hypre_VectorDeviceData(x);
+				HYPRE_Complex *y_data = hypre_VectorDeviceData(y);
+				cublasStatus_t stat;
+				if (firstcall){
+								handle = getCublasHandle();
+								firstcall=0;
+				}
+				hypre_SeqVectorPrefetchToDevice(x);
+				hypre_SeqVectorPrefetchToDevice(y);
+				stat=cublasDdot(handle, (HYPRE_Int)size,
+												x->data+vecstride*k1, 1,
+												y->data+vecstride*k2, 1,
+												&result);
+        return result;
+#else
+
+				HYPRE_Complex *x_data = hypre_VectorData(x);
+				HYPRE_Complex *y_data = hypre_VectorData(y);
+        int i;
+				for (i = 0; i < size; i++)
+								result += hypre_conj(y_data[k2*vecstride+i]) * x_data[k1*vecstride+i];
+        return result'
+#endif
+
+
 }
 
 /*--------------------------------------------------------------------------
@@ -846,9 +899,12 @@ hypre_SeqVectorCopyDevice( hypre_Vector *x,
 
 				if (size > size_y) size = size_y;
 				size *=hypre_VectorNumVectors(x);
+
+#ifdef HYPRE_USE_MANAGED
 				PUSH_RANGE_PAYLOAD("VECCOPYDEVICE",2,size);
 				hypre_SeqVectorPrefetchToDevice(x);
 				hypre_SeqVectorPrefetchToDevice(y);
+#endif
 #ifdef HYPRE_USE_GPU
 				VecCopy(y_data,x_data,size,HYPRE_STREAM(4));
 #endif

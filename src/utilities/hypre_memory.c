@@ -83,8 +83,9 @@ static inline HYPRE_Int hypre_RedefMemLocation(HYPRE_Int location)
 
    if (location == HYPRE_MEMORY_DEVICE)
    {
-#if !DEVICE_ALWARYS_DEVICE && HYPRE_MEMORY_ENV == DEVC_MEM_WTUM
-      return HYPRE_MEMORY_SHARED;
+//#if !DEVICE_ALWARYS_DEVICE && HYPRE_MEMORY_ENV == DEVC_MEM_WTUM
+#if defined(HYPRE_USE_MANAGED)  
+    return HYPRE_MEMORY_SHARED;
 #else
       return HYPRE_MEMORY_DEVICE;
 #endif
@@ -224,6 +225,7 @@ hypre_DeviceMalloc(size_t size, HYPRE_Int zeroinit)
 #else
    /* cudaMalloc */
    hypre_CheckErrorDevice( cudaMalloc(&ptr, size + sizeof(size_t)*MEM_PAD_LEN) );
+printf("CUDA MALLOC!!!!\n");
  //  hypre_CheckErrorDevice( cudaDeviceSynchronize() );
    hypre_Memcpy(ptr, &size, sizeof(size_t), HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_HOST);
    size_t *sp = (size_t*) ptr;
@@ -292,8 +294,9 @@ hypre_MAllocWithInit(size_t size, HYPRE_Int zeroinit, HYPRE_Int location)
 
    void *ptr = NULL;
 
+//printf("INSIDE CALLLOC - INITIAL location is %d\n", location);
    location = hypre_RedefMemLocation(location);
-
+//printf("INSIDE CALLLOC - location is %d\n", location);
    switch (location)
    {
       case HYPRE_MEMORY_HOST :
@@ -302,6 +305,7 @@ hypre_MAllocWithInit(size_t size, HYPRE_Int zeroinit, HYPRE_Int location)
          break;
       case HYPRE_MEMORY_DEVICE :
          /* ask for device memory */
+         printf("\nDEV memory \n");
          ptr = hypre_DeviceMalloc(size, zeroinit);
          break;
       case HYPRE_MEMORY_SHARED :
@@ -319,6 +323,7 @@ hypre_MAllocWithInit(size_t size, HYPRE_Int zeroinit, HYPRE_Int location)
 
    if (!ptr)
    {
+printf("out of memory \n");
       hypre_OutOfMemory(size);
    }
 

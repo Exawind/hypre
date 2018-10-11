@@ -369,6 +369,8 @@ HYPRE_Int hypre_IJMatrixSetRowSizesParCSR ( hypre_IJMatrix *matrix , const HYPRE
 HYPRE_Int hypre_IJMatrixSetDiagOffdSizesParCSR ( hypre_IJMatrix *matrix , const HYPRE_Int *diag_sizes , const HYPRE_Int *offdiag_sizes );
 HYPRE_Int hypre_IJMatrixSetMaxOffProcElmtsParCSR ( hypre_IJMatrix *matrix , HYPRE_Int max_off_proc_elmts );
 HYPRE_Int hypre_IJMatrixInitializeParCSR ( hypre_IJMatrix *matrix );
+HYPRE_Int hypre_IJMatrixCopyGPUtoCPUParCSR ( hypre_IJMatrix *matrix );
+HYPRE_Int hypre_IJMatrixCopyCPUtoGPUParCSR ( hypre_IJMatrix *matrix );
 HYPRE_Int hypre_IJMatrixGetRowCountsParCSR ( hypre_IJMatrix *matrix , HYPRE_Int nrows , HYPRE_Int *rows , HYPRE_Int *ncols );
 HYPRE_Int hypre_IJMatrixGetValuesParCSR ( hypre_IJMatrix *matrix , HYPRE_Int nrows , HYPRE_Int *ncols , HYPRE_Int *rows , HYPRE_Int *cols , HYPRE_Complex *values );
 HYPRE_Int hypre_IJMatrixSetValuesParCSR ( hypre_IJMatrix *matrix , HYPRE_Int nrows , HYPRE_Int *ncols , const HYPRE_Int *rows , const HYPRE_Int *cols , const HYPRE_Complex *values );
@@ -422,6 +424,8 @@ HYPRE_Int hypre_IJVectorCopyDataCPUtoGPUPar(hypre_IJVector  *vector);
 HYPRE_Int HYPRE_IJMatrixCreate ( MPI_Comm comm , HYPRE_Int ilower , HYPRE_Int iupper , HYPRE_Int jlower , HYPRE_Int jupper , HYPRE_IJMatrix *matrix );
 HYPRE_Int HYPRE_IJMatrixDestroy ( HYPRE_IJMatrix matrix );
 HYPRE_Int HYPRE_IJMatrixInitialize ( HYPRE_IJMatrix matrix );
+HYPRE_Int HYPRE_IJMatrixCopyCPUtoGPU ( HYPRE_IJMatrix matrix );
+HYPRE_Int HYPRE_IJMatrixCopyGPUtoCPU ( HYPRE_IJMatrix matrix );
 HYPRE_Int HYPRE_IJMatrixSetPrintLevel ( HYPRE_IJMatrix matrix , HYPRE_Int print_level );
 HYPRE_Int HYPRE_IJMatrixSetValues ( HYPRE_IJMatrix matrix , HYPRE_Int nrows , HYPRE_Int *ncols , const HYPRE_Int *rows , const HYPRE_Int *cols , const HYPRE_Complex *values );
 HYPRE_Int HYPRE_IJMatrixSetConstantValues ( HYPRE_IJMatrix matrix , HYPRE_Complex value );

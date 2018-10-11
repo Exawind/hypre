@@ -49,7 +49,7 @@ hypre_ParKrylovCreateVector( void *vvector )
 {
 	hypre_ParVector *vector = (hypre_ParVector *) vvector;
 	hypre_ParVector *new_vector;
-
+printf("global size %d \n", hypre_ParVectorGlobalSize(vector));
 	new_vector = hypre_ParVectorCreate( hypre_ParVectorComm(vector),
 			hypre_ParVectorGlobalSize(vector),	
 			hypre_ParVectorPartitioning(vector) );
@@ -177,6 +177,20 @@ hypre_ParKrylovInnerProd( void *x,
 	return ( hypre_ParVectorInnerProd( (hypre_ParVector *) x,
 				(hypre_ParVector *) y ) );
 }
+
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovInnerProdOneOfMult
+ *--------------------------------------------------------------------------*/
+
+	HYPRE_Real
+hypre_ParKrylovInnerProd( void *x, HYPRE_Int k1,
+		void *y, HYPRE_Int k2 )
+{
+	return ( hypre_ParVectorInnerProdOneOfMult( (hypre_ParVector *) x,k1,
+				(hypre_ParVector *) y, k2 ) );
+}
+
 
 /*--------------------------------------------------------------------------
  * hypre_ParKrylovMassInnerProd // written by KS
