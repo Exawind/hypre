@@ -726,6 +726,7 @@ HYPRE_Int GSoption;
 #endif
 #endif
 
+	HYPRE_Real hypre_ParKrylovInnerProdOneOfMult ( void *x ,HYPRE_Int k1, void *y, HYPRE_Int k2 );
 
 
   /***********end of KS code *********/

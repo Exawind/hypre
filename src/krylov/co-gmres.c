@@ -761,6 +761,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
     w =  (hypre_ParVector*) (cogmres_data->w);
 (*(cogmres_functions->CopyVector))(b, w);
 //printf("about to initialize! \n");
+printf("Inner prod is %f \n\n", hypre_ParKrylovInnerProdOneOfMult(b,0, w,0));
 //hypre_ParVectorInitialize(w);
 
 	//	(cogmres_data -> w_2) = (*(cogmres_functions->CreateVector))(b);

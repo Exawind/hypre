@@ -67,6 +67,7 @@ HYPRE_Int HYPRE_ParVectorSetRandomValues( HYPRE_ParVector vector , HYPRE_Int see
 HYPRE_Int HYPRE_ParVectorCopy( HYPRE_ParVector x , HYPRE_ParVector y );
 HYPRE_Int HYPRE_ParVectorScale( HYPRE_Complex value , HYPRE_ParVector x );
 HYPRE_Int HYPRE_ParVectorInnerProd( HYPRE_ParVector x , HYPRE_ParVector y , HYPRE_Real *prod );
+HYPRE_Int HYPRE_ParVectorInnerProdOneOfMult( HYPRE_ParVector x , HYPRE_Int k1,  HYPRE_ParVector y , HYPRE_Int k2,  HYPRE_Real *prod );
 HYPRE_Int HYPRE_VectorToParVector( MPI_Comm comm , HYPRE_Vector b , HYPRE_Int *partitioning , HYPRE_ParVector *vector );
 
 HYPRE_Int HYPRE_ParVectorCopyDataCPUtoGPU( HYPRE_ParVector vector );

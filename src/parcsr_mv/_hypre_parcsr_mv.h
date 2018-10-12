@@ -694,6 +694,7 @@ extern "C" {
 	HYPRE_Int HYPRE_ParVectorScale ( HYPRE_Complex value , HYPRE_ParVector x );
 	HYPRE_Int HYPRE_ParVectorAxpy ( HYPRE_Complex alpha , HYPRE_ParVector x , HYPRE_ParVector y );
 	HYPRE_Int HYPRE_ParVectorInnerProd ( HYPRE_ParVector x , HYPRE_ParVector y , HYPRE_Real *prod );
+	HYPRE_Int HYPRE_ParVectorInnerProdOneOfMult ( HYPRE_ParVector x ,HYPRE_Int k1,  HYPRE_ParVector y , HYPRE_Int k2, HYPRE_Real *prod );
 	// added by KS
 	// mass inner product with x being multiple vectors.
 
@@ -905,6 +906,7 @@ extern "C" {
 	HYPRE_Int hypre_ParVectorScale ( HYPRE_Complex alpha , hypre_ParVector *y );
 	HYPRE_Int hypre_ParVectorAxpy ( HYPRE_Complex alpha , hypre_ParVector *x , hypre_ParVector *y );
 	HYPRE_Real hypre_ParVectorInnerProd ( hypre_ParVector *x , hypre_ParVector *y );
+	HYPRE_Real hypre_ParVectorInnerProdOneOfMult ( hypre_ParVector *x , HYPRE_Int k1,  hypre_ParVector *y, HYPRE_Int k2 );
 	hypre_ParVector *hypre_VectorToParVector ( MPI_Comm comm , hypre_Vector *v , HYPRE_Int *vec_starts );
 	hypre_Vector *hypre_ParVectorToVectorAll ( hypre_ParVector *par_v );
 	HYPRE_Int hypre_ParVectorPrintIJ ( hypre_ParVector *vector , HYPRE_Int base_j , const char *filename );
