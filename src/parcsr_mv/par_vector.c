@@ -390,6 +390,21 @@ hypre_ParVectorCopy( hypre_ParVector *x,
   return hypre_SeqVectorCopy(x_local, y_local);
 }
 
+
+/*--------------------------------------------------------------------------
+ * hypre_ParVectorCopyOneOfMult
+ *--------------------------------------------------------------------------*/
+
+  HYPRE_Int
+hypre_ParVectorCopyOneOfMult( hypre_ParVector *x, HYPRE_Int k1,
+    hypre_ParVector *y, HYPRE_Int k2 )
+{
+  hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
+  hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
+  return hypre_SeqVectorCopyOneOfMult(x_local, k1, y_local, k2);
+}
+
+
 /*--------------------------------------------------------------------------
  * hypre_ParVectorCloneShallow
  * returns a complete copy of a hypre_ParVector x - a shallow copy, re-using
@@ -427,6 +442,37 @@ hypre_ParVectorScale( HYPRE_Complex    alpha,
 
   return hypre_SeqVectorScale( alpha, y_local);
 }
+
+
+/*--------------------------------------------------------------------------
+ * hypre_ParVectorScaleOneOfMult
+ *--------------------------------------------------------------------------*/
+
+  HYPRE_Int
+hypre_ParVectorScaleOneOfMult( HYPRE_Complex    alpha,
+    hypre_ParVector *y, HYPRE_Int k1 )
+{
+  hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
+
+  return hypre_SeqVectorScaleOneOfMult( alpha, y_local, k1);
+}
+
+
+/*--------------------------------------------------------------------------
+ * hypre_ParVectorAxpyOneOfMult
+ *--------------------------------------------------------------------------*/
+
+  HYPRE_Int
+hypre_ParVectorAxpyOneOfMult( HYPRE_Complex    alpha,
+    hypre_ParVector *x,HYPRE_Int k1,
+    hypre_ParVector *y, HYPRE_Int k2 )
+{
+  hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
+  hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
+
+  return hypre_SeqVectorAxpyOneOfMult( alpha, x_local,k1, y_local, k2);
+}
+
 
 /*--------------------------------------------------------------------------
  * hypre_ParVectorAxpy
@@ -468,6 +514,24 @@ hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
 }
 
 
+/*--------------------------------------------------------------------------
+ * hypre_ParVectorMassAxpyMult: y = y + a(1) x_1 + a(2)x_2 + ... + a(k)x_k 
+ *--------------------------------------------------------------------------*/
+
+void
+hypre_ParVectorMassAxpyMult( HYPRE_Real * alpha,
+    hypre_ParVector *x,
+HYPRE_Int k,
+    hypre_ParVector *y ,HYPRE_Int k2)
+{
+//now x local is an array of vectors.
+
+ HYPRE_Int i; 
+hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
+hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
+
+  return hypre_SeqVectorMassAxpyMult( alpha, x_local,k, y_local, k2);
+}
 
 /*--------------------------------------------------------------------------
  * hypre_ParVectorInnerProd
@@ -523,7 +587,67 @@ hypre_ParVectorInnerProdOneOfMult( hypre_ParVector *x,HYPRE_Int k1,
 
   return result;
 }
+//Mass Inner Prod for multivectors
 
+
+void  hypre_ParVectorMassInnerProdMult( hypre_ParVector *x, HYPRE_Int k,
+    hypre_ParVector *y, HYPRE_Int k2, HYPRE_Real *result  ){
+
+  MPI_Comm      comm    = hypre_ParVectorComm(x);
+  hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
+
+  hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
+  int i;
+
+HYPRE_Real * local_result; 
+#if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
+ local_result = hypre_TAlloc(HYPRE_Real , k,       HYPRE_MEMORY_GPU);
+#else
+  local_result= (HYPRE_Real *)calloc(k, sizeof(HYPRE_Real)); 
+#endif
+  hypre_SeqVectorMassInnerProdMult(x_local,k, y_local,k2, local_result);
+
+#ifdef HYPRE_PROFILE
+  hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] -= hypre_MPI_Wtime();
+#endif
+  hypre_MPI_Allreduce(local_result, result, k, HYPRE_MPI_REAL,
+      hypre_MPI_SUM, comm);
+#ifdef HYPRE_PROFILE
+  hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] += hypre_MPI_Wtime();
+#endif
+}
+
+//version for multivectors but with build-in scaling
+//
+
+
+
+void  hypre_ParVectorMassInnerProdWithScalingMult( hypre_ParVector *x, HYPRE_Int k,
+    hypre_ParVector *y, HYPRE_Int k2,HYPRE_Real *scaleFactors,  HYPRE_Real *result  ){
+
+  MPI_Comm      comm    = hypre_ParVectorComm(x);
+  hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
+
+  hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
+  int i;
+
+HYPRE_Real * local_result; 
+#if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
+ local_result = hypre_TAlloc(HYPRE_Real , k,       HYPRE_MEMORY_GPU);
+#else
+  local_result= (HYPRE_Real *)calloc(k, sizeof(HYPRE_Real)); 
+#endif
+  hypre_SeqVectorMassInnerProdWithScalingMult(x_local,k, y_local,k2,scaleFactors, local_result);
+
+#ifdef HYPRE_PROFILE
+  hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] -= hypre_MPI_Wtime();
+#endif
+  hypre_MPI_Allreduce(local_result, result, k, HYPRE_MPI_REAL,
+      hypre_MPI_SUM, comm);
+#ifdef HYPRE_PROFILE
+  hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] += hypre_MPI_Wtime();
+#endif
+}
 
 
 void  hypre_ParVectorMassInnerProd( hypre_ParVector *x,

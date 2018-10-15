@@ -433,14 +433,24 @@ void InnerProdGPUonly(const double * __restrict__ u,
 	HYPRE_Int hypre_SeqVectorSetConstantValues ( hypre_Vector *v , HYPRE_Complex value );
 	HYPRE_Int hypre_SeqVectorSetRandomValues ( hypre_Vector *v , HYPRE_Int seed );
 	HYPRE_Int hypre_SeqVectorCopy ( hypre_Vector *x , hypre_Vector *y );
+	HYPRE_Int hypre_SeqVectorCopyOneOfMult ( hypre_Vector *x , HYPRE_Int k1,  hypre_Vector *y, HYPRE_Int k2 );
 	hypre_Vector *hypre_SeqVectorCloneDeep ( hypre_Vector *x );
 	hypre_Vector *hypre_SeqVectorCloneShallow ( hypre_Vector *x );
 	HYPRE_Int hypre_SeqVectorScale ( HYPRE_Complex alpha , hypre_Vector *y );
+	HYPRE_Int hypre_SeqVectorScaleOneOfMult ( HYPRE_Complex alpha , hypre_Vector *y, HYPRE_Int k1 );
 	HYPRE_Int hypre_SeqVectorAxpy ( HYPRE_Complex alpha , hypre_Vector *x , hypre_Vector *y );
 	HYPRE_Real hypre_SeqVectorInnerProd ( hypre_Vector *x , hypre_Vector *y );
 	HYPRE_Real hypre_SeqVectorInnerProdOneOfMult ( hypre_Vector *x ,HYPRE_Int k1, hypre_Vector *y, HYPRE_Int k2 );
+  HYPRE_Int  hypre_SeqVectorAxpyOneOfMult(HYPRE_Complex alpha,  hypre_Vector* x , HYPRE_Int k1,  hypre_Vector* y , HYPRE_Int k2 );
 	void  hypre_SeqVectorMassInnerProd(hypre_Vector *x, hypre_Vector **y,int k,  HYPRE_Real * result);
 	void hypre_SeqVectorMassAxpy(HYPRE_Real * alpha, hypre_Vector **x, hypre_Vector *y, HYPRE_Int k);
+
+
+	void  hypre_SeqVectorMassInnerProdMult(hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2,  HYPRE_Real * result);
+	void  hypre_SeqVectorMassInnerProdWithScalingMult(hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2,HYPRE_Real * scaleFactors,  HYPRE_Real * result);
+	void hypre_SeqVectorMassAxpyMult(HYPRE_Real * alpha, hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2);
+
+
 	HYPRE_Complex hypre_VectorSumElts ( hypre_Vector *vector );
 #if defined(HYPRE_USE_MANAGED) || defined(HYPRE_USE_GPU)
 	HYPRE_Complex hypre_VectorSumAbsElts ( hypre_Vector *vector );

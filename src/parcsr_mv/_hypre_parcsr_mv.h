@@ -690,11 +690,13 @@ extern "C" {
 	HYPRE_Int HYPRE_ParVectorSetConstantValues ( HYPRE_ParVector vector , HYPRE_Complex value );
 	HYPRE_Int HYPRE_ParVectorSetRandomValues ( HYPRE_ParVector vector , HYPRE_Int seed );
 	HYPRE_Int HYPRE_ParVectorCopy ( HYPRE_ParVector x , HYPRE_ParVector y );
+	HYPRE_Int HYPRE_ParVectorCopyOneOfMult ( HYPRE_ParVector x , HYPRE_Int k1, HYPRE_ParVector y, HYPRE_Int k2 );
 	HYPRE_ParVector HYPRE_ParVectorCloneShallow ( HYPRE_ParVector x );
-	HYPRE_Int HYPRE_ParVectorScale ( HYPRE_Complex value , HYPRE_ParVector x );
+	HYPRE_Int HYPRE_ParVectorScaleOneOfMult ( HYPRE_Complex value , HYPRE_ParVector x, HYPRE_Int k1 );
 	HYPRE_Int HYPRE_ParVectorAxpy ( HYPRE_Complex alpha , HYPRE_ParVector x , HYPRE_ParVector y );
 	HYPRE_Int HYPRE_ParVectorInnerProd ( HYPRE_ParVector x , HYPRE_ParVector y , HYPRE_Real *prod );
 	HYPRE_Int HYPRE_ParVectorInnerProdOneOfMult ( HYPRE_ParVector x ,HYPRE_Int k1,  HYPRE_ParVector y , HYPRE_Int k2, HYPRE_Real *prod );
+  HYPRE_Int HYPRE_ParVectorAxpyOneOfMult(HYPRE_Complex alpha,  HYPRE_ParVector x , HYPRE_Int k1,  HYPRE_ParVector y , HYPRE_Int k2 );
 	// added by KS
 	// mass inner product with x being multiple vectors.
 
@@ -707,6 +709,12 @@ extern "C" {
 	void  hypre_ParVectorMassAxpy      ( HYPRE_Real *alpha, hypre_ParVector **x, hypre_ParVector *y, HYPRE_Int k);  
 
 
+	void HYPRE_ParVectorMassInnerProdMult ( HYPRE_ParVector x , HYPRE_Int k, HYPRE_ParVector y , HYPRE_Int k2, HYPRE_Real *prod );
+	void HYPRE_ParVectorMassInnerProdWithScalingMult ( HYPRE_ParVector x , HYPRE_Int k, HYPRE_ParVector y , HYPRE_Int k2,HYPRE_Real *scaleFactors, HYPRE_Real *prod );
+	void hypre_ParVectorMassInnerProdMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y , HYPRE_Int k2, HYPRE_Real *prod );
+	void hypre_ParVectorMassInnerProdWithScalingMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y , HYPRE_Int k2,HYPRE_Real *scaleFactors,  HYPRE_Real *prod );
+	void  HYPRE_ParVectorMassAxpyMult      ( HYPRE_Real *alpha, HYPRE_ParVector x, HYPRE_Int k,  HYPRE_ParVector y, HYPRE_Int k2);  
+	void  hypre_ParVectorMassAxpyMult      ( HYPRE_Real *alpha, hypre_ParVector *x, HYPRE_Int k, hypre_ParVector *y, HYPRE_Int k2);  
 
 
 	void HYPRE_ParVectorMassInnerProdGPU ( HYPRE_Real * x , HYPRE_Real *y , HYPRE_Int k, HYPRE_Int n,HYPRE_Real *prod );
@@ -902,11 +910,14 @@ extern "C" {
 	HYPRE_Int hypre_ParVectorSetConstantValues ( hypre_ParVector *v , HYPRE_Complex value );
 	HYPRE_Int hypre_ParVectorSetRandomValues ( hypre_ParVector *v , HYPRE_Int seed );
 	HYPRE_Int hypre_ParVectorCopy ( hypre_ParVector *x , hypre_ParVector *y );
+	HYPRE_Int hypre_ParVectorCopyOneOfMult ( hypre_ParVector *x , HYPRE_Int k1,  hypre_ParVector *y, HYPRE_Int k2 );
 	hypre_ParVector *hypre_ParVectorCloneShallow ( hypre_ParVector *x );
 	HYPRE_Int hypre_ParVectorScale ( HYPRE_Complex alpha , hypre_ParVector *y );
+	HYPRE_Int hypre_ParVectorScaleOneOfMult ( HYPRE_Complex alpha , hypre_ParVector *y, HYPRE_Int k1 );
 	HYPRE_Int hypre_ParVectorAxpy ( HYPRE_Complex alpha , hypre_ParVector *x , hypre_ParVector *y );
 	HYPRE_Real hypre_ParVectorInnerProd ( hypre_ParVector *x , hypre_ParVector *y );
 	HYPRE_Real hypre_ParVectorInnerProdOneOfMult ( hypre_ParVector *x , HYPRE_Int k1,  hypre_ParVector *y, HYPRE_Int k2 );
+  HYPRE_Int hypre_ParVectorAxpyOneOfMult(HYPRE_Complex alpha,  hypre_ParVector *x , HYPRE_Int k1,  hypre_ParVector *y , HYPRE_Int k2 );
 	hypre_ParVector *hypre_VectorToParVector ( MPI_Comm comm , hypre_Vector *v , HYPRE_Int *vec_starts );
 	hypre_Vector *hypre_ParVectorToVectorAll ( hypre_ParVector *par_v );
 	HYPRE_Int hypre_ParVectorPrintIJ ( hypre_ParVector *vector , HYPRE_Int base_j , const char *filename );
@@ -926,4 +937,6 @@ HYPRE_Int hypre_ParVectorCopyDataGPUtoCPU( hypre_ParVector * vector );
 #endif
 
 #endif
+
+
 

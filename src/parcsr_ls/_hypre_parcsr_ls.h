@@ -1624,16 +1624,26 @@ HYPRE_Int hypre_ParKrylovMatvecT ( void *matvec_data , HYPRE_Complex alpha , voi
 HYPRE_Int hypre_ParKrylovMatvecDestroy ( void *matvec_data );
 HYPRE_Real hypre_ParKrylovInnerProd ( void *x , void *y );
 HYPRE_Real hypre_ParKrylovInnerProdOneOfMult ( void *x ,HYPRE_Int k1, void *y, HYPRE_Int k2 );
+HYPRE_Int hypre_ParKrylovAxpyOneOfMult(HYPRE_Complex alpha,  void *x , HYPRE_Int k1,  void *  y , HYPRE_Int k2);
 void  hypre_ParKrylovMassInnerProd ( void *x , void **y, int k, void *result );
 void hypre_ParKrylovMassAxpy( HYPRE_Real *alpha, void **x, void *y, HYPRE_Int k);
+
+
+void  hypre_ParKrylovMassInnerProdMult ( void *x ,HYPRE_Int k, void *y, HYPRE_Int k2, void *result );
+void  hypre_ParKrylovMassInnerProdWithScalingMult ( void *x ,HYPRE_Int k, void *y, HYPRE_Int k2,void *scaleFactors, void *result );
+void hypre_ParKrylovMassAxpyMult( HYPRE_Real *alpha, void *x, HYPRE_Int k, void *y, HYPRE_Int k2);
+
+
 void  hypre_ParKrylovMassInnerProdGPU ( void *x , void *y, int k, int n,  void *result );
 //void  hypre_ParKrylovMassInnerProdGPU (int k, int n,  void *result );
 void hypre_ParKrylovMassAxpyGPU ( HYPRE_Real *alpha, void *x, void *y, HYPRE_Int k, int n);
 
 
 HYPRE_Int hypre_ParKrylovCopyVector ( void *x , void *y );
+HYPRE_Int hypre_ParKrylovCopyVectorOneOfMult ( void *x ,HYPRE_Int k1,  void *y, HYPRE_Int k2 );
 HYPRE_Int hypre_ParKrylovClearVector ( void *x );
 HYPRE_Int hypre_ParKrylovScaleVector ( HYPRE_Complex alpha , void *x );
+HYPRE_Int hypre_ParKrylovScaleVectorOneOfMult ( HYPRE_Complex alpha , void *x, HYPRE_Int k1 );
 HYPRE_Int hypre_ParKrylovAxpy ( HYPRE_Complex alpha , void *x , void *y );
 HYPRE_Int hypre_ParKrylovCommInfo ( void *A , HYPRE_Int *my_id , HYPRE_Int *num_procs );
 HYPRE_Int hypre_ParKrylovIdentitySetup ( void *vdata , void *A , void *b , void *x );

@@ -184,11 +184,60 @@ hypre_ParKrylovInnerProd( void *x,
  *--------------------------------------------------------------------------*/
 
 	HYPRE_Real
-hypre_ParKrylovInnerProd( void *x, HYPRE_Int k1,
+hypre_ParKrylovInnerProdOneOfMult( void *x, HYPRE_Int k1,
 		void *y, HYPRE_Int k2 )
 {
 	return ( hypre_ParVectorInnerProdOneOfMult( (hypre_ParVector *) x,k1,
 				(hypre_ParVector *) y, k2 ) );
+}
+
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovAxpyOneOfMult
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int 
+hypre_ParKrylovAxpyOneOfMult( HYPRE_Complex alpha,void *x, HYPRE_Int k1,
+		void *y, HYPRE_Int k2 )
+{
+	return ( hypre_ParVectorAxpyOneOfMult( alpha, (hypre_ParVector *) x,k1,
+				(hypre_ParVector *) y, k2 ) );
+}
+
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovMassInnerProdMult // written by KS //for multivectors
+ * x is the space, y is the single vector 
+ *--------------------------------------------------------------------------*/
+	void 
+hypre_ParKrylovMassInnerProdMult( void *x,HYPRE_Int k, 
+		void *y, HYPRE_Int k2, void  * result )
+{
+// void HYPRE_ParVectorMassInnerProdMult ( HYPRE_ParVector x , HYPRE_Int k, HYPRE_ParVector y , HYPRE_Int k2, HYPRE_Real *prod );
+	return ( hypre_ParVectorMassInnerProdMult( (hypre_ParVector *) x, 
+ k, 
+(hypre_ParVector *) y,
+k2 , 
+(HYPRE_Real*)result ) );
+}
+
+//version with scaling (custom)
+//
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovMassInnerProdWithScalingMult // written by KS //for multivectors
+ * x is the space, y is the single vector 
+ *--------------------------------------------------------------------------*/
+	void 
+hypre_ParKrylovMassInnerProdWithScalingMult( void *x,HYPRE_Int k, 
+		void *y, HYPRE_Int k2, void *scaleFactors,  void  * result )
+{
+	return ( hypre_ParVectorMassInnerProdWithScalingMult( (hypre_ParVector *) x, 
+ k, 
+(hypre_ParVector *) y,
+k2 ,
+(HYPRE_Real *) scaleFactors,  
+(HYPRE_Real*)result ) );
 }
 
 
@@ -227,6 +276,19 @@ hypre_ParKrylovCopyVector( void *x,
 				(hypre_ParVector *) y ) );
 }
 
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovCopyVectorOneOfMult
+ *--------------------------------------------------------------------------*/
+
+	HYPRE_Int
+hypre_ParKrylovCopyVectorOneOfMult( void *x, HYPRE_Int k1,
+		void *y, HYPRE_Int k2 )
+{
+	return ( hypre_ParVectorCopyOneOfMult( (hypre_ParVector *) x,k1,
+				(hypre_ParVector *) y, k2 ) );
+}
+
 /*--------------------------------------------------------------------------
  * hypre_ParKrylovClearVector
  *--------------------------------------------------------------------------*/
@@ -246,6 +308,18 @@ hypre_ParKrylovScaleVector( HYPRE_Complex  alpha,
 		void   *x     )
 {
 	return ( hypre_ParVectorScale( alpha, (hypre_ParVector *) x ) );
+}
+
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovScaleVectorOneOfMult
+ *--------------------------------------------------------------------------*/
+
+	HYPRE_Int
+hypre_ParKrylovScaleVectorOneOfMult( HYPRE_Complex  alpha,
+		void   *x, HYPRE_Int k1     )
+{
+	return ( hypre_ParVectorScaleOneOfMult( alpha, (hypre_ParVector *) x, k1 ) );
 }
 
 /*--------------------------------------------------------------------------
@@ -273,6 +347,24 @@ hypre_ParKrylovMassAxpy( HYPRE_Real * alpha,
 	return ( hypre_ParVectorMassAxpy( alpha, (hypre_ParVector **) x,
 				(hypre_ParVector *) y ,  k));
 }
+
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovMassAxpyMult (for multivectors, x is a multivector)
+ *--------------------------------------------------------------------------*/
+
+void
+hypre_ParKrylovMassAxpyMult( HYPRE_Real * alpha,
+		void   *x,
+HYPRE_Int k,
+		void   *y ,
+		HYPRE_Int k2){
+	return ( hypre_ParVectorMassAxpyMult( alpha, (hypre_ParVector *) x, k,
+				(hypre_ParVector *) y ,  k2));
+}
+
+
+
 
 //for super optimized GPU version that does not use hypre-vectors.
 void

@@ -762,6 +762,13 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 (*(cogmres_functions->CopyVector))(b, w);
 //printf("about to initialize! \n");
 printf("Inner prod is %f \n\n", hypre_ParKrylovInnerProdOneOfMult(b,0, w,0));
+ hypre_ParKrylovAxpyOneOfMult(1.0, b,0, w,0);
+
+hypre_ParKrylovScaleVectorOneOfMult(1.5,w, 0);
+hypre_ParKrylovCopyVectorOneOfMult(w, 0, b, 0);
+HYPRE_Real test;
+printf("Mass IP %f \n ",test);
+//printf("Inner prod is %f \n\n", hypre_ParKrylovInnerProd(b,w));
 //hypre_ParVectorInitialize(w);
 
 	//	(cogmres_data -> w_2) = (*(cogmres_functions->CreateVector))(b);
