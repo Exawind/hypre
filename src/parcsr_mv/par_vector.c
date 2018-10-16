@@ -575,7 +575,7 @@ hypre_ParVectorInnerProdOneOfMult( hypre_ParVector *x,HYPRE_Int k1,
 
   HYPRE_Real result = 0.0;
   HYPRE_Real local_result = hypre_SeqVectorInnerProdOneOfMult(x_local,k1, y_local, k2);
-
+printf("local result, before all reduce %f \n", local_result);
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] -= hypre_MPI_Wtime();
 #endif

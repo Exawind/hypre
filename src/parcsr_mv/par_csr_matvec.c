@@ -332,6 +332,331 @@ printf("packing on device\n");
    return ierr;
 }
 
+//Matvec-out-of-place for multivectors
+
+/*--------------------------------------------------------------------------
+ * hypre_ParCSRMatrixMatvecMult
+ *--------------------------------------------------------------------------*/
+// y(:, k2) = alpha*A*x(:, k1) + beta*b(:, k3)
+HYPRE_Int
+hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
+                                    hypre_ParCSRMatrix *A,
+                                    hypre_ParVector    *x,
+HYPRE_Int k1,
+                                    HYPRE_Complex       beta,
+                                    hypre_ParVector    *b,
+HYPRE_Int k3,
+                                    hypre_ParVector    *y,
+HYPRE_Int k2)
+{
+   hypre_ParCSRCommHandle **comm_handle;
+   hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
+
+   hypre_CSRMatrix   *diag   = hypre_ParCSRMatrixDiag(A);
+   hypre_CSRMatrix   *offd   = hypre_ParCSRMatrixOffd(A);
+   hypre_Vector      *b_local  = hypre_ParVectorLocalVector(b);   
+   hypre_Vector      *y_local  = hypre_ParVectorLocalVector(y);   
+   hypre_Vector      *x_local  = hypre_ParVectorLocalVector(x);   
+   HYPRE_Int          num_rows = hypre_ParCSRMatrixGlobalNumRows(A);
+   HYPRE_Int          num_cols = hypre_ParCSRMatrixGlobalNumCols(A);
+
+   hypre_Vector      *x_tmp;
+   HYPRE_Int          x_size = hypre_ParVectorGlobalSize(x);
+   HYPRE_Int          b_size = hypre_ParVectorGlobalSize(b);
+   HYPRE_Int          y_size = hypre_ParVectorGlobalSize(y);
+   HYPRE_Int          num_vectors = 1; //while multivec storage, we use only one vector
+//hypre_VectorNumVectors(x_local);
+   HYPRE_Int          num_cols_offd = hypre_CSRMatrixNumCols(offd);
+   HYPRE_Int          ierr = 0;
+   HYPRE_Int          num_sends, i, j, jv, index, start;
+
+   HYPRE_Int          vecstride = hypre_VectorVectorStride( x_local );
+   HYPRE_Int          idxstride = hypre_VectorIndexStride( x_local );
+
+   HYPRE_Complex     *x_tmp_data, **x_buf_data;
+//get the gpu data
+#if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
+   HYPRE_Complex     *x_local_data = hypre_VectorDeviceData(x_local);
+#else
+   HYPRE_Complex     *x_local_data = hypre_VectorData(x_local);
+#endif
+   /*---------------------------------------------------------------------
+    *  Check for size compatibility.  ParMatvec returns ierr = 11 if
+    *  length of X doesn't equal the number of columns of A,
+    *  ierr = 12 if the length of Y doesn't equal the number of rows
+    *  of A, and ierr = 13 if both are true.
+    *
+    *  Because temporary vectors are often used in ParMatvec, none of 
+    *  these conditions terminates processing, and the ierr flag
+    *  is informational only.
+    *--------------------------------------------------------------------*/
+   PUSH_RANGE_PAYLOAD("PAR_CSR_MATVEC",5,x_size);
+   hypre_assert( idxstride>0 );
+ 
+   if (num_cols != x_size)
+      ierr = 11;
+
+   if (num_rows != y_size || num_rows != b_size)
+      ierr = 12;
+
+   if (num_cols != x_size && (num_rows != y_size || num_rows != b_size))
+      ierr = 13;
+
+
+      x_tmp = hypre_SeqVectorCreate( num_cols_offd );
+
+   /*---------------------------------------------------------------------
+    * If there exists no CommPkg for A, a CommPkg is generated using
+    * equally load balanced partitionings
+    *--------------------------------------------------------------------*/
+   if (!comm_pkg)
+   {
+      hypre_MatvecCommPkgCreate(A);
+      comm_pkg = hypre_ParCSRMatrixCommPkg(A); 
+   }
+
+#ifdef HYPRE_PROFILE
+   hypre_profile_times[HYPRE_TIMER_ID_PACK_UNPACK] -= hypre_MPI_Wtime();
+#endif
+   PUSH_RANGE("MPI_PACK",3);
+   HYPRE_Int use_persistent_comm = 0;
+#ifdef HYPRE_USING_PERSISTENT_COMM
+   use_persistent_comm = 1;
+   // JSP TODO: we can use persistent communication for multi-vectors,
+   // but then we need different communication handles for different
+   // num_vectors.
+   hypre_ParCSRPersistentCommHandle *persistent_comm_handle;
+#endif
+
+   if ( use_persistent_comm )
+   {
+#ifdef HYPRE_USING_PERSISTENT_COMM
+     PUSH_RANGE("PERCOMM1",0);
+      persistent_comm_handle = hypre_ParCSRCommPkgGetPersistentCommHandle(1, comm_pkg);
+
+      HYPRE_Int num_recvs = hypre_ParCSRCommPkgNumRecvs(comm_pkg);
+      hypre_assert(num_cols_offd == hypre_ParCSRCommPkgRecvVecStart(comm_pkg, num_recvs));
+
+      hypre_VectorData(x_tmp) = (HYPRE_Complex *)persistent_comm_handle->recv_data;
+      hypre_SeqVectorSetDataOwner(x_tmp, 0);
+      POP_RANGE;
+#endif
+   }
+   else
+   {
+      comm_handle = hypre_CTAlloc(hypre_ParCSRCommHandle*, num_vectors, HYPRE_MEMORY_HOST);
+   }
+   hypre_SeqVectorInitialize(x_tmp);
+   x_tmp_data = hypre_VectorData(x_tmp);
+
+   num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
+   if (!use_persistent_comm)
+   {
+      x_buf_data = hypre_CTAlloc( HYPRE_Complex*,  num_vectors , HYPRE_MEMORY_HOST);
+      for ( jv=0; jv<num_vectors; ++jv )
+         x_buf_data[jv] = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
+                                        (comm_pkg,  num_sends), HYPRE_MEMORY_SHARED);
+   }
+   if ( num_vectors==1 )
+   {
+      HYPRE_Int begin = hypre_ParCSRCommPkgSendMapStart(comm_pkg, 0);
+      HYPRE_Int end   = hypre_ParCSRCommPkgSendMapStart(comm_pkg, num_sends);
+#ifdef HYPRE_USE_GPU
+      PUSH_RANGE("PERCOMM2DEVICE",4);
+#ifdef HYPRE_USING_PERSISTENT_COMM
+
+printf("packing on device using persistent comm\n");    
+      PackOnDevice((HYPRE_Complex*)persistent_comm_handle->send_data,x_local_data+k1*x_size,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),begin,end,HYPRE_STREAM(4));
+      //PrintPointerAttributes(persistent_comm_handle->send_data);
+#else
+#if defined(DEBUG_PACK_ON_DEVICE)
+
+printf("packing on device using MANAGED\n");    
+      hypre_CheckErrorDevice(cudaPeekAtLastError());
+      hypre_CheckErrorDevice(cudaDeviceSynchronize());
+      ASSERT_MANAGED(x_buf_data[0]);
+      ASSERT_MANAGED(x_local_data+k1*x_size);
+      ASSERT_MANAGED(hypre_ParCSRCommPkgSendMapElmts(comm_pkg));
+#endif
+
+#if defined (HYPRE_USE_MANAGED) 
+printf("packing on device 0\n");    
+     PackOnDevice((HYPRE_Complex*)x_buf_data[0],x_local_data+k1*x_size,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),begin,end,HYPRE_STREAM(4));
+#endif
+#if defined(DEBUG_PACK_ON_DEVICE)
+printf("packing on device\n");    
+  hypre_CheckErrorDevice(cudaPeekAtLastError());
+      hypre_CheckErrorDevice(cudaDeviceSynchronize());
+#endif
+#endif
+      POP_RANGE;
+      SetAsyncMode(1);
+      hypre_CheckErrorDevice(cudaPeekAtLastError());
+ //     hypre_CheckErrorDevice(cudaDeviceSynchronize());
+    hypre_CSRMatrixMatvecMultOutOfPlace( alpha, diag, x_local,k1, beta, b_local,k3, y_local, k2, 0);
+      //hypre_SeqVectorUpdateHost(y_local);
+      //hypre_SeqVectorUpdateHost(x_local);
+      //hypre_SeqVectorUpdateHost(b_local);
+      SetAsyncMode(0);
+#else
+#ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD 
+      PUSH_RANGE("MPI_PACK_OMP",4);
+      SyncVectorToHost(x_local);
+#endif
+
+#if defined(HYPRE_USING_OPENMP_OFFLOAD_NOT_USED)
+      HYPRE_Int num_threads=64;
+      HYPRE_Int num_teams = (end-begin+(end-begin)%num_threads)/num_threads;
+      HYPRE_Int *local_send_map_elmts = comm_pkg->send_map_elmts;
+      //printf("USING OFFLOADED PACKING OF BUFER\n");
+#pragma omp target teams  distribute  parallel for private(i) num_teams(num_teams) thread_limit(num_threads) is_device_ptr(x_local_data,x_buf_data,comm_pkg,local_send_map_elmts)
+#elif defined(HYPRE_USING_OPENMP)
+#pragma omp parallel for HYPRE_SMP_SCHEDULE
+#endif
+      for (i = begin; i < end; i++)
+      {
+#ifdef HYPRE_USING_PERSISTENT_COMM
+         ((HYPRE_Complex *)persistent_comm_handle->send_data)[i - begin]
+#else
+         x_buf_data[0][i - begin]
+#endif
+            = x_local_data[hypre_ParCSRCommPkgSendMapElmt(comm_pkg,i)];
+      }
+      POP_RANGE; // "MPI_PACK_OMP"
+#endif
+   }
+   else
+      for ( jv=0; jv<num_vectors; ++jv )
+      {
+         index = 0;
+         for (i = 0; i < num_sends; i++)
+         {
+            start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
+            for (j = start; j < hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1); j++)
+               x_buf_data[jv][index++] 
+                  = x_local_data[
+                     jv*vecstride +
+                     idxstride*hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j) ];
+         }
+      }
+
+   hypre_assert( idxstride==1 );
+   /* ... The assert is because the following loop only works for 'column'
+      storage of a multivector. This needs to be fixed to work more generally,
+      at least for 'row' storage. This in turn, means either change CommPkg so
+      num_sends is no.zones*no.vectors (not no.zones) or, less dangerously, put
+      a stride in the logic of CommHandleCreate (stride either from a new arg or
+      a new variable inside CommPkg).  Or put the num_vector iteration inside
+      CommHandleCreate (perhaps a new multivector variant of it).
+   */
+#ifdef HYPRE_PROFILE
+   hypre_profile_times[HYPRE_TIMER_ID_PACK_UNPACK] += hypre_MPI_Wtime();
+   hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] -= hypre_MPI_Wtime();
+#endif
+   POP_RANGE;
+   PUSH_RANGE("MPI_HALO_EXC_SEND",4);
+   if (use_persistent_comm)
+   {
+#ifdef HYPRE_USING_PERSISTENT_COMM
+      hypre_ParCSRPersistentCommHandleStart(persistent_comm_handle);
+#endif
+   }
+   else
+   {
+      for ( jv=0; jv<num_vectors; ++jv )
+      {
+         comm_handle[jv] = hypre_ParCSRCommHandleCreate
+            ( 1, comm_pkg, x_buf_data[jv], &(x_tmp_data[jv*num_cols_offd]) );
+      }
+   }
+
+#ifdef HYPRE_PROFILE
+   hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] += hypre_MPI_Wtime();
+#endif
+   POP_RANGE;
+#ifndef HYPRE_USE_GPU
+   hypre_CSRMatrixMatvecOutOfPlace( alpha, diag, x_local, beta, b_local, y_local, 0);
+#endif
+#ifdef HYPRE_PROFILE
+   hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] -= hypre_MPI_Wtime();
+#endif
+   PUSH_RANGE("MPI_HALO_EXC_RECV",6);
+   if (use_persistent_comm)
+   {
+#ifdef HYPRE_USING_PERSISTENT_COMM
+      hypre_ParCSRPersistentCommHandleWait(persistent_comm_handle);
+#endif
+   }
+   else
+   {
+      for ( jv=0; jv<num_vectors; ++jv )
+      {
+         hypre_ParCSRCommHandleDestroy(comm_handle[jv]);
+         comm_handle[jv] = NULL;
+      }
+      hypre_TFree(comm_handle, HYPRE_MEMORY_HOST);
+   }
+   POP_RANGE;
+#ifdef HYPRE_PROFILE
+   hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] += hypre_MPI_Wtime();
+#endif
+
+   //hypre_SeqVectorUpdateDevice(x_tmp);
+#ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD   
+   UpdateHRC(x_tmp);
+#endif
+//printf("num cols of diag %d \n", num_cols_offd);
+   if (num_cols_offd) {hypre_CSRMatrixMatvec( alpha, offd, x_tmp, 1.0, y_local); } 
+   //if (num_cols_offd) hypre_SeqVectorUpdateHost(y_local);  
+   //hypre_SeqVectorUpdateHost(x_tmp); 
+#ifdef HYPRE_PROFILE
+   hypre_profile_times[HYPRE_TIMER_ID_PACK_UNPACK] -= hypre_MPI_Wtime();
+#endif
+   PUSH_RANGE("MPI_UNPACK",5);
+   hypre_SeqVectorDestroy(x_tmp);
+   x_tmp = NULL;
+   if (!use_persistent_comm)
+   {
+      for ( jv=0; jv<num_vectors; ++jv ) hypre_TFree(x_buf_data[jv], HYPRE_MEMORY_SHARED);
+      hypre_TFree(x_buf_data, HYPRE_MEMORY_HOST);
+   }
+  
+#ifdef HYPRE_PROFILE
+   hypre_profile_times[HYPRE_TIMER_ID_PACK_UNPACK] += hypre_MPI_Wtime();
+#endif
+   POP_RANGE;
+#ifdef HYPRE_USE_GPU
+   hypre_CheckErrorDevice(cudaStreamSynchronize(HYPRE_STREAM(4)));
+#endif
+   POP_RANGE; // PAR_CSR
+   return ierr;
+}
+
+
+HYPRE_Int
+hypre_ParCSRMatrixMatvecMult( HYPRE_Complex       alpha,
+                          hypre_ParCSRMatrix *A,
+                          hypre_ParVector    *x,
+HYPRE_Int k1,
+                          HYPRE_Complex       beta,
+                          hypre_ParVector    *y,
+HYPRE_Int k2 )
+{
+
+printf("ParCSRMatvec\n");
+/*# ifdef HYPRE_USE_GPU
+PUSH_RANGE_PAYLOAD("MATVEC_CUDA", 0, hypre_CSRMatrixNumRows(A));
+HYPRE_Int ret=hypre_CSRMatrixMatvecDevice(alpha, A, x, beta, y, y, 1);
+POP_RANGE;
+return ret;   
+#else*/
+   return hypre_ParCSRMatrixMatvecMultOutOfPlace(alpha, A, x,k1, beta, y,k2, y,k2);
+//#endif
+}
+
+
+
+
 HYPRE_Int
 hypre_ParCSRMatrixMatvec( HYPRE_Complex       alpha,
                           hypre_ParCSRMatrix *A,

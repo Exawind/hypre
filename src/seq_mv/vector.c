@@ -251,10 +251,10 @@ HYPRE_Real   hypre_SeqVectorInnerProdOneOfMult( hypre_Vector *x, HYPRE_Int k1,
 
 
 				HYPRE_Real     result = 0.0;
-
+printf("about to multiply HYPRE_USE_GPU %di, k1 = %d k2=%d size = %d \n", HYPRE_USE_GPU, k1, k2, size);
 
 #if defined(HYPRE_USE_GPU)
-
+printf("will be using cublas \n");
 				static cublasHandle_t handle;
 				static HYPRE_Int firstcall=1;
 				HYPRE_Complex *x_data = hypre_VectorDeviceData(x);
@@ -266,13 +266,16 @@ HYPRE_Real   hypre_SeqVectorInnerProdOneOfMult( hypre_Vector *x, HYPRE_Int k1,
 				}
 //				hypre_SeqVectorPrefetchToDevice(x);
 	//			hypre_SeqVectorPrefetchToDevice(y);
+	printf("about to cublas\n");
 				stat=cublasDdot(handle, (HYPRE_Int)size,
 												x_data+size*k1, 1,
 												y_data+size*k2, 1,
 												&result);
+printf("cublas status %d, local IP %f \n", stat, result);
+
         return result;
 #else
-
+printf("NOT USING GPU \n");
 				HYPRE_Complex *x_data = hypre_VectorData(x);
 				HYPRE_Complex *y_data = hypre_VectorData(y);
         int i;

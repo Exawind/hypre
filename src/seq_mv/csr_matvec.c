@@ -466,6 +466,34 @@ HYPRE_Int ret;
    return ierr;
 }
 
+// for multivectors
+//
+
+/* y[offset:end, k2] = alpha*A[offset:end,:]*x(:, k1) + beta*b[offset:end, k3] */
+HYPRE_Int
+hypre_CSRMatrixMatvecMultOutOfPlace( HYPRE_Complex    alpha,
+                                 hypre_CSRMatrix *A,
+                                 hypre_Vector    *x,
+HYPRE_Int k1,
+                                 HYPRE_Complex    beta,
+                                 hypre_Vector    *b,
+HYPRE_Int k3,
+                                 hypre_Vector    *y,
+HYPRE_Int k2,
+                                 HYPRE_Int        offset     )
+{
+HYPRE_Int ret, ierr = 101;
+#if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)  
+ret=hypre_CSRMatrixMatvecMultDevice( alpha,A,x,k1, beta,b,k3, y,k2, offset);
+  return ret;
+#else
+printf("it does not work with MANAGED nor without GPU! change your parameters or write a proper function\n");
+   return ierr;
+#endif
+}
+
+
+
 HYPRE_Int
 hypre_CSRMatrixMatvec( HYPRE_Complex    alpha,
                        hypre_CSRMatrix *A,
@@ -962,6 +990,80 @@ printf("status %d \n", status);
 }
 //KS code
 //
+//version for multivectors (i.e., A*x(:, k1) = y(:, k2)
+//
+
+HYPRE_Int
+hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
+                       hypre_CSRMatrix *A,
+                       hypre_Vector    *x,
+HYPRE_Int k1,
+                       HYPRE_Complex    beta,
+		       hypre_Vector    *b,
+HYPRE_Int k3,
+		       hypre_Vector    *y,
+HYPRE_Int k2,
+		       HYPRE_Int offset )
+{
+
+   HYPRE_Int         x_size = hypre_VectorSize(x);
+   HYPRE_Int         y_size = hypre_VectorSize(y) - offset;
+  static cusparseHandle_t handle;
+  static cusparseMatDescr_t descr;
+  static HYPRE_Int FirstCall=1;
+  cusparseStatus_t status;
+  static cudaStream_t s[10];
+  static HYPRE_Int myid;
+
+  if (b!=y){
+    PUSH_RANGE_PAYLOAD("MEMCPY",1,y->size-offset);
+    VecCopy(y->data,b->data,(y->size-offset),HYPRE_STREAM(4));
+    POP_RANGE
+  }
+
+  if (x==y) fprintf(stderr,"ERROR::x and y are the same pointer in hypre_CSRMatrixMatvecDevice\n");
+
+  if (FirstCall){
+    PUSH_RANGE("FIRST_CALL",4);
+
+    handle=getCusparseHandle();
+    
+    status= cusparseCreateMatDescr(&descr); 
+    if (status != CUSPARSE_STATUS_SUCCESS) {
+      exit(2);
+    } 
+    
+    cusparseSetMatType(descr,CUSPARSE_MATRIX_TYPE_GENERAL);
+    cusparseSetMatIndexBase(descr,CUSPARSE_INDEX_BASE_ZERO);
+    FirstCall=0;
+    hypre_int jj;
+    for(jj=0;jj<5;jj++)
+      s[jj]=HYPRE_STREAM(jj);
+    nvtxNameCudaStreamA(s[4], "HYPRE_COMPUTE_STREAM");
+    hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
+    myid++;
+    POP_RANGE;
+  }
+
+
+
+  PUSH_RANGE("PREFETCH+SPMV",2);
+
+  if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
+status = cusparseDcsrmv(handle ,
+				CUSPARSE_OPERATION_NON_TRANSPOSE, 
+				A->num_rows-offset, A->num_cols, A->num_nonzeros,
+				&alpha, descr,
+				A->d_data ,A->d_i+offset,A->d_j,
+				x->d_data+k1*x_size, &beta, y->d_data+offset+k2*y_size);
+printf("status %d \n", status); 
+  POP_RANGE;
+  
+  return 0;
+  
+}
+
+
 
 HYPRE_Int
 hypre_CSRMatrixMatvecDeviceT( HYPRE_Complex    alpha,

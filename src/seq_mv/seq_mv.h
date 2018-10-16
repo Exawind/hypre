@@ -347,6 +347,7 @@ void InnerProdGPUonly(const double * __restrict__ u,
 	/* csr_matvec.c */
 	// y[offset:end] = alpha*A[offset:end,:]*x + beta*b[offset:end]
 	HYPRE_Int hypre_CSRMatrixMatvecOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
+	HYPRE_Int hypre_CSRMatrixMatvecMultOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1,  HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
 	HYPRE_Int hypre_CSRMatrixMatvecOutOfPlaceOOMP ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
 	// y = alpha*A + beta*y
 	HYPRE_Int hypre_CSRMatrixMatvec ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *y );
@@ -355,6 +356,10 @@ void InnerProdGPUonly(const double * __restrict__ u,
 #ifdef HYPRE_USE_GPU
 	HYPRE_Int hypre_CSRMatrixMatvecDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
 	HYPRE_Int hypre_CSRMatrixMatvecDeviceT( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
+
+HYPRE_Int hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_Vector *b,HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
+
+
 #endif
 	/* genpart.c */
 	HYPRE_Int hypre_GeneratePartitioning ( HYPRE_Int length , HYPRE_Int num_procs , HYPRE_Int **part_ptr );

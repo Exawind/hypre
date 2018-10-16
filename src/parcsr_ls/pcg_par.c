@@ -137,6 +137,28 @@ printf("ParKrylovMatvec \n");
 				(hypre_ParVector *) y ) );
 }
 
+
+/*Matvec for multivectors i.e. y(:, k2) = A*x(:, k1) */
+
+
+	HYPRE_Int
+hypre_ParKrylovMatvecMult( void   *matvec_data,
+		HYPRE_Complex  alpha,
+		void   *A,
+		void   *x,
+		HYPRE_Int k1,
+		HYPRE_Complex  beta,
+		void   *y, HYPRE_Int k2           )
+{
+
+printf("ParKrylovMatvec Multivectors\n");
+	return ( hypre_ParCSRMatrixMatvecMult ( alpha,
+				(hypre_ParCSRMatrix *) A,
+				(hypre_ParVector *) x,k1,
+				beta,
+				(hypre_ParVector *) y, k2 ) );
+}
+
 /*--------------------------------------------------------------------------
  * hypre_ParKrylovMatvecT
  *--------------------------------------------------------------------------*/
