@@ -39,6 +39,7 @@ hypre_CSRMatrixMatvecOutOfPlace( HYPRE_Complex    alpha,
    HYPRE_Real time_begin = hypre_MPI_Wtime();
 #endif
 #ifdef HYPRE_USE_GPU
+#if 0
 HYPRE_Real * d_test1, *d_test2;
 HYPRE_Int numBytes = A->num_nonzeros*(sizeof(HYPRE_Real)+sizeof(HYPRE_Int)) + (1+ A->num_rows)*sizeof(HYPRE_Int)+2*sizeof(HYPRE_Real)*A->num_rows;
 numBytes/=2;
@@ -76,7 +77,8 @@ int ii = 100;
 //int gflops = 2*A->num_nonzeros;
 // double roofline = (copyBandwidth*gflops)/(numBytes);
 //printf("copyTime %16.16f effective BW: %16.16f, roofline %16.16f \n",copyElapsed, copyBandwidth, roofline);
-   PUSH_RANGE_PAYLOAD("MATVEC",0, hypre_CSRMatrixNumRows(A));
+#endif 
+  PUSH_RANGE_PAYLOAD("MATVEC",0, hypre_CSRMatrixNumRows(A));
 HYPRE_Int ret;
    ret=hypre_CSRMatrixMatvecDevice( alpha,A,x,beta,b,y,offset);
    POP_RANGE;
@@ -84,7 +86,7 @@ HYPRE_Int ret;
 #ifdef HYPRE_PROFILE
    hypre_profile_times[HYPRE_TIMER_ID_MATVEC] += hypre_MPI_Wtime() - time_begin;
 #endif
-#endif
+#endif//IF def hypre use gpu
 
 #ifdef HYPRE_USING_OPENMP_OFFLOAD
    PUSH_RANGE_PAYLOAD("MATVEC-OMP",0, hypre_CSRMatrixNumRows(A));
@@ -901,14 +903,14 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
   cusparseStatus_t status;
   static cudaStream_t s[10];
   static HYPRE_Int myid;
-
+#if HYPRE_USE_MANAGED
   if (b!=y){
 
     PUSH_RANGE_PAYLOAD("MEMCPY",1,y->size-offset);
     VecCopy(y->data,b->data,(y->size-offset),HYPRE_STREAM(4));
     POP_RANGE
   }
-
+#endif
   if (x==y) fprintf(stderr,"ERROR::x and y are the same pointer in hypre_CSRMatrixMatvecDevice\n");
 
   if (FirstCall){
@@ -950,6 +952,7 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
 int ii;  
   if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
 #ifdef HYPRE_USE_MANAGED 
+printf("matvec: using managed \n");
 for (ii=0;ii<1; ++ii){
 cusparseErrchk(cusparseDcsrmv(handle ,
 				CUSPARSE_OPERATION_NON_TRANSPOSE, 
@@ -960,6 +963,33 @@ cusparseErrchk(cusparseDcsrmv(handle ,
   }
 #endif
 #if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
+printf("not using managed \n");
+
+
+//cudaMemcpy( dst, src, size, cudaMemcpyHostToDevice);
+
+for (ii=0; ii<2; ii++)
+{
+printf("A->i[%d] = %d \n", ii, A->i[ii]);
+printf("A->j[%d] = %d \n", A->i[ii], A->j[A->i[ii]]);
+printf("A->data[%d] = %16.16f \n",A->i[ii], A->data[A->i[ii]]);
+}
+
+for (ii=A->num_rows-1; ii<A->num_rows+1; ii++)
+{
+printf("A->i[%d] = %d \n", ii, A->i[ii]);
+printf("A->j[%d] = %d \n", A->i[ii], A->j[A->i[ii]]);
+printf("A->data[%d] = %16.16f \n", A->i[ii], A->data[A->i[ii]]);
+}
+
+cublasHandle_t myHandle;
+double KSres;
+  cublasCreate(&myHandle);
+cublasDdot (myHandle, x->size,
+                           x->d_data, 1,
+                           x->d_data, 1,
+                           &KSres);
+printf("matvec off diag, just before x^Tx = %16.16f \n", KSres);
 for (ii=0;ii<1; ++ii){
 status = cusparseDcsrmv(handle ,
 				CUSPARSE_OPERATION_NON_TRANSPOSE, 
@@ -967,9 +997,17 @@ status = cusparseDcsrmv(handle ,
 				&alpha, descr,
 				A->d_data ,A->d_i+offset,A->d_j,
 				x->d_data, &beta, y->d_data+offset);
-printf("status %d \n", status); 
+//printf("status %d \n", status); 
  }
+
+
+cublasDdot (myHandle, y->size,
+                           y->d_data, 1,
+                           y->d_data, 1,
+                           &KSres);
+printf("matvec off diag, just after y^Ty = %16.16f \n", KSres);
 #endif
+printf("dev matvec DONE \n");
 //cudaEventRecord(stop);
 //cudaEventSynchronize(stop);
 //float kernelElapsed;
@@ -1016,12 +1054,13 @@ HYPRE_Int k2,
   static HYPRE_Int myid;
 
   if (b!=y){
+printf("copying vector inside matvec \n");
     PUSH_RANGE_PAYLOAD("MEMCPY",1,y->size-offset);
     VecCopy(y->data,b->data,(y->size-offset),HYPRE_STREAM(4));
     POP_RANGE
   }
 
-  if (x==y) fprintf(stderr,"ERROR::x and y are the same pointer in hypre_CSRMatrixMatvecDevice\n");
+ // if (x==y) fprintf(stderr,"MULTIVEC ERROR::x and y are the same pointer in hypre_CSRMatrixMatvecDevice\n");
 
   if (FirstCall){
     PUSH_RANGE("FIRST_CALL",4);
@@ -1045,20 +1084,35 @@ HYPRE_Int k2,
     POP_RANGE;
   }
 
+ double KSres;
+//cudaMemcpy( dst, src, size, cudaMemcpyHostToDevice);
+cublasHandle_t myHandle;
 
-
-  PUSH_RANGE("PREFETCH+SPMV",2);
+  cublasCreate(&myHandle);
+cublasDdot (myHandle, x_size,
+                           x->d_data, 1,
+                           x->d_data, 1,
+                           &KSres);
+printf("just before matvec, xtx is %16.16f\n", KSres); 
+ PUSH_RANGE("PREFETCH+SPMV",2);
 
   if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
+printf("k1 = %d k2 = %d k3 = %d num_cols = %d num_rows = %d, num non zeros %d \n", A->num_cols, A->num_rows, A->num_nonzeros, k1, k2, k3);
+printf("xsize %d ysize %d \n", x_size, y_size);
 status = cusparseDcsrmv(handle ,
 				CUSPARSE_OPERATION_NON_TRANSPOSE, 
 				A->num_rows-offset, A->num_cols, A->num_nonzeros,
 				&alpha, descr,
 				A->d_data ,A->d_i+offset,A->d_j,
 				x->d_data+k1*x_size, &beta, y->d_data+offset+k2*y_size);
-printf("status %d \n", status); 
+//printf("Matvec passed with status %d \n", status); 
   POP_RANGE;
   
+cublasDdot (myHandle, y_size,
+                           y->d_data, 1,
+                           y->d_data, 1,
+                           &KSres);
+printf("just after matvec, yty is %16.16f\n", KSres); 
   return 0;
   
 }

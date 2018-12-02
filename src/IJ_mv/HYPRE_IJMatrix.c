@@ -541,15 +541,16 @@ HYPRE_Int
 HYPRE_IJMatrixAssemble( HYPRE_IJMatrix matrix )
 {
    hypre_IJMatrix *ijmatrix = (hypre_IJMatrix *) matrix;
-
    if (!ijmatrix)
    {
+
       hypre_error_in_arg(1);
       return hypre_error_flag;
    }
 
    if ( hypre_IJMatrixObjectType(ijmatrix) == HYPRE_PARCSR )
    {
+printf("object valid! Let the assemble begin! \n");
       return( hypre_IJMatrixAssembleParCSR( ijmatrix ) );
    }
    else

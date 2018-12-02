@@ -49,7 +49,7 @@ hypre_ParKrylovCreateVector( void *vvector )
 {
 	hypre_ParVector *vector = (hypre_ParVector *) vvector;
 	hypre_ParVector *new_vector;
-printf("global size %d \n", hypre_ParVectorGlobalSize(vector));
+//printf("global size %d \n", hypre_ParVectorGlobalSize(vector));
 	new_vector = hypre_ParVectorCreate( hypre_ParVectorComm(vector),
 			hypre_ParVectorGlobalSize(vector),	
 			hypre_ParVectorPartitioning(vector) );
@@ -129,7 +129,7 @@ hypre_ParKrylovMatvec( void   *matvec_data,
 		void   *y           )
 {
 
-printf("ParKrylovMatvec \n");
+//printf("ParKrylovMatvec \n");
 	return ( hypre_ParCSRMatrixMatvec ( alpha,
 				(hypre_ParCSRMatrix *) A,
 				(hypre_ParVector *) x,
@@ -151,7 +151,7 @@ hypre_ParKrylovMatvecMult( void   *matvec_data,
 		void   *y, HYPRE_Int k2           )
 {
 
-printf("ParKrylovMatvec Multivectors\n");
+//  printf("ParKrylovMatvec Multivectors\n");
 	return ( hypre_ParCSRMatrixMatvecMult ( alpha,
 				(hypre_ParCSRMatrix *) A,
 				(hypre_ParVector *) x,k1,
@@ -307,6 +307,7 @@ hypre_ParKrylovCopyVector( void *x,
 hypre_ParKrylovCopyVectorOneOfMult( void *x, HYPRE_Int k1,
 		void *y, HYPRE_Int k2 )
 {
+printf("ParKrylov copy \n");
 	return ( hypre_ParVectorCopyOneOfMult( (hypre_ParVector *) x,k1,
 				(hypre_ParVector *) y, k2 ) );
 }
@@ -341,6 +342,7 @@ hypre_ParKrylovScaleVector( HYPRE_Complex  alpha,
 hypre_ParKrylovScaleVectorOneOfMult( HYPRE_Complex  alpha,
 		void   *x, HYPRE_Int k1     )
 {
+printf("scale \n");
 	return ( hypre_ParVectorScaleOneOfMult( alpha, (hypre_ParVector *) x, k1 ) );
 }
 

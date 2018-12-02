@@ -258,6 +258,7 @@ HYPRE_Complex *d_data;
 #ifdef HYPRE_USE_GPU
 #include <cuda_runtime_api.h>
 	int VecScaleScalar(double *u, const double alpha,  int num_rows,cudaStream_t s);
+int VecScaleScalarGPUonly(double *u, const double alpha,  int num_rows,cudaStream_t s);
 	void VecCopy(double* tgt, const double* src, int size,cudaStream_t s);
 	void MatvecTCSR(int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_int *ia, hypre_int *ja, HYPRE_Complex *x, HYPRE_Complex beta, HYPRE_Complex *y);
 	void VecSet(double* tgt, int size, double value, cudaStream_t s);
@@ -294,6 +295,7 @@ void InnerProdGPUonly(const double * __restrict__ u,
 	void VecScaleSplit(double *u, double *v, double *l1_norm, int num_rows,cudaStream_t s);
 	void CudaCompileFlagCheck();
 	void PackOnDevice(HYPRE_Complex *send_data,HYPRE_Complex *x_local_data, hypre_int *send_map, hypre_int begin,hypre_int end,cudaStream_t s);
+	void PackOnDeviceGPUonly(HYPRE_Complex *send_data,HYPRE_Complex *x_local_data, hypre_int *send_map, hypre_int begin,hypre_int end);
 	void ParRelaxL1Jacobi(
 			HYPRE_Int n,
 			HYPRE_Real * __restrict__ l1_data,

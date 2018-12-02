@@ -84,6 +84,8 @@ void VecSetKernel(HYPRE_Complex* __restrict__ tgt, const HYPRE_Complex value,hyp
 void VecSet(HYPRE_Complex* tgt, hypre_int size, HYPRE_Complex value, cudaStream_t s){
 	hypre_int tpb=64;
 	//cudaDeviceSynchronize();
+
+printf("VALUE IS %16.16f \n", value);
 #if defined(HYPRE_USE_MANAGED)
 printf("using managed fucking memory! %d\n", HYPRE_USE_MANAGED);
 	MemPrefetchSized(tgt,size*sizeof(HYPRE_Complex),HYPRE_DEVICE,s);
@@ -94,7 +96,14 @@ printf("using managed fucking memory! %d\n", HYPRE_USE_MANAGED);
 #endif
 #if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
 // not using unified
-cudaMemset(tgt,value,size*sizeof(HYPRE_Complex));		
+printf("SETTING VALUE TO %16.16f, size is %d size of HYPRE_COMLEX is %d \n", value, size, sizeof(HYPRE_Complex));
+//HYPRE_Complex * hJunk = (HYPRE_Complex *) calloc(size*sizeof(HYPRE_Complex));
+//for (int i; i<size; ++i){
+//hJunk[i] = value;
+//}
+
+//cudaMemset(tgt,value,size*sizeof(HYPRE_Complex));		
+//cudaDeviceSynchronize();
 #endif
 
 }
@@ -127,6 +136,28 @@ void PackOnDevice(HYPRE_Complex *send_data,HYPRE_Complex *x_local_data, hypre_in
 	POP_RANGE;
 	//hypre_CheckErrorDevice(cudaStreamSynchronize(s));
 }
+
+//PackOnDeviceGPUONLY
+
+//for GPU only data
+
+__global__
+void  PackOnDeviceKernelGPUonly(HYPRE_Complex* __restrict__ send_data,const HYPRE_Complex* __restrict__ x_local_data, const hypre_int* __restrict__ send_map, hypre_int begin,hypre_int end){
+	hypre_int i = begin+blockIdx.x * blockDim.x + threadIdx.x;
+	if (i<end){
+//printf("putting %f in place %d \n",x_local_data[send_map[i]], i-begin);
+		send_data[i-begin]=x_local_data[send_map[i]];
+	}
+}
+void PackOnDeviceGPUonly(HYPRE_Complex *send_data,HYPRE_Complex *x_local_data, hypre_int *send_map, hypre_int begin,hypre_int end){
+printf("all right, inside GPUonly pack on device, begin %d end %d \n", begin, end);
+	if ((end-begin)<=0) return;
+	hypre_int tpb=64;
+	hypre_int num_blocks=(end-begin)/tpb+1;
+	PackOnDeviceKernelGPUonly<<<num_blocks,tpb>>>(send_data,x_local_data,send_map,begin,end);
+cudaDeviceSynchronize();
+}
+
 }
 
 // Scale vector by scalar
@@ -161,7 +192,26 @@ hypre_int VecScaleScalar(HYPRE_Complex *u, const HYPRE_Complex alpha,  hypre_int
 	return 0;
 }
 }
+//vec scale GPU only
 
+
+extern "C"{
+__global__
+void VecScaleScalarGPUonlyKernel(HYPRE_Complex *__restrict__ u, const HYPRE_Complex alpha ,hypre_int num_rows){
+	hypre_int i = blockIdx.x * blockDim.x + threadIdx.x;
+	if (i<num_rows){
+		u[i]*=alpha;
+	}
+}
+}
+extern "C"{
+hypre_int VecScaleScalarGPUonly(HYPRE_Complex *u, const HYPRE_Complex alpha,  hypre_int num_rows,cudaStream_t s){
+	hypre_int num_blocks=num_rows/64+1;
+
+	VecScaleScalarGPUonlyKernel<<<num_blocks,64>>>(u,alpha,num_rows);
+	return 0;
+}
+}
 
 extern "C"{
 	__global__

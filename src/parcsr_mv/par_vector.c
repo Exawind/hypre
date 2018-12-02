@@ -40,7 +40,7 @@ hypre_ParVectorCreate( MPI_Comm   comm,
 {
   hypre_ParVector  *vector;
   HYPRE_Int num_procs, my_id;
-printf("inside creaating vector,global size is %d \n", global_size);
+//printf("inside creaating vector,global size is %d \n", global_size);
   if (global_size < 0)
   {
     hypre_error_in_arg(2);
@@ -172,16 +172,16 @@ hypre_ParVectorInitialize( hypre_ParVector *vector )
 {
   if (!vector)
   {
-printf("init error!!!!");
+//printf("init error!!!!");
     hypre_error_in_arg(1);
     return hypre_error_flag;
   }
-printf("about to initialize seq vector\n");
+//printf("about to initialize seq vector\n");
   hypre_SeqVectorInitialize(hypre_ParVectorLocalVector(vector));
-printf("done. setting up the size\n");
+//printf("done. setting up the size\n");
   hypre_ParVectorActualLocalSize(vector) 
     = hypre_VectorSize(hypre_ParVectorLocalVector(vector));
-printf("size %d \n",hypre_ParVectorActualLocalSize(vector)); 
+//printf("size %d \n",hypre_ParVectorActualLocalSize(vector)); 
   return hypre_error_flag;
 }
 
@@ -575,16 +575,17 @@ hypre_ParVectorInnerProdOneOfMult( hypre_ParVector *x,HYPRE_Int k1,
 
   HYPRE_Real result = 0.0;
   HYPRE_Real local_result = hypre_SeqVectorInnerProdOneOfMult(x_local,k1, y_local, k2);
-printf("local result, before all reduce %f \n", local_result);
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] -= hypre_MPI_Wtime();
 #endif
+hypre_MPI_Barrier(comm);
   hypre_MPI_Allreduce(&local_result, &result, 1, HYPRE_MPI_REAL,
       hypre_MPI_SUM, comm);
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] += hypre_MPI_Wtime();
 #endif
 
+printf("global result, after all reduce %16.16f \n", result);
   return result;
 }
 //Mass Inner Prod for multivectors
@@ -685,7 +686,7 @@ free(y_local);
 void  hypre_ParVectorMassInnerProdGPU(HYPRE_Real *x,
     HYPRE_Real *y, HYPRE_Int k, HYPRE_Int n,  HYPRE_Real *result  ){
 int a;
-printf("n+k  = %d\n",  (n+k));
+//printf("n+k  = %d\n",  (n+k));
 
 }
 

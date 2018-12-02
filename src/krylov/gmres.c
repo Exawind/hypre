@@ -244,6 +244,7 @@ hypre_GMRESSolve(void  *gmres_vdata,
                  void  *b,
 		 void  *x)
 {
+
 double time1,time2;
 time1 = MPI_Wtime();
    hypre_GMRESData  *gmres_data   = (hypre_GMRESData *)gmres_vdata;
@@ -326,15 +327,15 @@ time1 = MPI_Wtime();
    {	
    	hh[i] = hypre_CTAllocF(HYPRE_Real,k_dim,gmres_functions, HYPRE_MEMORY_HOST);
    }
-
+//works
    (*(gmres_functions->CopyVector))(b,p[0]);
-
+//works
    /* compute initial residual */
    (*(gmres_functions->Matvec))(matvec_data,-1.0, A, x, 1.0, p[0]);
-
+//works
    b_norm = sqrt((*(gmres_functions->InnerProd))(b,b));
    real_r_norm_old = b_norm;
-
+//works
    /* Since it is does not diminish performance, attempt to return an error flag
       and notify users when they supply bad input. */
    if (b_norm != 0.) ieee_check = b_norm/b_norm; /* INF -> NaN conversion */
@@ -356,7 +357,7 @@ time1 = MPI_Wtime();
       hypre_error(HYPRE_ERROR_GENERIC);
       return hypre_error_flag;
    }
-
+//workd
    r_norm = sqrt((*(gmres_functions->InnerProd))(p[0],p[0]));
    r_norm_0 = r_norm;
 
@@ -387,7 +388,7 @@ time1 = MPI_Wtime();
       norms[0] = r_norm;
       if ( print_level>1 && my_id == 0 )
       {
-  	// hypre_printf("L2 norm of b: %e\n", b_norm);
+  	hypre_printf("L2 norm of b: %e\n", b_norm);
          if (b_norm == 0.0)
             hypre_printf("Rel_resid_norm actually contains the residual norm\n");
          hypre_printf("Initial L2 norm of residual: %e\n", r_norm);
@@ -395,7 +396,7 @@ time1 = MPI_Wtime();
       }
    }
    iter = 0;
-
+//works
    if (b_norm > 0.0)
    {
      /* convergence criterion |r_i|/|b| <= accuracy if |b| > 0 */
@@ -434,7 +435,7 @@ time1 = MPI_Wtime();
       
           };
    }
-
+//works
 
    /* once the rel. change check has passed, we do not want to check it again */
    rel_change_passed = 0;
@@ -461,6 +462,7 @@ time1 = MPI_Wtime();
            
 	}
 
+//fails
         /* see if we are already converged and 
            should print the final norm and exit */
 	if (r_norm  <= epsilon && iter >= min_iter) 
@@ -469,6 +471,7 @@ time1 = MPI_Wtime();
                              * relative change is on*/
            {
               (*(gmres_functions->CopyVector))(b,r);
+
               (*(gmres_functions->Matvec))(matvec_data,-1.0,A,x,1.0,r);
               r_norm = sqrt((*(gmres_functions->InnerProd))(r,r));
               if (r_norm  <= epsilon)
@@ -499,22 +502,28 @@ remainingTime += (time2-time1);
 time1 = MPI_Wtime();
            i++;
            iter++;
-           (*(gmres_functions->ClearVector))(r);
+//works
+(*(gmres_functions->ClearVector))(r);
 time2 = MPI_Wtime();
 remainingTime += (time2-time1);
 time1 = MPI_Wtime();
 //printf ("norm of p[%d] before precond %16.16f \n", i-1, (*(gmres_functions->InnerProd))(p[i-1],p[i-1]));
            precond(precond_data, A, p[i-1], r);
-//printf ("norm of p[%d] AFTER precond %16.16f \n", i-1, (*(gmres_functions->InnerProd))(r,r));
            (*(gmres_functions->Matvec))(matvec_data, 1.0, A, r, 0.0, p[i]);
-
+// works
+//
+printf("ACHTUNG i = %d \n", i);
+}}           
+#if 0
+if (my_id == 0) 
+printf ("nnorm of p[%d] before precond %16.16f norm of r AFTER precond %16.16f norm of p[%d] after MV, before normalization  %16.16f  \n",  i-1, (*(gmres_functions->InnerProd))(p[i-1],p[i-1]), (*(gmres_functions->InnerProd))(r,r), i, (*(gmres_functions->InnerProd))(p[i],p[i]));
 //printf ("norm of p[%d] after MV, before normalization  %16.16f \n", i, (*(gmres_functions->InnerProd))(p[i],p[i]));
-
+//crashes
 time2 = MPI_Wtime();
 matvecPreconTime += (time2-time1);
 time1 = MPI_Wtime();
   
-
+//fails
         /* modified Gram_Schmidt */
            for (j=0; j < i; j++)
            {
@@ -523,7 +532,8 @@ time1 = MPI_Wtime();
 //printf("h[%d][%d]= %16.16f \n", j, i-1, hh[j][i-1]);
            }
            t = sqrt((*(gmres_functions->InnerProd))(p[i],p[i]));
-         
+
+//crashes!         
   hh[i][i-1] = t;	
            if (t != 0.0)
            {
@@ -882,9 +892,8 @@ remainingTime += (time2-time1);
       (gmres_data -> rel_residual_norm) = r_norm/b_norm;
    if (b_norm == 0.0)
       (gmres_data -> rel_residual_norm) = r_norm;
-
-   if (iter >= max_iter && r_norm > epsilon) hypre_error(HYPRE_ERROR_CONV);
-
+printf("iter = %d max_iter = %d r_norm = %16.16f eps = %16.16f \n", iter, max_iter, r_norm, epsilon);
+  // if (iter >= max_iter && r_norm > epsilon) hypre_error(HYPRE_ERROR_CONV);
    hypre_TFreeF(c,gmres_functions); 
    hypre_TFreeF(s,gmres_functions); 
    hypre_TFreeF(rs,gmres_functions);
@@ -906,7 +915,7 @@ remainingTime += (time2-time1);
 
 
     }
-
+#endif
    return hypre_error_flag;
 }
 

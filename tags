@@ -22977,7 +22977,7 @@ hypre_ParCSRMatrixLocalSumElts	src/parcsr_mv/par_csr_matop.c	/^HYPRE_Complex hyp
 hypre_ParCSRMatrixMatMultiVec	src/multivector/par_csr_matmultivec.c	/^hypre_ParCSRMatrixMatMultiVec(HYPRE_Complex alpha, hypre_ParCSRMatrix *A,$/;"	f
 hypre_ParCSRMatrixMatvec	src/parcsr_mv/par_csr_matvec.c	/^hypre_ParCSRMatrixMatvec( HYPRE_Complex       alpha,$/;"	f
 hypre_ParCSRMatrixMatvec3	src/parcsr_mv/par_csr_matvec.c	/^hypre_ParCSRMatrixMatvec3( HYPRE_Complex       alpha,$/;"	f
-hypre_ParCSRMatrixMatvecMulr	src/parcsr_mv/par_csr_matvec.c	/^hypre_ParCSRMatrixMatvecMulr( HYPRE_Complex       alpha,$/;"	f
+hypre_ParCSRMatrixMatvecMult	src/parcsr_mv/par_csr_matvec.c	/^hypre_ParCSRMatrixMatvecMult( HYPRE_Complex       alpha,$/;"	f
 hypre_ParCSRMatrixMatvecMultOutOfPlace	src/parcsr_mv/par_csr_matvec.c	/^hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,$/;"	f
 hypre_ParCSRMatrixMatvecOutOfPlace	src/parcsr_mv/par_csr_matvec.c	/^hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,$/;"	f
 hypre_ParCSRMatrixMatvecOutOfPlace3	src/parcsr_mv/par_csr_matvec.c	/^hypre_ParCSRMatrixMatvecOutOfPlace3( HYPRE_Complex       alpha,$/;"	f

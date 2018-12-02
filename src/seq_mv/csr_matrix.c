@@ -128,9 +128,8 @@ hypre_CSRMatrixCopyCPUtoGPU( hypre_CSRMatrix *matrix ){
 	 cudaMemcpyDeviceToDevice );
 	 * */
 	if (!matrix->d_data){
-		printf("no matrix data, num non-zeros %d \n", num_nonzeros);
+		printf("no matrix d data, num non-zeros %d \n", num_nonzeros);
 		if (num_nonzeros){
-
 			hypre_CSRMatrixDeviceData(matrix)    = hypre_CTAlloc(HYPRE_Complex,  num_nonzeros, HYPRE_MEMORY_DEVICE);
 		}
 
@@ -139,6 +138,14 @@ printf("data alloced\n");
 	hypre_CheckErrorDevice(cudaPeekAtLastError());
 printf("error check passed\n");
 if (!matrix->data){printf("oups no data in the matrix \n");}
+else {
+HYPRE_Complex *mdata = matrix->data;
+for (int j=num_nonzeros-1; j<num_nonzeros-20; --j){
+
+printf("data[%d ] = %16.16f \n", j, mdata[j]);}
+}
+
+printf("num non zeros %d \n", num_nonzeros);
 	cudaMemcpy(matrix->d_data, matrix->data,  
 			num_nonzeros*sizeof(HYPRE_Complex), cudaMemcpyDeviceToDevice);
 	hypre_CheckErrorDevice(cudaPeekAtLastError());
@@ -160,11 +167,14 @@ if (!matrix->data){printf("oups no data in the matrix \n");}
 			hypre_CSRMatrixDeviceJ(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_nonzeros + 1, HYPRE_MEMORY_DEVICE);
 		}
 	}
+
+printf("num non zeros %d \n", num_nonzeros);
 	cudaMemcpy(hypre_CSRMatrixDeviceJ(matrix), hypre_CSRMatrixJ(matrix),   num_nonzeros*sizeof(HYPRE_Int), cudaMemcpyDeviceToDevice);
 
 	hypre_CheckErrorDevice(cudaPeekAtLastError());
 	printf("\ncopied matrixJ to the GPU\n");
-	cudaMemcpy(hypre_CSRMatrixDeviceI(matrix), hypre_CSRMatrixI(matrix),   num_rows*sizeof(HYPRE_Int), cudaMemcpyDeviceToDevice);
+printf("num rows %d \n", num_rows);
+	cudaMemcpy(hypre_CSRMatrixDeviceI(matrix), hypre_CSRMatrixI(matrix),   (num_rows+1)*sizeof(HYPRE_Int), cudaMemcpyDeviceToDevice);
 
 	hypre_CheckErrorDevice(cudaPeekAtLastError());
 	printf("\ncopied matrix to the GPU\n");

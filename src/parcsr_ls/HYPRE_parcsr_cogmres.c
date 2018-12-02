@@ -95,6 +95,7 @@ HYPRE_ParCSRCOGMRESSetup( HYPRE_Solver solver,
 		HYPRE_ParVector b,
 		HYPRE_ParVector x      )
 {
+printf("co gmres setup startig \n");
 	return( HYPRE_COGMRESSetup( solver,
 				(HYPRE_Matrix) A,
 				(HYPRE_Vector) b,
