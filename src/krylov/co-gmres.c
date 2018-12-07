@@ -253,7 +253,7 @@ void GramSchmidt (HYPRE_Int option,
 		HYPRE_Int i,
 		HYPRE_Int sz, 
 		HYPRE_Int k_dim,
-		hypre_ParVector * Vspace, 
+		hypre_ParVector * Vspace,
 		HYPRE_Real * Hcolumn,
 		HYPRE_Real * HcolumnGPU,  
 		HYPRE_Real* rv, 
@@ -273,10 +273,10 @@ void GramSchmidt (HYPRE_Int option,
 			(-1.0)*Hcolumn[idx(j, i-1, k_dim+1)],
 			sz);*/
 
-			//printf("inside GS, first IP, i = %d, j= %d \n", i, j);
+			printf("inside GS, first IP, i = %d, j= %d \n", i, j);
 			Hcolumn[idx(j, i-1, k_dim+1)] = hypre_ParKrylovInnerProdOneOfMult(Vspace,j,Vspace, i);
 
-			//printf("I GOT %16.16f \n", Hcolumn[idx(j, i-1, k_dim+1)]);
+			printf("I GOT %16.16f \n", Hcolumn[idx(j, i-1, k_dim+1)]);
 			hypre_ParKrylovAxpyOneOfMult((-1.0)*Hcolumn[idx(j, i-1, k_dim+1)], Vspace, j, Vspace, i);		
 		}
 
@@ -287,8 +287,8 @@ void GramSchmidt (HYPRE_Int option,
 					t = sqrt(t);*/
 
 		t = sqrt(hypre_ParKrylovInnerProdOneOfMult(Vspace,i,Vspace, i));
-		//printf("h[%d] = %f \n",i, Hcolumn[idx(i, i-1, k_dim+1)]);
 		Hcolumn[idx(i, i-1, k_dim+1)] = t;
+		printf("h[%d] = %f \n",i, Hcolumn[idx(i, i-1, k_dim+1)]);
 		if (t != 0){
 			t = 1/t;
 
@@ -297,7 +297,8 @@ void GramSchmidt (HYPRE_Int option,
 							sz);*/
 
 			hypre_ParKrylovScaleVectorOneOfMult(t,Vspace, i);
-			//printf("scaling by %f \n", t);
+//			hypre_ParKrylovAxpyOneOfMult(t, auxV, 0, Vspace, i);		
+			printf("scaling by %f \n", t);
 		}
 
 	}
@@ -586,7 +587,9 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 
 	(cogmres_data -> w) = (*(cogmres_functions->CreateVector))(b);
 	r = (hypre_ParVector * )(*(cogmres_functions->CreateVector))(b);
-	// initialize work arrays 
+  w = (hypre_ParVector*) cogmres_data -> w;
+  hypre_ParVectorInitialize(w);	
+// initialize work arrays 
 	rs = hypre_CTAllocF(HYPRE_Real,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST);
 	c  = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
 	s  = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
@@ -613,16 +616,17 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	hypre_ParVector * bb =  (hypre_ParVector*) b; 
 	hypre_ParVector * xx =  (hypre_ParVector*) x;
 
-
+printf("V SPACE GLOBAL SIZE %d \n", sz);
 	p = (hypre_ParVector*) (cogmres_data->p);
 	p =(hypre_ParVector*)  hypre_ParMultiVectorCreate( hypre_ParVectorComm(bb),
 			sz,
 			hypre_ParVectorPartitioning(bb),
 			k_dim+1 );
 
+printf("step 0, size  %d local \n", hypre_ParVectorActualLocalSize(p));
 	hypre_ParVectorInitialize(p);
 	//works
-
+printf("step 1, size %d local size %d \n", hypre_ParVectorActualLocalSize(p),hypre_VectorSize(hypre_ParVectorLocalVector(p)) );
 	if (GSoption != 0){
 		//printf("allocating tempRV and tempH \n");
 		cudaMalloc ( &tempRV, sizeof(HYPRE_Real)*(k_dim+1)); 
@@ -636,7 +640,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	if (GSoption >=3){
 		L = hypre_CTAllocF(HYPRE_Real, (k_dim+1)*k_dim, cogmres_functions, HYPRE_MEMORY_HOST);
 	}
-	b_norm = sqrt(hypre_ParKrylovInnerProdOneOfMult(bb,0,bb, 0));
+//	b_norm = sqrt(hypre_ParKrylovInnerProdOneOfMult(bb,0,bb, 0));
 	b_norm = sqrt(b_norm);
 	HYPRE_Real one = 1.0f, minusone = -1.0f, zero = 0.0f;
 
@@ -693,9 +697,12 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 
 			//printf("done 1\n");
 
+//printf("step 2, size %d local size %d \n", hypre_ParVectorActualLocalSize(p),hypre_VectorSize(hypre_ParVectorLocalVector(p)) );
 			hypre_ParKrylovCopyVectorOneOfMult(bb, 0, p, 0);
 
-			r_norm = sqrt(hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0));
+//printf("step 3, size %d \n", hypre_ParVectorActualLocalSize(p));
+//			hypre_ParKrylovCopyVectorOneOfMult(bb, 0, xx, 0);
+		//	r_norm = sqrt(hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0));
 			//printf("norm of p(0) before matvec %16.16f \n", r_norm);
 			//printf("done 0\n");
 			if (solverTimers){
@@ -704,27 +711,43 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 			//works
 			//	(*(cogmres_functions->Matvec))(matvec_data,-1.0,A,xx,1.0,bb);
 //KS experimental
-hypre_ParVectorSetConstantValues( (hypre_ParVector *) xx, 1e-16);
+//hypre_ParVectorSetConstantValues( (hypre_ParVector *) bb, 1.0f);
 
-printf("NORM OF VECTOR BEFORE MATVEC: %16.16f \n", hypre_ParKrylovInnerProdOneOfMult(xx,0,xx, 0));	
-/*		hypre_ParKrylovMatvecMult(matvec_data,
+//hypre_ParVectorCopyDataGPUtoCPU(bb);
+
+//hypre_ParVectorCopyDataGPUtoCPU(p);
+//printf("NORM OF VECTOR BEFORE MATVEC: %16.16f \n", hypre_ParKrylovInnerProdOneOfMult(bb,0,bb, 0));	
+//printf("NORM OF RESULT  VECTOR BEFORE MATVEC: %16.16f \n", hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0));	
+//printf("NORM OF RESULT VECTOR BEFORE MATVEC: %16.16f \n", hypre_ParKrylovInnerProdOneOfMult(bb,0,bb, 0));	
+		hypre_ParKrylovMatvecMult(matvec_data,
 					minusone,
 					A,
 					xx,
 					0,
 					one,
-					p, 0);*/
-
+					p, 0);
+/*
+for (int ii = 0; ii<3; ++ii){
 		hypre_ParKrylovMatvecMult(matvec_data,
 					one,
 					A,
-					xx,
+					p,
 					0,
 					zero,
-					p, 0);
+					p, 2);
 
-printf("NORM OF VECTOR in-between MATVEC: %16.16f \n", sqrt(hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0)));	
-			hypre_ParKrylovAxpyOneOfMult(-1.0f, bb, 0, p, 0);		
+hypre_ParVectorCopyDataGPUtoCPU(p);
+
+
+printf("MV NUMBER %d NORM OF VECTOR in between MATVEC: %16.16f \n",ii, sqrt(hypre_ParKrylovInnerProdOneOfMult(p,2,p, 2)));	
+}
+
+}
+iter += 2;
+}
+*/
+#if 1
+	//		hypre_ParKrylovAxpyOneOfMult(-1.0f, bb, 0, p, 0);		
 printf("NORM OF VECTOR AFTER MATVEC: %16.16f \n", sqrt(hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0)));	
 hypre_ParVectorCopyDataGPUtoCPU(p);
 #if 0
@@ -758,7 +781,7 @@ iter = iter+1;
 			}
 
 			r_norm = sqrt(hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0));
-			//printf("norm of p(0) AFTER matvec is %16.16f \n", r_norm);
+			printf("norm of p(0) AFTER matvec is %16.16f \n", r_norm);
 			if ( logging>0 || print_level > 0)
 			{
 				norms[iter] = r_norm;
@@ -773,7 +796,7 @@ iter = iter+1;
 			// conv criteria 
 
 			epsilon = hypre_max(a_tol,r_tol*r_norm);
-			//printf("eps = %f \n", epsilon);
+			printf("eps = %f \n", epsilon);
 		}//if
 		//CRASHES
 
@@ -859,22 +882,27 @@ printf("ROOT AFTER initial scaling, norm of p(%d) = %16.16f \n", i-1, hypre_ParK
 
 				if (solverTimers)
 					time1 = MPI_Wtime();
-//				if (my_id == 0) 
+//				if (my_id == 0)
+ 
+//hypre_ParVectorSetConstantValues( (hypre_ParVector *) w, 0.0f);
 printf("ROOT starting internal MV no 1, norm of p(%d) = %16.16f \n", i-1, hypre_ParKrylovInnerProdOneOfMult(p,i-1,p, i-1) );
-				hypre_ParKrylovMatvecMult(matvec_data,
+
+		hypre_ParKrylovCopyVectorOneOfMult(p, i-1, w, 0);
+			
+	hypre_ParKrylovMatvecMult(matvec_data,
 						one,
 						A,
-						p,
-						i-1,
+						w,
+						0,
 						zero,
 						p, i);
 
 //				if (my_id == 0) 
-printf("ROOT done with internal MV, norm of new vector %16.16f  \n", hypre_ParKrylovInnerProdOneOfMult(p,i,p, i));
+printf("ROOT done with internal MV, norm of new vector %16.16f  \n", hypre_ParKrylovInnerProdOneOfMult(w,0,w, 0));
 			}
-}//while
-}
-#if 0
+/*}//while
+}*/
+#if 1
 			time2 = MPI_Wtime();
 			if (solverTimers){
 				time2 = MPI_Wtime();
@@ -893,13 +921,13 @@ printf("ROOT done with internal MV, norm of new vector %16.16f  \n", hypre_ParKr
 						i, 
 						sz,
 						k_dim, 
-						p, 
+						p,
 						hh, 
 						NULL,  
 						rv, 
 						NULL, NULL );
 			}
-
+printf("after GS, the norm of p (%d) is %16.16f \n ", i, hypre_ParKrylovInnerProdOneOfMult(p,i,p, i));
 			//						if ((GSoption >0) &&(GSoption <3)){
 			//					GramSchmidt (GSoption, 
 			//				i, 
@@ -964,7 +992,7 @@ printf("ROOT done with internal MV, norm of new vector %16.16f  \n", hypre_ParKr
 				norms[iter] = r_norm;
 				if ( print_level>1 && my_id == 0 )
 				{
-					hypre_printf("% 5d    %e    %f\n", iter, norms[iter],
+					hypre_printf("ITER: % 5d    %e    %f\n", iter, norms[iter],
 							norms[iter]/norms[iter-1]);
 				}
 			}// if (printing)
@@ -1193,6 +1221,7 @@ printf("ROOT done with internal MV, norm of new vector %16.16f  \n", hypre_ParKr
 
 	}
 
+#endif
 #endif
 }//Solve
 

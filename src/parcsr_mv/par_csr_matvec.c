@@ -364,7 +364,10 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
 	HYPRE_Int          b_size = hypre_ParVectorGlobalSize(b);
 	HYPRE_Int          y_size = hypre_ParVectorGlobalSize(y);
 	HYPRE_Int          num_vectors = 1; //while multivec storage, we use only one vector
-	printf("num vectors = %d \n", num_vectors);
+//	printf("num vectors = %d, x_size %d y_size %d \n", num_vectors,hypre_VectorSize(x_local) , hypre_VectorSize(y_local));
+   HYPRE_Int x_local_size = hypre_VectorSize(x_local);
+
+   HYPRE_Int y_local_size = hypre_VectorSize(y_local);
 	//hypre_VectorNumVectors(x_local);
 	HYPRE_Int          num_cols_offd = hypre_CSRMatrixNumCols(offd);
 	HYPRE_Int          ierr = 0;
@@ -404,7 +407,7 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
 	if (num_cols != x_size && (num_rows != y_size || num_rows != b_size))
 		ierr = 13;
 
-	printf("creating x_tmp, num_cols_offd = %d \n", num_cols_offd);
+//	printf("creating x_tmp, num_cols_offd = %d \n", num_cols_offd);
 	x_tmp = hypre_SeqVectorCreate( num_cols_offd );
 
 	/*---------------------------------------------------------------------
@@ -462,11 +465,11 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
 	{
 		//x_buf_data = hypre_CTAlloc( HYPRE_Complex*,  num_vectors , HYPRE_MEMORY_HOST);
 		//for ( jv=0; jv<num_vectors; ++jv )
-		printf("x buf data alloc\n");
+		//printf("x buf data alloc\n");
 #if !defined(HYPRE_USE_MANAGED) && defined(HYPRE_USE_GPU) 
 		x_buf_data = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
 				(comm_pkg,  num_sends), HYPRE_MEMORY_DEVICE);
-		printf("allocating x_buf_data, size %d \n",hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends) );
+		//printf("allocating x_buf_data, size %d \n",hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends) );
 #else
 		x_buf_data = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
 				(comm_pkg,  num_sends), HYPRE_MEMORY_SHARED);
@@ -476,31 +479,31 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
 	HYPRE_Int end   = hypre_ParCSRCommPkgSendMapStart(comm_pkg, num_sends);
 
 
-	printf("first, begin = %d , end = %d \n", begin, end);
+	//printf("first, begin = %d , end = %d \n", begin, end);
 #ifdef HYPRE_USE_GPU
 	PUSH_RANGE("PERCOMM2DEVICE",4);
 #ifdef HYPRE_USING_PERSISTENT_COMM
 
-	printf("packing on device using persistent comm\n");    
-	PackOnDevice((HYPRE_Complex*)persistent_comm_handle->send_data,x_local_data+k1*x_size,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),begin,end,HYPRE_STREAM(4));
+	//printf("packing on device using persistent comm\n");    
+	PackOnDevice((HYPRE_Complex*)persistent_comm_handle->send_data,&x_local_data[k1*x_size],hypre_ParCSRCommPkgSendMapElmts(comm_pkg),begin,end,HYPRE_STREAM(4));
 	//PrintPointerAttributes(persistent_comm_handle->send_data);
 #else//persistent comm
 #if defined(DEBUG_PACK_ON_DEVICE)
 
-	printf("packing on device using MANAGED\n");    
+	//printf("packing on device using MANAGED\n");    
 	hypre_CheckErrorDevice(cudaPeekAtLastError());
 	hypre_CheckErrorDevice(cudaDeviceSynchronize());
 	ASSERT_MANAGED(x_buf_data);
-	ASSERT_MANAGED(x_local_data+k1*x_size);
+	ASSERT_MANAGED(&x_local_data[k1*x_size]);
 	ASSERT_MANAGED(hypre_ParCSRCommPkgSendMapElmts(comm_pkg));
 #endif //debug pack on device
 
 #if defined (HYPRE_USE_MANAGED) 
-	printf("packing on device 0\n");    
-	PackOnDevice((HYPRE_Complex*)x_buf_data,x_local_data+k1*x_size,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),begin,end,HYPRE_STREAM(4));
+	//printf("packing on device 0\n");    
+	PackOnDevice((HYPRE_Complex*)x_buf_data,&x_local_data[k1*x_size],hypre_ParCSRCommPkgSendMapElmts(comm_pkg),begin,end,HYPRE_STREAM(4));
 #endif
 #if defined(DEBUG_PACK_ON_DEVICE)
-	printf("packing on device\n");    
+	//printf("packing on device\n");    
 	hypre_CheckErrorDevice(cudaPeekAtLastError());
 	hypre_CheckErrorDevice(cudaDeviceSynchronize());
 #endif//debug pack on device
@@ -521,10 +524,10 @@ HYPRE_Int *comm_h = hypre_ParCSRCommPkgSendMapElmts(comm_pkg);
 //for (int ii=begin; ii<end; ++ii){
 //printf("comm[%d] =  %d \n", ii, comm_h[ii]);
 //}
-printf("commmm copying %d elements to the GPU \n ", (end-begin));
+//printf("commmm copying %d elements to the GPU \n ", (end-begin));
 cudaMemcpy(comm_d,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),  (end-begin) * sizeof(HYPRE_Int),cudaMemcpyHostToDevice  );
 	PackOnDeviceGPUonly((HYPRE_Complex*)x_buf_data,
-x_local_data+k1*x_size,
+&x_local_data[k1*x_local_size],
 comm_d,
 begin,
 end);
@@ -546,15 +549,15 @@ end);
 #elif defined(HYPRE_USING_OPENMP) //open mp offload
 #pragma omp parallel for HYPRE_SMP_SCHEDULE
 #endif
-	printf("second loop, begin = %d , end = %d \n", begin, end);
+	//printf("second loop, begin = %d , end = %d \n", begin, end);
 	for (i = begin; i < end; i++)
 	{
 #ifdef HYPRE_USING_PERSISTENT_COMM
-printf("not using GPU, persostent commmmmm!\n");
+ //printf("not using GPU, persostent commmmmm!\n");
 		((HYPRE_Complex *)persistent_comm_handle->send_data)[i - begin]  = x_local_data[hypre_ParCSRCommPkgSendMapElmt(comm_pkg,i)];
 #else
 
-printf("not using persistent commmmmm nor GPU!\n");
+ //printf("not using persistent commmmmm nor GPU!\n");
 #endif//persistent comm
 
 	}//for
@@ -580,7 +583,7 @@ printf("not using persistent commmmmm nor GPU!\n");
 
 	if (use_persistent_comm)
 	{
-		printf("PERSISTENT COMM!\n");
+		//printf("PERSISTENT COMM!\n");
 #ifdef HYPRE_USING_PERSISTENT_COMM
 		hypre_ParCSRPersistentCommHandleStart(persistent_comm_handle);
 #endif
@@ -588,11 +591,11 @@ printf("not using persistent commmmmm nor GPU!\n");
 	else
 	{
 		jv = 0;
-		printf("creating comm handle \n");
-		printf("jv = %d num_cols_offd = %d \n", 0, num_cols_offd);
-		printf("asking for x_tmp_data[%d] i.e. %d*%d \n", jv*num_cols_offd, jv, num_cols_offd);     
+		//printf("creating comm handle \n");
+	//			printf("jv = %d num_cols_offd = %d \n", 0, num_cols_offd);
+	//	printf("asking for x_tmp_data[%d] i.e. %d*%d \n", jv*num_cols_offd, jv+k1*x_local_size, num_cols_offd);     
 		comm_handle = hypre_ParCSRCommHandleCreate
-			( 1, comm_pkg, x_buf_data,x_tmp_data );
+			( 1, comm_pkg, x_buf_data,&x_tmp_data[k1*x_local_size] );
 	}
 	//CRASHED
 #ifdef HYPRE_PROFILE
@@ -600,7 +603,7 @@ printf("not using persistent commmmmm nor GPU!\n");
 #endif
 	POP_RANGE;
 #ifndef HYPRE_USE_GPU
-	hypre_CSRMatrixMatvecOutOfPlace( alpha, diag, x_local, beta, b_local, y_local, 0);
+///	hypre_CSRMatrixMatvecOutOfPlace( alpha, diag, x_local+k1*x_local_size, beta, b_local, y_local+k2*y_local_size, 0);
 #endif
 #ifdef HYPRE_PROFILE
 	hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] -= hypre_MPI_Wtime();
@@ -627,9 +630,10 @@ printf("not using persistent commmmmm nor GPU!\n");
 #ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD   
 	UpdateHRC(x_tmp);
 #endif
-	printf("num cols of diag %d \n", num_cols_offd);
-	if (num_cols_offd) {hypre_CSRMatrixMatvec( alpha, offd, x_tmp, 1.0, y_local); } 
-
+	//printf("num cols of diag %d \n", num_cols_offd);
+	if (num_cols_offd) {hypre_CSRMatrixMatvecMult( alpha, offd, x_tmp, k1, 1.0, y_local, k2); } 
+HYPRE_Complex testy = hypre_SeqVectorInnerProdOneOfMult(y_local, k2, y_local, k2);
+ printf("test y = %16.16f\n", testy);
 	//11/20/2018 works
 	//CRASHED 
 	//if (num_cols_offd) hypre_SeqVectorUpdateHost(y_local);  
@@ -646,7 +650,7 @@ printf("not using persistent commmmmm nor GPU!\n");
 	{
 
 #if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
-		printf("freeeeing x_buf_dta \n");     
+		//printf("freeeeing x_buf_dta \n");     
 		//causes crash 
 		//hypre_TFree(x_buf_data, HYPRE_MEMORY_DEVICE);
 

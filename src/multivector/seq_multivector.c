@@ -30,13 +30,14 @@
 hypre_Multivector *
 hypre_SeqMultivectorCreate( HYPRE_Int size, HYPRE_Int num_vectors  )
 {
+printf("allocating %d vectors, each with size %d\n", num_vectors, size);
    hypre_Multivector *mvector;
    
    mvector = (hypre_Multivector *) hypre_MAlloc(sizeof(hypre_Multivector), HYPRE_MEMORY_HOST);
    
    hypre_MultivectorNumVectors(mvector) = num_vectors;
    hypre_MultivectorSize(mvector) = size;
-   
+printf("MULTIVECTOR SIZE = %d \n", size);   
    hypre_MultivectorOwnsData(mvector) = 1; 
    hypre_MultivectorData(mvector) = NULL;
    

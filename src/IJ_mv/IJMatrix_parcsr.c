@@ -2590,7 +2590,7 @@ HYPRE_Int hypre_FindProc(HYPRE_Int *list, HYPRE_Int value, HYPRE_Int list_length
 	HYPRE_Int
 hypre_IJMatrixAssembleParCSR(hypre_IJMatrix *matrix)
 {
-	printf("a1 \n");
+//	printf("a1 \n");
 	//hypre_IJMatrixAssembleFlag(matrix)=1;
 
 	MPI_Comm comm = hypre_IJMatrixComm(matrix);
@@ -2599,11 +2599,11 @@ hypre_IJMatrixAssembleParCSR(hypre_IJMatrix *matrix)
 	HYPRE_Int *row_partitioning = hypre_IJMatrixRowPartitioning(matrix);
 	HYPRE_Int *col_partitioning = hypre_IJMatrixColPartitioning(matrix);
 
-	printf("a2 \n");
+	//printf("a2 \n");
 
 	hypre_CSRMatrix *diag = hypre_ParCSRMatrixDiag(par_matrix);
 	hypre_CSRMatrix *offd = hypre_ParCSRMatrixOffd(par_matrix);
-	printf("got matrix handles~\n");
+//	printf("got matrix handles~\n");
 	HYPRE_Int *diag_i = hypre_CSRMatrixI(diag);
 	HYPRE_Int *offd_i = hypre_CSRMatrixI(offd);
 	HYPRE_Int *diag_j;
@@ -2624,13 +2624,13 @@ hypre_IJMatrixAssembleParCSR(hypre_IJMatrix *matrix)
 	HYPRE_Int nnz_offd;
 	HYPRE_Int *aux_offd_j;
 	HYPRE_Complex temp; 
-	printf("a3 \n");
+//	printf("a3 \n");
 	hypre_MPI_Comm_rank(comm, &my_id);
 #ifdef HYPRE_NO_GLOBAL_PARTITION
-	printf("DO NOT HAVE partitioning, I am rank %d \n", my_id);
+//	printf("DO NOT HAVE partitioning, I am rank %d \n", my_id);
 	HYPRE_Int base = hypre_IJMatrixGlobalFirstCol(matrix);
 #else
-	printf("DO HAVE partitioning rank %d \n", my_id);
+//	printf("DO HAVE partitioning rank %d \n", my_id);
 	HYPRE_Int base = col_partitioning[0];
 #endif
 	HYPRE_Int off_proc_i_indx;
@@ -2651,7 +2651,7 @@ hypre_IJMatrixAssembleParCSR(hypre_IJMatrix *matrix)
 
 	max_num_threads = hypre_NumThreads();
 
-	printf("a4 \n");
+	//printf("a4 \n");
 	//first find out if anyone has an aux_matrix, and create one if you don't
 	//  * have one, but other procs do 
 	aux_flag = 0;
@@ -2659,9 +2659,9 @@ hypre_IJMatrixAssembleParCSR(hypre_IJMatrix *matrix)
 	aux_flag_global = 0;
 	if(aux_matrix)
 	{   aux_flag = 1; }
-	printf("a5 my id  %d \n", my_id);
+//	printf("a5 my id  %d \n", my_id);
 	hypre_MPI_Allreduce(&aux_flag, &aux_flag_global, 1, HYPRE_MPI_INT, hypre_MPI_SUM, comm);
-	printf("a6 \n");
+//	printf("a6 \n");
 	if(aux_flag_global && (!aux_flag))
 	{
 
@@ -2676,12 +2676,12 @@ hypre_IJMatrixAssembleParCSR(hypre_IJMatrix *matrix)
 	if (aux_matrix)
 	{
 
-		printf("AUX matrix, id %d \n", my_id);
+	//	printf("AUX matrix, id %d \n", my_id);
 		// first delete all cancelled elements 
 		cancel_indx = hypre_AuxParCSRMatrixCancelIndx(aux_matrix);
 		if (cancel_indx)
 		{
-			printf("cancel idx\n");
+		//	printf("cancel idx\n");
 
 			current_num_elmts=hypre_AuxParCSRMatrixCurrentNumElmts(aux_matrix);
 			off_proc_i=hypre_AuxParCSRMatrixOffProcI(aux_matrix);
@@ -2729,14 +2729,14 @@ hypre_IJMatrixAssembleParCSR(hypre_IJMatrix *matrix)
 		if (offd_proc_elmts)
 		{
 
-			printf("DO HAVE offd_proc_el\n");
+			//printf("DO HAVE offd_proc_el\n");
 			max_off_proc_elmts=hypre_AuxParCSRMatrixMaxOffProcElmts(aux_matrix);
 			current_num_elmts=hypre_AuxParCSRMatrixCurrentNumElmts(aux_matrix);
 			off_proc_i=hypre_AuxParCSRMatrixOffProcI(aux_matrix);
 			off_proc_j=hypre_AuxParCSRMatrixOffProcJ(aux_matrix);
 
 			off_proc_data=hypre_AuxParCSRMatrixOffProcData(aux_matrix);
-			printf("Assembling off proc part \n");
+		//	printf("Assembling off proc part \n");
 			hypre_IJMatrixAssembleOffProcValsParCSR(
 					matrix,off_proc_i_indx, max_off_proc_elmts, current_num_elmts,
 					off_proc_i, off_proc_j, off_proc_data);
@@ -2747,7 +2747,7 @@ hypre_IJMatrixAssembleParCSR(hypre_IJMatrix *matrix)
 	if (hypre_IJMatrixAssembleFlag(matrix) == 0)
 	{
 
-		printf("Assemble flag set\n");
+	//	printf("Assemble flag set\n");
 		hypre_MPI_Comm_size(comm, &num_procs); 
 		hypre_MPI_Comm_rank(comm, &my_id);
 #ifdef HYPRE_NO_GLOBAL_PARTITION
@@ -2763,7 +2763,7 @@ hypre_IJMatrixAssembleParCSR(hypre_IJMatrix *matrix)
 		if (hypre_AuxParCSRMatrixNeedAux(aux_matrix))
 		{
 
-			printf("Need aux!\n");
+		//	printf("Need aux!\n");
 			HYPRE_Int *diag_array, *offd_array;
 			diag_array = hypre_CTAlloc(HYPRE_Int,  max_num_threads, HYPRE_MEMORY_SHARED);
 			offd_array = hypre_CTAlloc(HYPRE_Int,  max_num_threads, HYPRE_MEMORY_SHARED);

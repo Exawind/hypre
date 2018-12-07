@@ -342,7 +342,7 @@ hypre_ParKrylovScaleVector( HYPRE_Complex  alpha,
 hypre_ParKrylovScaleVectorOneOfMult( HYPRE_Complex  alpha,
 		void   *x, HYPRE_Int k1     )
 {
-printf("scale \n");
+//printf("scale \n");
 	return ( hypre_ParVectorScaleOneOfMult( alpha, (hypre_ParVector *) x, k1 ) );
 }
 

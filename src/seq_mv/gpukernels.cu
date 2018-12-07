@@ -116,6 +116,9 @@ void  PackOnDeviceKernel(HYPRE_Complex* __restrict__ send_data,const HYPRE_Compl
 		send_data[i-begin]=x_local_data[send_map[i]];
 	}
 }
+/*
+  PackOnDevice((HYPRE_Complex*)x_buf_data[0],x_local_data,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),begin,end,HYPRE_STREAM(4));
+*/
 void PackOnDevice(HYPRE_Complex *send_data,HYPRE_Complex *x_local_data, hypre_int *send_map, hypre_int begin,hypre_int end,cudaStream_t s){
 	if ((end-begin)<=0) return;
 	hypre_int tpb=64;
@@ -145,12 +148,12 @@ __global__
 void  PackOnDeviceKernelGPUonly(HYPRE_Complex* __restrict__ send_data,const HYPRE_Complex* __restrict__ x_local_data, const hypre_int* __restrict__ send_map, hypre_int begin,hypre_int end){
 	hypre_int i = begin+blockIdx.x * blockDim.x + threadIdx.x;
 	if (i<end){
-//printf("putting %f in place %d \n",x_local_data[send_map[i]], i-begin);
+   // printf("putting %f in place %d \n",x_local_data[send_map[i]], i-begin);
 		send_data[i-begin]=x_local_data[send_map[i]];
 	}
 }
 void PackOnDeviceGPUonly(HYPRE_Complex *send_data,HYPRE_Complex *x_local_data, hypre_int *send_map, hypre_int begin,hypre_int end){
-printf("all right, inside GPUonly pack on device, begin %d end %d \n", begin, end);
+//printf("all right, inside GPUonly pack on device, begin %d end %d \n", begin, end);
 	if ((end-begin)<=0) return;
 	hypre_int tpb=64;
 	hypre_int num_blocks=(end-begin)/tpb+1;

@@ -53,7 +53,7 @@ hypre_SeqVectorCreate( HYPRE_Int size )
 
 				hypre_VectorNumVectors(vector) = 1;
 				hypre_VectorMultiVecStorageMethod(vector) = 0;
-//printf("woohoo! creating seq vector \n");
+//printf("woohoo! creating seq vector i, size %d \n", size);
 				/* set defaults */
 				hypre_VectorOwnsData(vector) = 1;
 
@@ -150,7 +150,7 @@ d_data = hypre_VectorDeviceData(vector);
 hypre_SeqVectorInitialize( hypre_Vector *vector )
 {
 				HYPRE_Int  size = hypre_VectorSize(vector);
-//printf("seq vector, local size %d \n", size);
+printf("seq vector, local size %d \n", size);
 				HYPRE_Int  ierr = 0;
 				HYPRE_Int  num_vectors = hypre_VectorNumVectors(vector);
 				HYPRE_Int  multivec_storage_method = hypre_VectorMultiVecStorageMethod(vector);
@@ -159,7 +159,7 @@ hypre_SeqVectorInitialize( hypre_Vector *vector )
 #if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
 							
 printf("SEQ vector:  GPU data init, sz %d where size = %d and num_vectors = %d \n", size*num_vectors, size, num_vectors);
-
+printf("storage methods %d initializng for gpu, size %d*%d\n", multivec_storage_method, num_vectors*size );
 	hypre_VectorDeviceData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_DEVICE);
 #endif
 								hypre_VectorData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_SHARED);
@@ -249,7 +249,12 @@ HYPRE_Real   hypre_SeqVectorInnerProdOneOfMult( hypre_Vector *x, HYPRE_Int k1,
 								hypre_Vector *y, HYPRE_Int k2 ){
 
 
-				HYPRE_Int size   = hypre_VectorSize(x);
+   HYPRE_Int         x_size = hypre_VectorSize(x);
+   HYPRE_Int         y_size = hypre_VectorSize(y);
+
+//HYPRE_Int size;
+//printf("INSIDE IP DEPTH 2 x_size %d y_size %d \n", x_size, y_size);
+			HYPRE_Int size   = hypre_VectorSize(x);
         HYPRE_Int	num_vectors = hypre_VectorNumVectors(x);
 				HYPRE_Int vecstride = hypre_VectorVectorStride(x);
 
@@ -263,7 +268,9 @@ HYPRE_Real   hypre_SeqVectorInnerProdOneOfMult( hypre_Vector *x, HYPRE_Int k1,
 				static HYPRE_Int firstcall=1;
 				HYPRE_Complex *x_data = hypre_VectorDeviceData(x);
 				HYPRE_Complex *y_data = hypre_VectorDeviceData(y);
-				cublasStatus_t stat;
+				HYPRE_Complex *x_dataCPU = hypre_VectorData(x);
+//printf("IHA SIZE = %d \n", size);
+cublasStatus_t stat;
 				if (firstcall){
 								handle = getCublasHandle();
 								firstcall=0;
@@ -272,12 +279,12 @@ HYPRE_Real   hypre_SeqVectorInnerProdOneOfMult( hypre_Vector *x, HYPRE_Int k1,
 	//			hypre_SeqVectorPrefetchToDevice(y);
 	//printf("about to cublas\n");
 				stat=cublasDdot(handle, (HYPRE_Int)size,
-												x_data+size*k1, 1,
-												y_data+size*k2, 1,
+												&x_data[x_size*k1], 1,
+												&y_data[y_size*k2], 1,
 												&result);
-printf("cublas status %d, VECTOR SIZE %d local IP %f \n", stat,size, result);
+//printf("cublas status %d, VECTOR SIZE %d local IP %f requesting vector x starting at %d*%d = %d  and y starting at %d*%d = %d  \n", stat,size, result, k1,size,k1*size, k2,size, k2*size);
 //
-printf("local result, before all reduce %16.16f \n", result);
+//printf("local result, before all reduce %16.16f \n", result);
         return result;
 #else
 //printf("NOT USING GPU \n");
@@ -706,12 +713,12 @@ hypre_SeqVectorSetConstantValues( hypre_Vector *v,
 
 printf("setting constant value %f for vector of lenght %d \n", value, hypre_VectorSize(v));
 HYPRE_Complex * hData = hypre_VectorData(v);
-for (int i=0; i<hypre_VectorSize(v); ++i){
+/*for (int i=0; i<hypre_VectorSize(v); ++i){
 if (i<10) printf("inside loop, value is %f \n", value);
 //if (i<100 && value>0.0f)
 //printf("setting vec data [%d] to %f \n", i, value);
 hData[i] = value;
-}
+}*/
 
 hypre_SeqVectorCopyDataCPUtoGPU(v);
 /*
@@ -881,11 +888,11 @@ hypre_SeqVectorCopyOneOfMult( hypre_Vector *x, HYPRE_Int k1,
 
 				HYPRE_Complex *x_dataDevice = hypre_VectorDeviceData(x);
 				HYPRE_Complex *y_dataDevice = hypre_VectorDeviceData(y);
-
-		cudaMemcpy ( y_dataDevice,x_dataDevice,
+        printf("copyVector: size y  %d size x %d k1 %d k2 %d \n", size_y, size, k1, k2);
+        int stat =		cudaMemcpy (&y_dataDevice[k2*size_y],&x_dataDevice[k1*size],
 				size_y*sizeof(HYPRE_Complex),
 				cudaMemcpyDeviceToDevice );
-
+printf("memcpy staus %d \n", stat);
 #endif
 #ifdef HYPRE_PROFILE
 				hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
@@ -893,7 +900,7 @@ hypre_SeqVectorCopyOneOfMult( hypre_Vector *x, HYPRE_Int k1,
 
 				HYPRE_Complex *x_data = hypre_VectorData(x);
 				HYPRE_Complex *y_data = hypre_VectorData(y);
-
+printf("passed 1 \n");
 				HYPRE_Int      i;
 
 				HYPRE_Int      ierr = 0;
@@ -903,8 +910,12 @@ hypre_SeqVectorCopyOneOfMult( hypre_Vector *x, HYPRE_Int k1,
 				if (!y->mapped) hypre_SeqVectorMapToDevice(y);
 				else SyncVectorToDevice(y);
 #endif
-				if (size > size_y) size = size_y;
-				size *=hypre_VectorNumVectors(x);
+
+printf("passed 2 \n");
+	//			if (size > size_y) size = size_y;
+		//		size *=hypre_VectorNumVectors(x);
+
+printf("passed 3, new size %d \n", size);
 #if defined(HYPRE_USING_OPENMP_OFFLOAD)
 #pragma omp target teams  distribute  parallel for private(i) num_teams(NUM_TEAMS) thread_limit(NUM_THREADS) is_device_ptr(y_data,x_data)
 #elif defined(HYPRE_USING_MAPPED_OPENMP_OFFLOAD)
@@ -912,8 +923,10 @@ hypre_SeqVectorCopyOneOfMult( hypre_Vector *x, HYPRE_Int k1,
 #elif defined(HYPRE_USING_OPENMP)
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
+int xstart = k1*size, ystart=k2*size_y;
+printf("passed 4 \n");
 				for (i = 0; i < size; i++)
-								y_data[i] = x_data[i];
+								y_data[i+ystart] = x_data[i+xstart];
 
 #ifdef HYPRE_PROFILE
 				hypre_profile_times[HYPRE_TIMER_ID_BLAS1] += hypre_MPI_Wtime();
@@ -1046,8 +1059,9 @@ hypre_SeqVectorScaleOneOfMult( HYPRE_Complex alpha,
 
 				HYPRE_Int vecstride = hypre_VectorVectorStride(y);
 				HYPRE_Int      size   = hypre_VectorSize(y);
+
 #ifdef HYPRE_USE_GPU
-				return VecScaleScalarGPUonly(y->d_data,alpha, hypre_VectorSize(y),HYPRE_STREAM(4));
+//				return VecScaleScalarGPUonly(y->d_data,alpha, hypre_VectorSize(y),HYPRE_STREAM(4));
 
 				HYPRE_Complex *y_data = hypre_VectorDeviceData(y);
 

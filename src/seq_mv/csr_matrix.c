@@ -164,7 +164,7 @@ printf("num non zeros %d \n", num_nonzeros);
 
 		if (num_nonzeros){
 
-			hypre_CSRMatrixDeviceJ(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_nonzeros + 1, HYPRE_MEMORY_DEVICE);
+			hypre_CSRMatrixDeviceJ(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_nonzeros, HYPRE_MEMORY_DEVICE);
 		}
 	}
 
@@ -182,7 +182,7 @@ printf("num rows %d \n", num_rows);
 #else
 	cudaMemcpy( hypre_CSRMatrixDeviceData(matrix),hypre_CSRMatrixData(matrix),   num_nonzeros*sizeof(HYPRE_Complex), cudaMemcpyHostToDevice);
 	cudaMemcpy(hypre_CSRMatrixDeviceJ(matrix), hypre_CSRMatrixJ(matrix),   num_nonzeros*sizeof(HYPRE_Int), cudaMemcpyHostToDevice);
-	cudaMemcpy(hypre_CSRMatrixDeviceI(matrix), hypre_CSRMatrixI(matrix),   num_rows*sizeof(HYPRE_Int), cudaMemcpyHostToDevice);
+	cudaMemcpy(hypre_CSRMatrixDeviceI(matrix), hypre_CSRMatrixI(matrix),  ( num_rows+1)*sizeof(HYPRE_Int), cudaMemcpyHostToDevice);
 #endif
 }
 /*--------------------------------------------------------------------------

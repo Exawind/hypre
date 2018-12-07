@@ -96,6 +96,7 @@ hypre_ParMultiVectorCreate( MPI_Comm   comm,
     HYPRE_Int  num_vectors )
 {
   /* note that global_size is the global length of a single vector */
+//printf("HERE!!!!!\n");
   hypre_ParVector * vector =
     hypre_ParVectorCreate( comm, global_size, partitioning );
   hypre_ParVectorNumVectors(vector) = num_vectors;
@@ -181,7 +182,7 @@ hypre_ParVectorInitialize( hypre_ParVector *vector )
 //printf("done. setting up the size\n");
   hypre_ParVectorActualLocalSize(vector) 
     = hypre_VectorSize(hypre_ParVectorLocalVector(vector));
-//printf("size %d \n",hypre_ParVectorActualLocalSize(vector)); 
+printf("initialize, vector actual local size %d \n",hypre_ParVectorActualLocalSize(vector)); 
   return hypre_error_flag;
 }
 
@@ -572,7 +573,8 @@ hypre_ParVectorInnerProdOneOfMult( hypre_ParVector *x,HYPRE_Int k1,
   MPI_Comm      comm    = hypre_ParVectorComm(x);
   hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
   hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
-
+///hypre_ParVectorLocalVectori/
+//printf("Depth 1 INSIDE IP, sizes %d %d \n", x_local->size, y_local->size);
   HYPRE_Real result = 0.0;
   HYPRE_Real local_result = hypre_SeqVectorInnerProdOneOfMult(x_local,k1, y_local, k2);
 #ifdef HYPRE_PROFILE

@@ -506,6 +506,17 @@ hypre_CSRMatrixMatvec( HYPRE_Complex    alpha,
    return hypre_CSRMatrixMatvecOutOfPlace(alpha, A, x, beta, y, y, 0);
 }
 
+HYPRE_Int
+hypre_CSRMatrixMatvecMult( HYPRE_Complex    alpha,
+                       hypre_CSRMatrix *A,
+                       hypre_Vector    *x,
+HYPRE_Int k1,
+                       HYPRE_Complex    beta,
+                       hypre_Vector    *y,
+HYPRE_Int k2     )
+{
+   return hypre_CSRMatrixMatvecMultOutOfPlace(alpha, A, x,k1, beta, y,k2, y,k2, 0);
+}
 #if defined (HYPRE_USE_MANAGED)
 HYPRE_Int
 hypre_CSRMatrixMatvec3( HYPRE_Complex    alpha,
@@ -963,25 +974,23 @@ cusparseErrchk(cusparseDcsrmv(handle ,
   }
 #endif
 #if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
-printf("not using managed \n");
+printf("not using managed, vector size %d  \n", x->size);
 
-
-//cudaMemcpy( dst, src, size, cudaMemcpyHostToDevice);
-
-for (ii=0; ii<2; ii++)
-{
-printf("A->i[%d] = %d \n", ii, A->i[ii]);
-printf("A->j[%d] = %d \n", A->i[ii], A->j[A->i[ii]]);
-printf("A->data[%d] = %16.16f \n",A->i[ii], A->data[A->i[ii]]);
+HYPRE_Complex * ddd = x->d_data;
+HYPRE_Complex * hdd = (HYPRE_Complex*) calloc(x->size, sizeof(HYPRE_Complex));
+cudaMemcpy( hdd, &ddd[0], (x->size)*sizeof(HYPRE_Complex), cudaMemcpyDeviceToHost);
+for (int ii=0; ii<x->size; ++ii){
+if (hdd[ii]!=0)
+printf("element %d of the off-d vector is %16.16f \n",ii, hdd[ii]);
 }
-
+#if 0
 for (ii=A->num_rows-1; ii<A->num_rows+1; ii++)
 {
 printf("A->i[%d] = %d \n", ii, A->i[ii]);
 printf("A->j[%d] = %d \n", A->i[ii], A->j[A->i[ii]]);
 printf("A->data[%d] = %16.16f \n", A->i[ii], A->data[A->i[ii]]);
 }
-
+#endif 
 cublasHandle_t myHandle;
 double KSres;
   cublasCreate(&myHandle);
@@ -1045,7 +1054,7 @@ HYPRE_Int k2,
 {
 
    HYPRE_Int         x_size = hypre_VectorSize(x);
-   HYPRE_Int         y_size = hypre_VectorSize(y) - offset;
+   HYPRE_Int         y_size = hypre_VectorSize(y);
   static cusparseHandle_t handle;
   static cusparseMatDescr_t descr;
   static HYPRE_Int FirstCall=1;
@@ -1054,9 +1063,9 @@ HYPRE_Int k2,
   static HYPRE_Int myid;
 
   if (b!=y){
-printf("copying vector inside matvec \n");
+// printf("copying vector inside matvec \n");
     PUSH_RANGE_PAYLOAD("MEMCPY",1,y->size-offset);
-    VecCopy(y->data,b->data,(y->size-offset),HYPRE_STREAM(4));
+//    VecCopy(y->data,b->data,(y->size-offset),HYPRE_STREAM(4));
     POP_RANGE
   }
 
@@ -1087,33 +1096,36 @@ printf("copying vector inside matvec \n");
  double KSres;
 //cudaMemcpy( dst, src, size, cudaMemcpyHostToDevice);
 cublasHandle_t myHandle;
-
+HYPRE_Complex * xddata = x->d_data;
+HYPRE_Complex * yddata = y->d_data;
   cublasCreate(&myHandle);
-cublasDdot (myHandle, x_size,
-                           x->d_data, 1,
-                           x->d_data, 1,
+/*cublasDdot (myHandle, x_size,
+                          &xddata[k1*x_size], 1,
+                           &xddata[k1*x_size], 1,
                            &KSres);
-printf("just before matvec, xtx is %16.16f\n", KSres); 
+printf("just before matvec, xtx is %16.16f, x_size = %d \n", KSres, x_size); 
+*/
  PUSH_RANGE("PREFETCH+SPMV",2);
 
   if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
-printf("k1 = %d k2 = %d k3 = %d num_cols = %d num_rows = %d, num non zeros %d \n", A->num_cols, A->num_rows, A->num_nonzeros, k1, k2, k3);
-printf("xsize %d ysize %d \n", x_size, y_size);
+//printf("k1 = %d k2 = %d k3 = %d num_cols = %d num_rows = %d, num non zeros %d \n", A->num_cols, A->num_rows, A->num_nonzeros, k1, k2, k3);
+//printf("xsize %d ysize %d k1 = %d k2 = %d \n", x_size, y_size, k1, k2);
 status = cusparseDcsrmv(handle ,
 				CUSPARSE_OPERATION_NON_TRANSPOSE, 
 				A->num_rows-offset, A->num_cols, A->num_nonzeros,
 				&alpha, descr,
-				A->d_data ,A->d_i+offset,A->d_j,
-				x->d_data+k1*x_size, &beta, y->d_data+offset+k2*y_size);
+				A->d_data ,A->d_i,A->d_j,
+				&xddata[k1*x_size], &beta, &yddata[k2*y_size]);
 //printf("Matvec passed with status %d \n", status); 
   POP_RANGE;
-  
+/*  
 cublasDdot (myHandle, y_size,
-                           y->d_data, 1,
-                           y->d_data, 1,
+                           &yddata[k2*y_size], 1,
+                           &yddata[k2*y_size], 1,
                            &KSres);
-printf("just after matvec, yty is %16.16f\n", KSres); 
-  return 0;
+printf("just after matvec, yty is %16.16f y_size =  %d, k2 = %d \n", KSres, y_size, k2); 
+*/ 
+ return 0;
   
 }
 
