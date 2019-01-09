@@ -230,7 +230,6 @@ void hypre_ParCSRPersistentCommHandleStart( hypre_ParCSRPersistentCommHandle *co
 		if (hypre_MPI_SUCCESS != ret)
 		{
 			hypre_error_w_msg(HYPRE_ERROR_GENERIC,"MPI error\n");
-			/*hypre_printf("MPI error %d in %s (%s, line %u)\n", ret, __FUNCTION__, __FILE__, __LINE__);*/
 		}
 	}
 }
@@ -245,7 +244,6 @@ void hypre_ParCSRPersistentCommHandleWait( hypre_ParCSRPersistentCommHandle *com
 		if (hypre_MPI_SUCCESS != ret)
 		{
 			hypre_error_w_msg(HYPRE_ERROR_GENERIC,"MPI error\n");
-			/*hypre_printf("MPI error %d in %s (%s, line %u)\n", ret, __FUNCTION__, __FILE__, __LINE__);*/
 		}
 	}
 }
@@ -258,11 +256,9 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 		void                *recv_data )
 {
 
-	//printf("CREATING A HANDLE!\n");
 	HYPRE_Int                  num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
 	HYPRE_Int                  num_recvs = hypre_ParCSRCommPkgNumRecvs(comm_pkg);
 	MPI_Comm                   comm      = hypre_ParCSRCommPkgComm(comm_pkg);
-//	printf("num sends %d num recvs %d \n", num_sends, num_recvs);
 	hypre_ParCSRCommHandle    *comm_handle;
 	HYPRE_Int                  num_requests;
 	hypre_MPI_Request         *requests;
@@ -316,31 +312,7 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 					vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1)-vec_start;
 					ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
 
-					printf("SEND vec start %d vec leni %d, this is send %d SENDING TO ip =%d from %d\n", vec_start, vec_len, i, ip, my_id);
-//HYPRE_Conmplex * h_send_data = (HYPRE_Complex*) calloc(vec_len, sizeof(HYPRE_Complex));
-//cudaMemcpy( h_send_data, &d_send_data[vec_start], vec_len*sizeof(HYPRE_Complex), cudaMemcpyDeviceToHost);
-#if 0
-					for (int i=0; i<vec_len; ++i)
-					{
-						printf("d_send_data[%d] = %16.16f \n",vec_start+i, h_send_data[vec_start+i]);
-					}
-#endif
 
-				/*	cublasHandle_t myHandle;
-					double KSres;
-					cublasCreate(&myHandle);
-					cublasDdot (myHandle, vec_len,
-							&d_send_data[vec_start], 1,
-							&d_send_data[vec_start], 1,
-							&KSres);
-					printf("IP for the SENT vector = %16.16f \n", KSres);
-	*/
-/*		hypre_MPI_Send(&d_send_data[vec_start],
-vec_len, 
-HYPRE_MPI_COMPLEX,
-							ip, 
-0, 
-comm);*/
 hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
                             ip, 0, comm, &requestR);
 				}
@@ -349,48 +321,14 @@ hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
 					ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
 					vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
 					vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
-					printf("RECEIVE vec start %d vec len %d this is receive %d, RECEIVING FROM ip =%d TO %d \n", vec_start, vec_len, i, ip, my_id);
 
-					cublasHandle_t myHandle;
 					double KSres;
-					cublasCreate(&myHandle);
 
-			/*	cublasDdot (myHandle, vec_len,
-							&d_recv_data[vec_start], 1,
-							&d_recv_data[vec_start], 1,
-							&KSres);
-					printf("IP BEFORE  RECEIVING vector = %16.16f \n", KSres);*/
 					hypre_MPI_Status statusR;
-				/*	hypre_MPI_Recv(&d_recv_data[vec_start], 
-							vec_len, 
-							HYPRE_MPI_COMPLEX,
-							ip, 
-							0, 
-							comm,
-&statusR);*/
    hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
                             ip, 0, comm, &requestR);
 
-					//MPI_Wait();
-					// MPI_Request request;
-					//  MPI_Status status;
 					hypre_MPI_Wait(&requestR, &statusR);
-/*
-					KSres = -10.0;
-					cublasDdot (myHandle, vec_len,
-							&d_recv_data[vec_start], 1,
-							&d_recv_data[vec_start], 1,
-							&KSres);
-					printf("IP for the RECEIVED vector = %16.16f \n", KSres);
-*/
-//HYPRE_Complex * h_recv_data = (HYPRE_Complex*) calloc(vec_len, sizeof(HYPRE_Complex));
-//cudaMemcpy( h_recv_data, &d_recv_data[vec_start], vec_len*sizeof(HYPRE_Complex), cudaMemcpyDeviceToHost);
-#if 0
-					for (int i=0; i<vec_len; ++i)
-					{
-						printf("d_recv_data[%d] = %16.16f \n",vec_start+i, h_recv_data[vec_start+i]);
-					}
-#endif
 
 				}
 				break;
@@ -792,6 +730,7 @@ hypre_MatvecCommPkgCreate ( hypre_ParCSRMatrix *A )
 	HYPRE_Int *col_starts      = hypre_ParCSRMatrixColStarts(A);
 	HYPRE_Int  num_cols_diag   = hypre_CSRMatrixNumCols(hypre_ParCSRMatrixDiag(A));
 #endif
+
 	/*-----------------------------------------------------------
 	 * setup commpkg
 	 *----------------------------------------------------------*/

@@ -273,10 +273,10 @@ void GramSchmidt (HYPRE_Int option,
 			(-1.0)*Hcolumn[idx(j, i-1, k_dim+1)],
 			sz);*/
 
-			printf("inside GS, first IP, i = %d, j= %d \n", i, j);
+			//printf("inside GS, first IP, i = %d, j= %d \n", i, j);
 			Hcolumn[idx(j, i-1, k_dim+1)] = hypre_ParKrylovInnerProdOneOfMult(Vspace,j,Vspace, i);
 
-			printf("I GOT %16.16f \n", Hcolumn[idx(j, i-1, k_dim+1)]);
+			//printf("I GOT %16.16f \n", Hcolumn[idx(j, i-1, k_dim+1)]);
 			hypre_ParKrylovAxpyOneOfMult((-1.0)*Hcolumn[idx(j, i-1, k_dim+1)], Vspace, j, Vspace, i);		
 		}
 
@@ -288,7 +288,6 @@ void GramSchmidt (HYPRE_Int option,
 
 		t = sqrt(hypre_ParKrylovInnerProdOneOfMult(Vspace,i,Vspace, i));
 		Hcolumn[idx(i, i-1, k_dim+1)] = t;
-		printf("h[%d] = %f \n",i, Hcolumn[idx(i, i-1, k_dim+1)]);
 		if (t != 0){
 			t = 1/t;
 
@@ -297,13 +296,13 @@ void GramSchmidt (HYPRE_Int option,
 							sz);*/
 
 			hypre_ParKrylovScaleVectorOneOfMult(t,Vspace, i);
-//			hypre_ParKrylovAxpyOneOfMult(t, auxV, 0, Vspace, i);		
-			printf("scaling by %f \n", t);
+			//			hypre_ParKrylovAxpyOneOfMult(t, auxV, 0, Vspace, i);		
+			//	printf("scaling by %f \n", t);
 		}
 
 	}
 	if (option == 1){
-
+		//	printf("GS = 1 \n");
 		/*		InnerProdGPUonly(w,  
 					w, 
 					&t, 
@@ -324,11 +323,10 @@ void GramSchmidt (HYPRE_Int option,
 		 * x is the space, y is the single vector 
 		 *--------------------------------------------------------------------------*/
 		hypre_ParKrylovMassInnerProdWithScalingMult(Vspace,i, Vspace, i,rvGPU, HcolumnGPU);
-
-		cudaMemcpy ( &Hcolumn[idx(0, i-1,k_dim+1)],HcolumnGPU,
+		cudaMemcpy ( &Hcolumn[idx(0, i-1,k_dim+1)],
+				HcolumnGPU,
 				i*sizeof(HYPRE_Real),
 				cudaMemcpyDeviceToHost );
-
 		/*		MassAxpyGPUonly(sz,  i,
 					Vspace,				
 					w,
@@ -350,11 +348,9 @@ void GramSchmidt (HYPRE_Int option,
 		t2 = sqrt(t2)*sqrt(rv[i-1]);
 
 		Hcolumn[idx(i, i-1, k_dim+1)] = sqrt(t-t2)*sqrt(t2+t);
-		//printf("t = %f t2 = %f Hcol = %f \n", t, t2,Hcolumn[idx(i, i-1, k_dim+1)]  ); 
 		if (Hcolumn[idx(i, i-1, k_dim+1)] != 0.0)
 		{
 			t = 1.0/Hcolumn[idx(i, i-1, k_dim+1)]; 
-			//      printf("scaling by 1/%f = %f\n", Hcolumn[idx(i, i-1, k_dim+1)], t);
 			/*			ScaleGPUonly(w, 
 							t, 
 							sz);*/
@@ -366,160 +362,183 @@ void GramSchmidt (HYPRE_Int option,
 							&rv[i], 
 							sz);*/
 
-			rv[i]  = sqrt(hypre_ParKrylovInnerProdOneOfMult(Vspace,i,Vspace, i));
-			//   printf("NORM OF vector %d is %f \n", i, rv[i]);
+			rv[i]  = hypre_ParKrylovInnerProdOneOfMult(Vspace,i,Vspace, i);
 			double dd = 2.0f - rv[i];
 			cudaMemcpy (&rvGPU[i], &dd,
 					sizeof(HYPRE_Real),
 					cudaMemcpyHostToDevice );
 		}//if
 
-	}/*
-			if (option == 2){
-//CGS2 -- straight from Ruhe
+	}
+	if (option == 2){
+		//CGS2 -- straight from Ruhe
+		/*		MassInnerProdGPUonly(w,
+					Vspace,
+					HcolumnGPU,				
+					i,
+					sz);*/
 
-MassInnerProdGPUonly(w,
-Vspace,
-HcolumnGPU,				
-i,
-sz);
+		hypre_ParKrylovMassInnerProdMult(Vspace,i, Vspace, i, HcolumnGPU);
+		/*
+		 *
+		 cudaMemcpy ( &Hcolumn[idx(0, i-1,k_dim+1)],
+		 HcolumnGPU,
+		 i*sizeof(HYPRE_Real),
+		 cudaMemcpyDeviceToHost );
+		 * */
+		cudaMemcpy ( &Hcolumn[idx(0, i-1,k_dim+1)],HcolumnGPU,
+				i*sizeof(HYPRE_Real),
+				cudaMemcpyDeviceToHost );
+		/*		MassAxpyGPUonly(sz,  i,
+					Vspace,				
+					w,
+					HcolumnGPU);	*/
 
-cudaMemcpy ( &Hcolumn[idx(0, i-1,k_dim+1)],HcolumnGPU,
-i*sizeof(HYPRE_Real),
-cudaMemcpyDeviceToHost );
-MassAxpyGPUonly(sz,  i,
-Vspace,				
-w,
-HcolumnGPU);	
-//k=2
-//do it again
-MassInnerProdGPUonly(w,
-Vspace,
-HcolumnGPU,				
-i,
-sz);
+		hypre_ParKrylovMassAxpyMult( HcolumnGPU,Vspace,i, Vspace, i);
+		//k=2
+		//do it again
+		/*		MassInnerProdGPUonly(w,
+					Vspace,
+					HcolumnGPU,				
+					i,
+					sz);*/
 
-cudaMemcpy ( &rv[0],HcolumnGPU,
-i*sizeof(HYPRE_Real),
-cudaMemcpyDeviceToHost );
+		hypre_ParKrylovMassInnerProdMult(Vspace,i, Vspace, i, HcolumnGPU);
+		cudaMemcpy ( &rv[0],HcolumnGPU,
+				i*sizeof(HYPRE_Real),
+				cudaMemcpyDeviceToHost );
 
-for (j=0; j<i; j++){
-HYPRE_Int id = idx(j, i-1,k_dim+1);
-Hcolumn[id]+=rv[j];        
-}
-
-MassAxpyGPUonly(sz,  i,
-Vspace,				
-w,
-HcolumnGPU);	
-
-
-InnerProdGPUonly(w,  
-w, 
-&t, 
-sz);
-t = sqrt(t);
-Hcolumn[idx(i, i-1, k_dim+1)] = t;
-if (Hcolumn[idx(i, i-1, k_dim+1)] != 0.0)
-{
-t = 1.0/Hcolumn[idx(i, i-1, k_dim+1)]; 
-ScaleGPUonly(w, 
-t, 
-sz);
-
-}//if
-
-}
-if (option == 3){
-//Alg 3 from paper
-//C version of orth_cgs2_new by ST
-//remember: U NEED L IN THIS CODE AND NEED TO KEEP IT!! 
-//L(1:i, i) = V(:, 1:i)'*V(:,i);
-//
-//printf("option = %d, i = %d \n", option, i );
-MassInnerProdGPUonly(&Vspace[(i-1)*sz],
-Vspace,
-rvGPU,				
-i,
-sz);
-
-//copy rvGPU to L
-
-//printf("test 2\n");
-cudaMemcpy ( &L[(i-1)*(k_dim+1)],rvGPU,
-		i*sizeof(HYPRE_Real),
-		cudaMemcpyDeviceToHost );
-//aux = V(:,i)'*w;
-
-//printf("test 3\n");
-MassInnerProdGPUonly(w,
-		Vspace,
-		rvGPU,				
-		i,
-		sz);
-
-//printf("test 4\n");
-cudaMemcpy ( rv,rvGPU,
-		i*sizeof(HYPRE_Real),
-		cudaMemcpyDeviceToHost );
-//H(1:i, i) = D*aux - Lp*aux - Lp'*aux
-//printf("rv as is \n");
-
-for (int j=0; j<i; ++j){
-	//printf(" %16.16f \n ", rv[j]);
-	Hcolumn[(i-1)*(k_dim+1)+j] = 0.0f;
-}
-
-//printf("test 5, i = %d\n", i);
-for (int j=0; j<i; ++j){
-	for (int k=0; k<i; ++k){
-		//we are processing H[j*(k_dim+1)+k]
-		if (j==k){Hcolumn[(i-1)*(k_dim+1)+k] += L[j*(k_dim+1)+k]*rv[j];
-			//        printf("DIAGONAL L(%d, %d) = %16.16f , aux[%d] = %f, adding to: H(%d,%d) \n",k, j,L[j*(k_dim+1)+k], j, rv[j], k, i-1);
-
-		} 
-
-		if (j<k){
-			Hcolumn[(i-1)*(k_dim+1)+j] -= L[k*(k_dim+1)+j]*rv[k];
-			//printf("LpT L(%d, %d) = %16.16f , aux[%d] = %f, adding to: H(%d,%d) \n", j,k, L[k*(k_dim+1)+j], k, rv[k], j, i -1);
+		for (j=0; j<i; j++){
+			HYPRE_Int id = idx(j, i-1,k_dim+1);
+			Hcolumn[id]+=rv[j];        
 		}
-		if (j>k){
 
-			Hcolumn[(i-1)*(k_dim+1)+j] -= L[j*(k_dim+1)+k]*rv[k];
-			//        printf("Lp L(%d, %d) = %16.16f , aux[%d] = %f adding to: H(%d,%d) \n",j, k, L[j*(k_dim+1)+k], k, rv[k], j, i-1 );
+		/*		MassAxpyGPUonly(sz,  i,
+					Vspace,				
+					w,
+					HcolumnGPU);	*/
+
+		hypre_ParKrylovMassAxpyMult( HcolumnGPU,Vspace,i, Vspace, i);
+
+
+		/*		InnerProdGPUonly(w,  
+					w, 
+					&t, 
+					sz);
+					t = sqrt(t);*/
+
+		t  = sqrt(hypre_ParKrylovInnerProdOneOfMult(Vspace,i,Vspace, i));
+		Hcolumn[idx(i, i-1, k_dim+1)] = t;
+		if (Hcolumn[idx(i, i-1, k_dim+1)] != 0.0)
+		{
+			t = 1.0/Hcolumn[idx(i, i-1, k_dim+1)]; 
+			/*			ScaleGPUonly(w, 
+							t, 
+							sz);*/
+
+			hypre_ParKrylovScaleVectorOneOfMult(t,Vspace, i);
+		}//if
+
+	}
+
+	if (option == 3){
+		//Alg 3 from paper
+		//C version of orth_cgs2_new by ST
+		//remember: U NEED L IN THIS CODE AND NEED TO KEEP IT!! 
+		//L(1:i, i) = V(:, 1:i)'*V(:,i);
+		//
+		//printf("option = %d, i = %d \n", option, i );
+		/*		MassInnerProdGPUonly(&Vspace[(i-1)*sz],
+					Vspace,
+					rvGPU,				
+					i,
+					sz);*/
+
+		hypre_ParKrylovMassInnerProdMult(Vspace,i, Vspace, i-1, rvGPU);
+		//copy rvGPU to L
+
+		//printf("test 2\n");
+		cudaMemcpy ( &L[(i-1)*(k_dim+1)],rvGPU,
+				i*sizeof(HYPRE_Real),
+				cudaMemcpyDeviceToHost );
+		//aux = V(:,i)'*w;
+
+		//printf("test 3\n");
+		/*		MassInnerProdGPUonly(w,
+					Vspace,
+					rvGPU,				
+					i,
+					sz);*/
+
+		hypre_ParKrylovMassInnerProdMult(Vspace,i, Vspace, i, rvGPU);
+
+		//printf("test 4\n");
+		cudaMemcpy ( rv,rvGPU,
+				i*sizeof(HYPRE_Real),
+				cudaMemcpyDeviceToHost );
+		//H(1:i, i) = D*aux - Lp*aux - Lp'*aux
+		//printf("rv as is \n");
+
+		for (int j=0; j<i; ++j){
+			//printf(" %16.16f \n ", rv[j]);
+			Hcolumn[(i-1)*(k_dim+1)+j] = 0.0f;
 		}
-	}//for k 
-}//for j
 
-cudaMemcpy ( HcolumnGPU,&Hcolumn[(i-1)*(k_dim+1)],
-		i*sizeof(HYPRE_Real),
-		cudaMemcpyHostToDevice);
+		//printf("test 5, i = %d\n", i);
+		for (int j=0; j<i; ++j){
+			for (int k=0; k<i; ++k){
+				//we are processing H[j*(k_dim+1)+k]
+				if (j==k){Hcolumn[(i-1)*(k_dim+1)+k] += L[j*(k_dim+1)+k]*rv[j];
+					//        printf("DIAGONAL L(%d, %d) = %16.16f , aux[%d] = %f, adding to: H(%d,%d) \n",k, j,L[j*(k_dim+1)+k], j, rv[j], k, i-1);
+
+				} 
+
+				if (j<k){
+					Hcolumn[(i-1)*(k_dim+1)+j] -= L[k*(k_dim+1)+j]*rv[k];
+					//printf("LpT L(%d, %d) = %16.16f , aux[%d] = %f, adding to: H(%d,%d) \n", j,k, L[k*(k_dim+1)+j], k, rv[k], j, i -1);
+				}
+				if (j>k){
+
+					Hcolumn[(i-1)*(k_dim+1)+j] -= L[j*(k_dim+1)+k]*rv[k];
+					//        printf("Lp L(%d, %d) = %16.16f , aux[%d] = %f adding to: H(%d,%d) \n",j, k, L[j*(k_dim+1)+k], k, rv[k], j, i-1 );
+				}
+			}//for k 
+		}//for j
+
+		cudaMemcpy ( HcolumnGPU,&Hcolumn[(i-1)*(k_dim+1)],
+				i*sizeof(HYPRE_Real),
+				cudaMemcpyHostToDevice);
 
 
-//printf("test 7\n");
-MassAxpyGPUonly(sz,  i,
-		Vspace,				
-		w,
-		HcolumnGPU);	
-//normalize
-InnerProdGPUonly(w,  
-		w, 
-		&t, 
-		sz);
-t = sqrt(t);
+		//printf("test 7\n");
+		/*		MassAxpyGPUonly(sz,  i,
+					Vspace,				
+					w,
+					HcolumnGPU);*/
 
-//printf("test 8, t = %f\n", t);
-Hcolumn[idx(i, i-1, k_dim+1)] = t;
-if (Hcolumn[idx(i, i-1, k_dim+1)] != 0.0)
-{
-	t = 1.0/Hcolumn[idx(i, i-1, k_dim+1)]; 
-	ScaleGPUonly(w, 
-			t, 
-			sz);
+		hypre_ParKrylovMassAxpyMult( HcolumnGPU,Vspace,i, Vspace, i);
+		//normalize
+		/*		InnerProdGPUonly(w,  
+					w, 
+					&t, 
+					sz);
+					t = sqrt(t);*/
 
-}//if
+		t  = sqrt(hypre_ParKrylovInnerProdOneOfMult(Vspace,i,Vspace, i));
+		//printf("test 8, t = %f\n", t);
+		Hcolumn[idx(i, i-1, k_dim+1)] = t;
+		if (Hcolumn[idx(i, i-1, k_dim+1)] != 0.0)
+		{
+			t = 1.0/Hcolumn[idx(i, i-1, k_dim+1)]; 
+			/*			ScaleGPUonly(w, 
+							t, 
+							sz);*/
 
-}*/
+			hypre_ParKrylovScaleVectorOneOfMult(t,Vspace, i);
+
+		}//if
+
+	}
 }
 
 /*--------------------------------------------------------------------------
@@ -561,7 +580,6 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	HYPRE_Int  i, j, k;
 	//KS: rv is the norm history 
 	HYPRE_Real *rs, *hh, *c, *s, *rs_2, *rv, *L;
-	//	HYPRE_Real *x_GPUonly, *b_GPUonly;
 	HYPRE_Int  iter; 
 	HYPRE_Int  my_id, num_procs;
 	HYPRE_Real epsilon, gamma, t, r_norm, b_norm, x_norm;
@@ -587,15 +605,14 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 
 	(cogmres_data -> w) = (*(cogmres_functions->CreateVector))(b);
 	r = (hypre_ParVector * )(*(cogmres_functions->CreateVector))(b);
-  w = (hypre_ParVector*) cogmres_data -> w;
-  hypre_ParVectorInitialize(w);	
-// initialize work arrays 
+	w = (hypre_ParVector*) cogmres_data -> w;
+	hypre_ParVectorInitialize(w);	
+	// initialize work arrays 
 	rs = hypre_CTAllocF(HYPRE_Real,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST);
 	c  = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
 	s  = hypre_CTAllocF(HYPRE_Real,k_dim,cogmres_functions, HYPRE_MEMORY_HOST);
 
 	rv = hypre_CTAllocF(HYPRE_Real, k_dim+1, cogmres_functions, HYPRE_MEMORY_HOST);
-	// KS copy matrix to GPU once 
 
 	hypre_CSRMatrix * AA = hypre_ParCSRMatrixDiag((hypre_ParCSRMatrix *)A);
 
@@ -608,27 +625,18 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	HYPRE_Real * tempH;
 	HYPRE_Real * tempRV;
 
-	// allocate Krylov space 
-	//Mod Oct 2018
-	//	cudaMalloc ( &cogmres_data -> p, sz*sizeof(HYPRE_Real)*(k_dim+1)); 
-
-
 	hypre_ParVector * bb =  (hypre_ParVector*) b; 
 	hypre_ParVector * xx =  (hypre_ParVector*) x;
 
-printf("V SPACE GLOBAL SIZE %d \n", sz);
 	p = (hypre_ParVector*) (cogmres_data->p);
 	p =(hypre_ParVector*)  hypre_ParMultiVectorCreate( hypre_ParVectorComm(bb),
 			sz,
 			hypre_ParVectorPartitioning(bb),
 			k_dim+1 );
 
-printf("step 0, size  %d local \n", hypre_ParVectorActualLocalSize(p));
 	hypre_ParVectorInitialize(p);
-	//works
-printf("step 1, size %d local size %d \n", hypre_ParVectorActualLocalSize(p),hypre_VectorSize(hypre_ParVectorLocalVector(p)) );
+
 	if (GSoption != 0){
-		//printf("allocating tempRV and tempH \n");
 		cudaMalloc ( &tempRV, sizeof(HYPRE_Real)*(k_dim+1)); 
 		cudaMalloc ( &tempH, sizeof(HYPRE_Real)*(k_dim+1)); 
 	}
@@ -637,18 +645,18 @@ printf("step 1, size %d local size %d \n", hypre_ParVectorActualLocalSize(p),hyp
 
 
 	hh = hypre_CTAllocF(HYPRE_Real, (k_dim+1)*k_dim, cogmres_functions, HYPRE_MEMORY_HOST);
+
 	if (GSoption >=3){
 		L = hypre_CTAllocF(HYPRE_Real, (k_dim+1)*k_dim, cogmres_functions, HYPRE_MEMORY_HOST);
 	}
-//	b_norm = sqrt(hypre_ParKrylovInnerProdOneOfMult(bb,0,bb, 0));
-	b_norm = sqrt(b_norm);
+	b_norm = sqrt(hypre_ParKrylovInnerProdOneOfMult(bb,0,bb, 0));
+//	b_norm = sqrt(b_norm);
 	HYPRE_Real one = 1.0f, minusone = -1.0f, zero = 0.0f;
 
-	//now our stop criteria is |r_i| <= epsilon 
 
 	if ( print_level>1 && my_id == 0 )
 	{
-	printf("initial norm of b is %16.16f \n", b_norm);	
+		//printf("initial norm of b is %16.16f \n", b_norm);	
 		hypre_printf("=============================================\n\n");
 		hypre_printf("Iters     resid.norm     conv.rate  \n");
 		hypre_printf("-----    ------------    ---------- \n");
@@ -671,7 +679,6 @@ printf("step 1, size %d local size %d \n", hypre_ParVectorActualLocalSize(p),hyp
 	//printf("ABOUT TO START OUTER WHILE \n");
 	while (iter < max_iter)
 	{
-		//printf("this is ITER %d\n", iter);
 		if (solverTimers)
 			time1 = MPI_Wtime();
 
@@ -693,80 +700,24 @@ printf("step 1, size %d local size %d \n", hypre_ParVectorActualLocalSize(p),hyp
 					preconTime +=(time4-time3);
 					matvecPreconTime += (time4-time3);
 				}
-			}
+			}// if usePrecond
 
-			//printf("done 1\n");
-
-//printf("step 2, size %d local size %d \n", hypre_ParVectorActualLocalSize(p),hypre_VectorSize(hypre_ParVectorLocalVector(p)) );
 			hypre_ParKrylovCopyVectorOneOfMult(bb, 0, p, 0);
 
-//printf("step 3, size %d \n", hypre_ParVectorActualLocalSize(p));
-//			hypre_ParKrylovCopyVectorOneOfMult(bb, 0, xx, 0);
-		//	r_norm = sqrt(hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0));
-			//printf("norm of p(0) before matvec %16.16f \n", r_norm);
-			//printf("done 0\n");
 			if (solverTimers){
 				time3 = MPI_Wtime();
 			}
-			//works
-			//	(*(cogmres_functions->Matvec))(matvec_data,-1.0,A,xx,1.0,bb);
-//KS experimental
-//hypre_ParVectorSetConstantValues( (hypre_ParVector *) bb, 1.0f);
 
-//hypre_ParVectorCopyDataGPUtoCPU(bb);
-
-//hypre_ParVectorCopyDataGPUtoCPU(p);
-//printf("NORM OF VECTOR BEFORE MATVEC: %16.16f \n", hypre_ParKrylovInnerProdOneOfMult(bb,0,bb, 0));	
-//printf("NORM OF RESULT  VECTOR BEFORE MATVEC: %16.16f \n", hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0));	
-//printf("NORM OF RESULT VECTOR BEFORE MATVEC: %16.16f \n", hypre_ParKrylovInnerProdOneOfMult(bb,0,bb, 0));	
-		hypre_ParKrylovMatvecMult(matvec_data,
+			hypre_ParKrylovMatvecMult(matvec_data,
 					minusone,
 					A,
 					xx,
 					0,
 					one,
 					p, 0);
-/*
-for (int ii = 0; ii<3; ++ii){
-		hypre_ParKrylovMatvecMult(matvec_data,
-					one,
-					A,
-					p,
-					0,
-					zero,
-					p, 2);
 
-hypre_ParVectorCopyDataGPUtoCPU(p);
+			hypre_ParVectorCopyDataGPUtoCPU(p);
 
-
-printf("MV NUMBER %d NORM OF VECTOR in between MATVEC: %16.16f \n",ii, sqrt(hypre_ParKrylovInnerProdOneOfMult(p,2,p, 2)));	
-}
-
-}
-iter += 2;
-}
-*/
-#if 1
-	//		hypre_ParKrylovAxpyOneOfMult(-1.0f, bb, 0, p, 0);		
-printf("NORM OF VECTOR AFTER MATVEC: %16.16f \n", sqrt(hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0)));	
-hypre_ParVectorCopyDataGPUtoCPU(p);
-#if 0
-hypre_Vector * KSv =   hypre_ParVectorLocalVector(p);
-HYPRE_Complex * KSdata=								hypre_VectorData(KSv); 
-HYPRE_Int KSsz = hypre_VectorSize(KSv);
-for (int ii=0; ii< KSsz; ii++)
-{
-if (KSdata[ii] != 1.0f){printf("PROBLEM WITH IDX %d value %f \n", ii, KSdata[ii]);}
-}
-#endif
-#if 0
-//printf
-/*
-}//If
-iter = iter+1;
-}//while
-*/
-#endif
 			if (solverTimers){
 				time4 = MPI_Wtime();
 				matvecPreconTime+=(time4-time3);
@@ -781,14 +732,14 @@ iter = iter+1;
 			}
 
 			r_norm = sqrt(hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0));
-			printf("norm of p(0) AFTER matvec is %16.16f \n", r_norm);
-			if ( logging>0 || print_level > 0)
+//printf("current r_norm %16.16f \n", r_norm);		
+	if ( logging>0 || print_level > 0)
 			{
 				norms[iter] = r_norm;
 				if ( print_level>1 && my_id == 0 ){
 
-					hypre_printf("L2 norm of b: %16.16f\n", b_norm);
-					hypre_printf("Initial L2 norm of residual: %16.16f\n", r_norm);
+			//		hypre_printf("L2 norm of b: %16.16f\n", b_norm);
+				//	hypre_printf("Initial L2 norm of residual: %16.16f\n", r_norm);
 
 				}
 			}
@@ -796,20 +747,14 @@ iter = iter+1;
 			// conv criteria 
 
 			epsilon = hypre_max(a_tol,r_tol*r_norm);
-			printf("eps = %f \n", epsilon);
 		}//if
-		//CRASHES
 
 		//otherwise, we already have p[0] from previous cycle
 
 
 		t = 1.0f/r_norm;
 
-			//	if (my_id == 0) 
-printf("ROOT BEFORE initial scaling, norm of p(%d) = %16.16f \n", i-1, hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0) );
 		hypre_ParKrylovScaleVectorOneOfMult(t,p, 0);
-//				if (my_id == 0) 
-printf("ROOT AFTER initial scaling, norm of p(%d) = %16.16f \n", i-1, hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0) );
 		i = 0; 
 
 		rs[0] = r_norm;
@@ -818,6 +763,7 @@ printf("ROOT AFTER initial scaling, norm of p(%d) = %16.16f \n", i-1, hypre_ParK
 			L[0] = 1.0f;
 		}
 		if (GSoption != 0){
+
 			cudaMemcpy (&tempRV[0], &rv[0],
 					sizeof(HYPRE_Real),
 					cudaMemcpyHostToDevice );
@@ -828,12 +774,12 @@ printf("ROOT AFTER initial scaling, norm of p(%d) = %16.16f \n", i-1, hypre_ParK
 			remainingTime += (time2-time1);
 		}
 
-		//printf("ABOUT TO START INNER WHILE, iter = %d \n", iter);
+
+#if 1	
 		while (i < k_dim && iter < max_iter)
 		{
 			i++;
 			iter++;
-			//printf("starting internal WHILE \n");
 			if (usePrecond){
 				//x = M * p[i-1]
 				//p[i] = A*x
@@ -856,7 +802,6 @@ printf("ROOT AFTER initial scaling, norm of p(%d) = %16.16f \n", i-1, hypre_ParK
 					preconTime += (time4-time3);
 					matvecPreconTime += (time4-time3);
 				}
-				printf("norm after Precond! %16.16f \n ", (*(cogmres_functions->InnerProd))(x,x));
 				cudaMemcpy (tempV,
 						xx->local_vector->data, 
 						(sz)*sizeof(HYPRE_Real),
@@ -864,12 +809,6 @@ printf("ROOT AFTER initial scaling, norm of p(%d) = %16.16f \n", i-1, hypre_ParK
 
 				if (solverTimers)
 					time1 = MPI_Wtime();
-				//			cusparseDcsrmv(myHandle ,
-				//			CUSPARSE_OPERATION_NON_TRANSPOSE,
-				//		num_rows, num_cols, num_nonzeros,
-				//		&one, myDescr,
-				//		AA->d_data,AA->d_i,AA->d_j,
-				//		tempV, &zero, &p[i*sz]);
 				if (solverTimers){
 
 					time2 = MPI_Wtime();
@@ -877,19 +816,14 @@ printf("ROOT AFTER initial scaling, norm of p(%d) = %16.16f \n", i-1, hypre_ParK
 					matvecPreconTime += (time2-time1);   
 				}
 			}
-
 			else{
 
+// not using preconddd
 				if (solverTimers)
 					time1 = MPI_Wtime();
-//				if (my_id == 0)
- 
-//hypre_ParVectorSetConstantValues( (hypre_ParVector *) w, 0.0f);
-printf("ROOT starting internal MV no 1, norm of p(%d) = %16.16f \n", i-1, hypre_ParKrylovInnerProdOneOfMult(p,i-1,p, i-1) );
 
-		hypre_ParKrylovCopyVectorOneOfMult(p, i-1, w, 0);
-			
-	hypre_ParKrylovMatvecMult(matvec_data,
+				hypre_ParKrylovCopyVectorOneOfMult(p, i-1, w, 0);
+				hypre_ParKrylovMatvecMult(matvec_data,
 						one,
 						A,
 						w,
@@ -897,12 +831,7 @@ printf("ROOT starting internal MV no 1, norm of p(%d) = %16.16f \n", i-1, hypre_
 						zero,
 						p, i);
 
-//				if (my_id == 0) 
-printf("ROOT done with internal MV, norm of new vector %16.16f  \n", hypre_ParKrylovInnerProdOneOfMult(w,0,w, 0));
 			}
-/*}//while
-}*/
-#if 1
 			time2 = MPI_Wtime();
 			if (solverTimers){
 				time2 = MPI_Wtime();
@@ -911,7 +840,6 @@ printf("ROOT done with internal MV, norm of new vector %16.16f  \n", hypre_ParKr
 			}
 
 
-			//printf("startig GS, option %d \n", GSoption);
 			// GRAM SCHMIDT 
 			if (solverTimers)
 				time1=MPI_Wtime();
@@ -927,46 +855,46 @@ printf("ROOT done with internal MV, norm of new vector %16.16f  \n", hypre_ParKr
 						rv, 
 						NULL, NULL );
 			}
-printf("after GS, the norm of p (%d) is %16.16f \n ", i, hypre_ParKrylovInnerProdOneOfMult(p,i,p, i));
-			//						if ((GSoption >0) &&(GSoption <3)){
-			//					GramSchmidt (GSoption, 
-			//				i, 
-			//			sz, 
-			//						k_dim,
-			//					p, 
-			//				hh, 
-			//			tempH,  
-			//				rv, 
-			//			tempRV, NULL );
-			//		}
+
+			if ((GSoption >0) &&(GSoption <3)){
+				//printf("starting GS\n");
+				GramSchmidt (GSoption, 
+						i, 
+						sz, 
+						k_dim,
+						p, 
+						hh, 
+						tempH,  
+						rv, 
+						tempRV, NULL );
+			}
 
 
 
-			//if ((GSoption >=3)){
-				//printf("starting Alg 3!I have  i = %d vectors in space and ONE new\n", i);		
-				//	GramSchmidt (GSoption, 
-				//		i, 
-				//		sz, 
-				//		k_dim,
-				//		p, 
-				//		hh, 
-				//	tempH,  
-				//		rv, 
-				//	tempRV, L );
-				//		}
+			if ((GSoption >=3)){
+				GramSchmidt (GSoption, 
+						i, 
+						sz, 
+						k_dim,
+						p, 
+						hh, 
+						tempH,  
+						rv, 
+						tempRV, L );
+			}
 
-				// CALL IT HERE
-				if (solverTimers){
-					time2 = MPI_Wtime();
-					//gsOtherTime +=  time2-time3;
-					gsTime += (time2-time1);
-				}
+			// CALL IT HERE
+			if (solverTimers){
+				time2 = MPI_Wtime();
+				//gsOtherTime +=  time2-time3;
+				gsTime += (time2-time1);
+			}
 			for (j = 1; j < i; j++)
 			{
 				t = hh[idx(j-1,i-1,k_dim+1)];
 				hh[idx(j-1,i-1,k_dim+1)] = s[j-1]*hh[idx(j,i-1,k_dim+1)] + c[j-1]*t;
 				hh[idx(j,i-1, k_dim+1)]  = -s[j-1]*t + c[j-1]*hh[idx(j,i-1,k_dim+1)];
-			}
+		}
 			t     = hh[idx(i, i-1, k_dim+1)]*hh[idx(i,i-1, k_dim+1)];
 			t    += hh[idx(i-1,i-1, k_dim+1)]*hh[idx(i-1,i-1, k_dim+1)];
 			gamma = sqrt(t);
@@ -975,13 +903,12 @@ printf("after GS, the norm of p (%d) is %16.16f \n ", i, hypre_ParKrylovInnerPro
 
 			c[i-1]  = hh[idx(i-1,i-1, k_dim+1)]/gamma;
 			s[i-1]  = hh[idx(i,i-1, k_dim+1)]/gamma;
-			rs[i]   = -hh[idx(i,i-1, k_dim+1)]*rs[i-1];
+		rs[i]   = -hh[idx(i,i-1, k_dim+1)]*rs[i-1];
 			rs[i]  /= gamma;
 			rs[i-1] = c[i-1]*rs[i-1];
 			// determine residual norm 
 			hh[idx(i-1,i-1, k_dim+1)] = s[i-1]*hh[idx(i,i-1, k_dim+1)] + c[i-1]*hh[idx(i-1,i-1, k_dim+1)];
 			r_norm = fabs(rs[i]);
-
 			if (solverTimers){
 				time4 = MPI_Wtime();
 				linSolveTime += time4-time2;
@@ -1002,6 +929,8 @@ printf("after GS, the norm of p (%d) is %16.16f \n ", i, hypre_ParKrylovInnerPro
 				break;
 			}//conv check
 		}//while (inner)
+
+#endif
 		//compute solution 
 
 		if (solverTimers)
@@ -1019,16 +948,11 @@ printf("after GS, the norm of p (%d) is %16.16f \n ", i, hypre_ParKrylovInnerPro
 		}
 
 		for (j = i-1; j >=0; j--){
-			//printf("using vector p[%d] \n", j);		
-			//	AxpyGPUonly(&p[j*sz],x_GPUonly,	
-			//		rs[j],
-			//		sz);
 
 			hypre_ParKrylovAxpyOneOfMult(rs[j], p, j, x, 0);		
 		}
 
 		//test solution 
-		//debug - to be remopved
 		if (r_norm < epsilon){
 
 			(cogmres_data -> converged) = 1;
@@ -1044,29 +968,17 @@ printf("after GS, the norm of p (%d) is %16.16f \n ", i, hypre_ParKrylovInnerPro
 
 		if (i){ 
 
-			//	AxpyGPUonly(&p[i*sz],&p[i*sz],	
-			//	rs[i]-1.0f,
-			//		sz);
 			hypre_ParKrylovAxpyOneOfMult(rs[i]-1.0f, p, i, p, i);		
 		}
 		for (j=i-1 ; j > 0; j--){
 
-			//	AxpyGPUonly(&p[j*sz],&p[i*sz],	
-			//		rs[j],
-			//		sz);
 			hypre_ParKrylovAxpyOneOfMult(rs[j], p, j, p, i);		
 		}
 		if (i)
 		{
 
-			//	AxpyGPUonly(&p[0*sz],&p[0*sz],	
-			//	rs[0]-1.0f,
-			//		sz);
 
 			hypre_ParKrylovAxpyOneOfMult(rs[0]-1.0f, p, 0, p, 0);		
-			//				AxpyGPUonly(&p[i*sz],&p[0*sz],	
-			//			1.0f,
-			//		sz);
 
 			hypre_ParKrylovAxpyOneOfMult(1.0, p, i, p, 0);		
 		}
@@ -1079,10 +991,7 @@ printf("after GS, the norm of p (%d) is %16.16f \n ", i, hypre_ParKrylovInnerPro
 			time2 = MPI_Wtime();
 			remainingTime += (time2-time1);
 		}
-
-		//printf("Iters = %d, residue = %e\n", iter, r_norm*a_tol/epsilon);
-	}//while (outer)
-
+	}
 	if (solverTimers){
 		time1 = MPI_Wtime();
 	}
@@ -1114,12 +1023,12 @@ printf("after GS, the norm of p (%d) is %16.16f \n ", i, hypre_ParKrylovInnerPro
 		//				A_dataGPUonly,A_iGPUonly,A_jGPUonly,
 		//			x_GPUonly, &one, p);
 		double ttt;
-/*
-	dd	InnerProdGPUonly(p,  
-		dd		p, 
-			dd	&ttt, 
-		dd		sz);
-	dd	printf("Norm of residual AFTER prec %16.16f \n", sqrt(ttt)/b_norm);
+		/*
+			 dd	InnerProdGPUonly(p,  
+			 dd		p, 
+			 dd	&ttt, 
+			 dd		sz);
+			 dd	printf("Norm of residual AFTER prec %16.16f \n", sqrt(ttt)/b_norm);
 
 */
 
@@ -1129,27 +1038,8 @@ printf("after GS, the norm of p (%d) is %16.16f \n ", i, hypre_ParKrylovInnerPro
 			preconTime+=(time4-time3);
 			matvecPreconTime += (time4-time3);
 		}
-	}
+	}//if use precond
 	else{
-		double ttt;
-		//		cudaMemcpy (p, b_GPUonly,
-		//			(sz)*sizeof(HYPRE_Real),
-		//		cudaMemcpyDeviceToDevice );
-
-		//	cudaMemcpy (x_GPUonly, xx->local_vector->data,
-		//			(sz)*sizeof(HYPRE_Real),
-		//		cudaMemcpyDeviceToDevice );
-
-
-
-		//				cusparseDcsrmv(myHandle ,
-		//			CUSPARSE_OPERATION_NON_TRANSPOSE,
-		//		num_rows, num_cols, num_nonzeros,
-		//	&minusone, myDescr,
-		//		A_dataGPUonly,A_iGPUonly,A_jGPUonly,
-		//	x_GPUonly, &one, p);
-
-
 
 		hypre_ParKrylovCopyVectorOneOfMult(bb, 0, p, 0);
 		hypre_ParKrylovMatvecMult(matvec_data,
@@ -1159,35 +1049,12 @@ printf("after GS, the norm of p (%d) is %16.16f \n ", i, hypre_ParKrylovInnerPro
 				0,
 				one,
 				p, 0);
-
-		//				InnerProdGPUonly(p,  
-		//			p, 
-		//		&ttt, 
-		//	sz);
-
-		//printf("No-precond TRUE Norm of residual %16.16f \n", sqrt(ttt));
-
-
-
-		ttt=	 hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0);
-		printf("No-precond Norm of residual %16.16f \n", sqrt(ttt));
-		//		cudaMemcpy (xx->local_vector->data,x_GPUonly, 
-		//		(sz)*sizeof(HYPRE_Real),
-		//	cudaMemcpyDeviceToDevice );
-
-	}
-	// clean up 
-	//	cudaFree(A_dataGPUonly);
-	//		cudaFree(A_iGPUonly);
-	//		cudaFree(A_jGPUonly);
-
-//	cudaFree(p);
-//	cudaFree(tempV);
+	}//else use precond
 
 	if (GSoption != 0){
-	//	cudaFree(tempH);
+		//	cudaFree(tempH);
 
-	//	cudaFree(tempRV);
+		//	cudaFree(tempRV);
 	}
 
 	//	cudaFree(x_GPUonly);
@@ -1221,8 +1088,6 @@ printf("after GS, the norm of p (%d) is %16.16f \n ", i, hypre_ParKrylovInnerPro
 
 	}
 
-#endif
-#endif
 }//Solve
 
 

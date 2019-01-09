@@ -151,7 +151,6 @@ hypre_ParKrylovMatvecMult( void   *matvec_data,
 		void   *y, HYPRE_Int k2           )
 {
 
-//  printf("ParKrylovMatvec Multivectors\n");
 	return ( hypre_ParCSRMatrixMatvecMult ( alpha,
 				(hypre_ParCSRMatrix *) A,
 				(hypre_ParVector *) x,k1,
@@ -307,7 +306,6 @@ hypre_ParKrylovCopyVector( void *x,
 hypre_ParKrylovCopyVectorOneOfMult( void *x, HYPRE_Int k1,
 		void *y, HYPRE_Int k2 )
 {
-printf("ParKrylov copy \n");
 	return ( hypre_ParVectorCopyOneOfMult( (hypre_ParVector *) x,k1,
 				(hypre_ParVector *) y, k2 ) );
 }

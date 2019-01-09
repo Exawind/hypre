@@ -550,7 +550,7 @@ HYPRE_IJMatrixAssemble( HYPRE_IJMatrix matrix )
 
    if ( hypre_IJMatrixObjectType(ijmatrix) == HYPRE_PARCSR )
    {
-printf("object valid! Let the assemble begin! \n");
+//printf("object valid! Let the assemble begin! \n");
       return( hypre_IJMatrixAssembleParCSR( ijmatrix ) );
    }
    else

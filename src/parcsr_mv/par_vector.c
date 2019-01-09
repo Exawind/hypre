@@ -182,7 +182,7 @@ hypre_ParVectorInitialize( hypre_ParVector *vector )
 //printf("done. setting up the size\n");
   hypre_ParVectorActualLocalSize(vector) 
     = hypre_VectorSize(hypre_ParVectorLocalVector(vector));
-printf("initialize, vector actual local size %d \n",hypre_ParVectorActualLocalSize(vector)); 
+//printf("initialize, vector actual local size %d \n",hypre_ParVectorActualLocalSize(vector)); 
   return hypre_error_flag;
 }
 
@@ -577,6 +577,8 @@ hypre_ParVectorInnerProdOneOfMult( hypre_ParVector *x,HYPRE_Int k1,
 //printf("Depth 1 INSIDE IP, sizes %d %d \n", x_local->size, y_local->size);
   HYPRE_Real result = 0.0;
   HYPRE_Real local_result = hypre_SeqVectorInnerProdOneOfMult(x_local,k1, y_local, k2);
+
+//printf("local result, after all reduce %16.16f \n", result);
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] -= hypre_MPI_Wtime();
 #endif
@@ -587,7 +589,7 @@ hypre_MPI_Barrier(comm);
   hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] += hypre_MPI_Wtime();
 #endif
 
-printf("global result, after all reduce %16.16f \n", result);
+//printf("global result, after all reduce %16.16f \n", result);
   return result;
 }
 //Mass Inner Prod for multivectors
@@ -601,10 +603,10 @@ void  hypre_ParVectorMassInnerProdMult( hypre_ParVector *x, HYPRE_Int k,
 
   hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
   int i;
-
 HYPRE_Real * local_result; 
 #if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
- local_result = hypre_TAlloc(HYPRE_Real , k,       HYPRE_MEMORY_GPU);
+//printf("allocating local res \n");
+ local_result = hypre_TAlloc(HYPRE_Real , k,       HYPRE_MEMORY_DEVICE);
 #else
   local_result= (HYPRE_Real *)calloc(k, sizeof(HYPRE_Real)); 
 #endif
@@ -613,8 +615,10 @@ HYPRE_Real * local_result;
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] -= hypre_MPI_Wtime();
 #endif
+//printf("before all reduce ! \n");
   hypre_MPI_Allreduce(local_result, result, k, HYPRE_MPI_REAL,
-      hypre_MPI_SUM, comm);
+     hypre_MPI_SUM, comm);
+//nprintf("after all reduce\n");
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] += hypre_MPI_Wtime();
 #endif
@@ -636,17 +640,20 @@ void  hypre_ParVectorMassInnerProdWithScalingMult( hypre_ParVector *x, HYPRE_Int
 
 HYPRE_Real * local_result; 
 #if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
- local_result = hypre_TAlloc(HYPRE_Real , k,       HYPRE_MEMORY_GPU);
+//printf("allocating spcae for local result \n");
+ local_result = hypre_TAlloc(HYPRE_Real , k,       HYPRE_MEMORY_DEVICE);
 #else
   local_result= (HYPRE_Real *)calloc(k, sizeof(HYPRE_Real)); 
 #endif
   hypre_SeqVectorMassInnerProdWithScalingMult(x_local,k, y_local,k2,scaleFactors, local_result);
-
+//printf("local mass IP done \n");
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] -= hypre_MPI_Wtime();
 #endif
+//printf("before all reduce in mass IP \n");
   hypre_MPI_Allreduce(local_result, result, k, HYPRE_MPI_REAL,
-      hypre_MPI_SUM, comm);
+    hypre_MPI_SUM, comm);
+//printf("all reduce in mass IP DONE\n");
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] += hypre_MPI_Wtime();
 #endif

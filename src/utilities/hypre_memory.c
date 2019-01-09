@@ -305,7 +305,7 @@ hypre_MAllocWithInit(size_t size, HYPRE_Int zeroinit, HYPRE_Int location)
          break;
       case HYPRE_MEMORY_DEVICE :
          /* ask for device memory */
-         printf("\nDEV memory \n");
+         //printf("\nDEV memory \n");
          ptr = hypre_DeviceMalloc(size, zeroinit);
          break;
       case HYPRE_MEMORY_SHARED :

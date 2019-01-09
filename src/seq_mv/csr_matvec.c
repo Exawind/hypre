@@ -26,506 +26,506 @@
  *--------------------------------------------------------------------------*/
 
 /* y[offset:end] = alpha*A[offset:end,:]*x + beta*b[offset:end] */
-HYPRE_Int
+	HYPRE_Int
 hypre_CSRMatrixMatvecOutOfPlace( HYPRE_Complex    alpha,
-                                 hypre_CSRMatrix *A,
-                                 hypre_Vector    *x,
-                                 HYPRE_Complex    beta,
-                                 hypre_Vector    *b,
-                                 hypre_Vector    *y,
-                                 HYPRE_Int        offset     )
+		hypre_CSRMatrix *A,
+		hypre_Vector    *x,
+		HYPRE_Complex    beta,
+		hypre_Vector    *b,
+		hypre_Vector    *y,
+		HYPRE_Int        offset     )
 {
 #ifdef HYPRE_PROFILE
-   HYPRE_Real time_begin = hypre_MPI_Wtime();
+	HYPRE_Real time_begin = hypre_MPI_Wtime();
 #endif
 #ifdef HYPRE_USE_GPU
 #if 0
-HYPRE_Real * d_test1, *d_test2;
-HYPRE_Int numBytes = A->num_nonzeros*(sizeof(HYPRE_Real)+sizeof(HYPRE_Int)) + (1+ A->num_rows)*sizeof(HYPRE_Int)+2*sizeof(HYPRE_Real)*A->num_rows;
-numBytes/=2;
+	HYPRE_Real * d_test1, *d_test2;
+	HYPRE_Int numBytes = A->num_nonzeros*(sizeof(HYPRE_Real)+sizeof(HYPRE_Int)) + (1+ A->num_rows)*sizeof(HYPRE_Int)+2*sizeof(HYPRE_Real)*A->num_rows;
+	numBytes/=2;
 
-//cudaMallocManaged((void **)&d_test1, numBytes);
-//cudaMallocManaged((void **)&d_test2, numBytes);
-//cudaMemPrefetchAsync(d_test1, numBytes, HYPRE_DEVICE); 
-//cudaMemPrefetchAsync(d_test2, numBytes, HYPRE_DEVICE); 
+	//cudaMallocManaged((void **)&d_test1, numBytes);
+	//cudaMallocManaged((void **)&d_test2, numBytes);
+	//cudaMemPrefetchAsync(d_test1, numBytes, HYPRE_DEVICE); 
+	//cudaMemPrefetchAsync(d_test2, numBytes, HYPRE_DEVICE); 
 
-int ii = 100;
+	int ii = 100;
 
-//cudaEvent_t start, stop;
-//cudaEventCreate(&start);
-//cudaEventCreate(&stop);
+	//cudaEvent_t start, stop;
+	//cudaEventCreate(&start);
+	//cudaEventCreate(&stop);
 
 
-//PUSH_RANGE("D2DCopyMatvec", 2);
-//cudaEventRecord(start);
-//for (ii=0; ii<100; ii++){
-//cudaMemcpy(d_test1, d_test2, numBytes, cudaMemcpyDeviceToDevice);
-//}
-//cudaEventRecord(stop);
-//POP_RANGE;
-//printf("\n copying %d bytes \n", numBytes);
-//cudaFree(d_test1);
-//cudaFree(d_test2);
+	//PUSH_RANGE("D2DCopyMatvec", 2);
+	//cudaEventRecord(start);
+	//for (ii=0; ii<100; ii++){
+	//cudaMemcpy(d_test1, d_test2, numBytes, cudaMemcpyDeviceToDevice);
+	//}
+	//cudaEventRecord(stop);
+	//POP_RANGE;
+	//printf("\n copying %d bytes \n", numBytes);
+	//cudaFree(d_test1);
+	//cudaFree(d_test2);
 
-//cudaEventSynchronize(stop);
-//float copyElapsed;
+	//cudaEventSynchronize(stop);
+	//float copyElapsed;
 
-//cudaEventElapsedTime(&copyElapsed, start, stop);
-//now compute the bw and the roofline
-// double copyBandwidth = ((numBytes*100*2.)/(1000.*1000.*copyElapsed));
-//numBytes*=2;
-//int gflops = 2*A->num_nonzeros;
-// double roofline = (copyBandwidth*gflops)/(numBytes);
-//printf("copyTime %16.16f effective BW: %16.16f, roofline %16.16f \n",copyElapsed, copyBandwidth, roofline);
+	//cudaEventElapsedTime(&copyElapsed, start, stop);
+	//now compute the bw and the roofline
+	// double copyBandwidth = ((numBytes*100*2.)/(1000.*1000.*copyElapsed));
+	//numBytes*=2;
+	//int gflops = 2*A->num_nonzeros;
+	// double roofline = (copyBandwidth*gflops)/(numBytes);
+	//printf("copyTime %16.16f effective BW: %16.16f, roofline %16.16f \n",copyElapsed, copyBandwidth, roofline);
 #endif 
-  PUSH_RANGE_PAYLOAD("MATVEC",0, hypre_CSRMatrixNumRows(A));
-HYPRE_Int ret;
-   ret=hypre_CSRMatrixMatvecDevice( alpha,A,x,beta,b,y,offset);
-   POP_RANGE;
-  return ret;
+	PUSH_RANGE_PAYLOAD("MATVEC",0, hypre_CSRMatrixNumRows(A));
+	HYPRE_Int ret;
+	ret=hypre_CSRMatrixMatvecDevice( alpha,A,x,beta,b,y,offset);
+	POP_RANGE;
+	return ret;
 #ifdef HYPRE_PROFILE
-   hypre_profile_times[HYPRE_TIMER_ID_MATVEC] += hypre_MPI_Wtime() - time_begin;
+	hypre_profile_times[HYPRE_TIMER_ID_MATVEC] += hypre_MPI_Wtime() - time_begin;
 #endif
 #endif//IF def hypre use gpu
 
 #ifdef HYPRE_USING_OPENMP_OFFLOAD
-   PUSH_RANGE_PAYLOAD("MATVEC-OMP",0, hypre_CSRMatrixNumRows(A));
-   HYPRE_Int ret=hypre_CSRMatrixMatvecOutOfPlaceOOMP( alpha,A,x,beta,b,y,offset);
-   POP_RANGE;
-  return ret;
+	PUSH_RANGE_PAYLOAD("MATVEC-OMP",0, hypre_CSRMatrixNumRows(A));
+	HYPRE_Int ret=hypre_CSRMatrixMatvecOutOfPlaceOOMP( alpha,A,x,beta,b,y,offset);
+	POP_RANGE;
+	return ret;
 #ifdef HYPRE_PROFILE
-   hypre_profile_times[HYPRE_TIMER_ID_MATVEC] += hypre_MPI_Wtime() - time_begin;
+	hypre_profile_times[HYPRE_TIMER_ID_MATVEC] += hypre_MPI_Wtime() - time_begin;
 #endif
 #endif
-   HYPRE_Complex    *A_data   = hypre_CSRMatrixData(A);
-   HYPRE_Int        *A_i      = hypre_CSRMatrixI(A) + offset;
-   HYPRE_Int        *A_j      = hypre_CSRMatrixJ(A);
-   HYPRE_Int         num_rows = hypre_CSRMatrixNumRows(A) - offset;
-   HYPRE_Int         num_cols = hypre_CSRMatrixNumCols(A);
-   /*HYPRE_Int         num_nnz  = hypre_CSRMatrixNumNonzeros(A);*/
+	HYPRE_Complex    *A_data   = hypre_CSRMatrixData(A);
+	HYPRE_Int        *A_i      = hypre_CSRMatrixI(A) + offset;
+	HYPRE_Int        *A_j      = hypre_CSRMatrixJ(A);
+	HYPRE_Int         num_rows = hypre_CSRMatrixNumRows(A) - offset;
+	HYPRE_Int         num_cols = hypre_CSRMatrixNumCols(A);
+	/*HYPRE_Int         num_nnz  = hypre_CSRMatrixNumNonzeros(A);*/
 
-   HYPRE_Int        *A_rownnz = hypre_CSRMatrixRownnz(A);
-   HYPRE_Int         num_rownnz = hypre_CSRMatrixNumRownnz(A);
+	HYPRE_Int        *A_rownnz = hypre_CSRMatrixRownnz(A);
+	HYPRE_Int         num_rownnz = hypre_CSRMatrixNumRownnz(A);
 
-   HYPRE_Complex    *x_data = hypre_VectorData(x);
-   HYPRE_Complex    *b_data = hypre_VectorData(b) + offset;
-   HYPRE_Complex    *y_data = hypre_VectorData(y) + offset;
-   HYPRE_Int         x_size = hypre_VectorSize(x);
-   HYPRE_Int         b_size = hypre_VectorSize(b) - offset;
-   HYPRE_Int         y_size = hypre_VectorSize(y) - offset;
-   HYPRE_Int         num_vectors = hypre_VectorNumVectors(x);
-   HYPRE_Int         idxstride_y = hypre_VectorIndexStride(y);
-   HYPRE_Int         vecstride_y = hypre_VectorVectorStride(y);
-   /*HYPRE_Int         idxstride_b = hypre_VectorIndexStride(b);
-   HYPRE_Int         vecstride_b = hypre_VectorVectorStride(b);*/
-   HYPRE_Int         idxstride_x = hypre_VectorIndexStride(x);
-   HYPRE_Int         vecstride_x = hypre_VectorVectorStride(x);
+	HYPRE_Complex    *x_data = hypre_VectorData(x);
+	HYPRE_Complex    *b_data = hypre_VectorData(b) + offset;
+	HYPRE_Complex    *y_data = hypre_VectorData(y) + offset;
+	HYPRE_Int         x_size = hypre_VectorSize(x);
+	HYPRE_Int         b_size = hypre_VectorSize(b) - offset;
+	HYPRE_Int         y_size = hypre_VectorSize(y) - offset;
+	HYPRE_Int         num_vectors = hypre_VectorNumVectors(x);
+	HYPRE_Int         idxstride_y = hypre_VectorIndexStride(y);
+	HYPRE_Int         vecstride_y = hypre_VectorVectorStride(y);
+	/*HYPRE_Int         idxstride_b = hypre_VectorIndexStride(b);
+		HYPRE_Int         vecstride_b = hypre_VectorVectorStride(b);*/
+	HYPRE_Int         idxstride_x = hypre_VectorIndexStride(x);
+	HYPRE_Int         vecstride_x = hypre_VectorVectorStride(x);
 
-   HYPRE_Complex     temp, tempx;
+	HYPRE_Complex     temp, tempx;
 
-   HYPRE_Int         i, j, jj;
+	HYPRE_Int         i, j, jj;
 
-   HYPRE_Int         m;
+	HYPRE_Int         m;
 
-   HYPRE_Real        xpar=0.7;
+	HYPRE_Real        xpar=0.7;
 
-   HYPRE_Int         ierr = 0;
-   hypre_Vector	    *x_tmp = NULL;
+	HYPRE_Int         ierr = 0;
+	hypre_Vector	    *x_tmp = NULL;
 
-   /*---------------------------------------------------------------------
-    *  Check for size compatibility.  Matvec returns ierr = 1 if
-    *  length of X doesn't equal the number of columns of A,
-    *  ierr = 2 if the length of Y doesn't equal the number of rows
-    *  of A, and ierr = 3 if both are true.
-    *
-    *  Because temporary vectors are often used in Matvec, none of 
-    *  these conditions terminates processing, and the ierr flag
-    *  is informational only.
-    *--------------------------------------------------------------------*/
- 
-   hypre_assert( num_vectors == hypre_VectorNumVectors(y) );
-   hypre_assert( num_vectors == hypre_VectorNumVectors(b) );
+	/*---------------------------------------------------------------------
+	 *  Check for size compatibility.  Matvec returns ierr = 1 if
+	 *  length of X doesn't equal the number of columns of A,
+	 *  ierr = 2 if the length of Y doesn't equal the number of rows
+	 *  of A, and ierr = 3 if both are true.
+	 *
+	 *  Because temporary vectors are often used in Matvec, none of 
+	 *  these conditions terminates processing, and the ierr flag
+	 *  is informational only.
+	 *--------------------------------------------------------------------*/
 
-   if (num_cols != x_size)
-      ierr = 1;
+	hypre_assert( num_vectors == hypre_VectorNumVectors(y) );
+	hypre_assert( num_vectors == hypre_VectorNumVectors(b) );
 
-   if (num_rows != y_size || num_rows != b_size)
-      ierr = 2;
+	if (num_cols != x_size)
+		ierr = 1;
 
-   if (num_cols != x_size && (num_rows != y_size || num_rows != b_size))
-      ierr = 3;
+	if (num_rows != y_size || num_rows != b_size)
+		ierr = 2;
 
-   /*-----------------------------------------------------------------------
-    * Do (alpha == 0.0) computation - RDF: USE MACHINE EPS
-    *-----------------------------------------------------------------------*/
+	if (num_cols != x_size && (num_rows != y_size || num_rows != b_size))
+		ierr = 3;
 
-   if (alpha == 0.0)
-   {
+	/*-----------------------------------------------------------------------
+	 * Do (alpha == 0.0) computation - RDF: USE MACHINE EPS
+	 *-----------------------------------------------------------------------*/
+
+	if (alpha == 0.0)
+	{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
-      for (i = 0; i < num_rows*num_vectors; i++)
-         y_data[i] = beta*b_data[i];
+		for (i = 0; i < num_rows*num_vectors; i++)
+			y_data[i] = beta*b_data[i];
 
 #ifdef HYPRE_PROFILE
-      hypre_profile_times[HYPRE_TIMER_ID_MATVEC] += hypre_MPI_Wtime() - time_begin;
+		hypre_profile_times[HYPRE_TIMER_ID_MATVEC] += hypre_MPI_Wtime() - time_begin;
 #endif
 
-      return ierr;
-   }
+		return ierr;
+	}
 
-   if (x == y)
-   {
-      x_tmp = hypre_SeqVectorCloneDeep(x);
-      x_data = hypre_VectorData(x_tmp);
-   }
+	if (x == y)
+	{
+		x_tmp = hypre_SeqVectorCloneDeep(x);
+		x_data = hypre_VectorData(x_tmp);
+	}
 
-   /*-----------------------------------------------------------------------
-    * y = (beta/alpha)*y
-    *-----------------------------------------------------------------------*/
-   
-   temp = beta / alpha;
-   
-/* use rownnz pointer to do the A*x multiplication  when num_rownnz is smaller than num_rows */
+	/*-----------------------------------------------------------------------
+	 * y = (beta/alpha)*y
+	 *-----------------------------------------------------------------------*/
 
-   if (num_rownnz < xpar*(num_rows) || num_vectors > 1)
-   {
-      /*-----------------------------------------------------------------------
-       * y = (beta/alpha)*y
-       *-----------------------------------------------------------------------*/
-     
-      if (temp != 1.0)
-      {
-         if (temp == 0.0)
-         {
+	temp = beta / alpha;
+
+	/* use rownnz pointer to do the A*x multiplication  when num_rownnz is smaller than num_rows */
+
+	if (num_rownnz < xpar*(num_rows) || num_vectors > 1)
+	{
+		/*-----------------------------------------------------------------------
+		 * y = (beta/alpha)*y
+		 *-----------------------------------------------------------------------*/
+
+		if (temp != 1.0)
+		{
+			if (temp == 0.0)
+			{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
-            for (i = 0; i < num_rows*num_vectors; i++)
-               y_data[i] = 0.0;
-         }
-         else
-         {
+				for (i = 0; i < num_rows*num_vectors; i++)
+					y_data[i] = 0.0;
+			}
+			else
+			{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
-            for (i = 0; i < num_rows*num_vectors; i++)
-               y_data[i] = b_data[i]*temp;
-         }
-      }
-      else
-      {
-            for (i = 0; i < num_rows*num_vectors; i++)
-               y_data[i] = b_data[i];
-      }
+				for (i = 0; i < num_rows*num_vectors; i++)
+					y_data[i] = b_data[i]*temp;
+			}
+		}
+		else
+		{
+			for (i = 0; i < num_rows*num_vectors; i++)
+				y_data[i] = b_data[i];
+		}
 
 
-      /*-----------------------------------------------------------------
-       * y += A*x
-       *-----------------------------------------------------------------*/
+		/*-----------------------------------------------------------------
+		 * y += A*x
+		 *-----------------------------------------------------------------*/
 
-      if (num_rownnz < xpar*(num_rows))
-      {
+		if (num_rownnz < xpar*(num_rows))
+		{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i,j,jj,m,tempx) HYPRE_SMP_SCHEDULE
 #endif
 
-         for (i = 0; i < num_rownnz; i++)
-         {
-            m = A_rownnz[i];
+			for (i = 0; i < num_rownnz; i++)
+			{
+				m = A_rownnz[i];
 
-            /*
-             * for (jj = A_i[m]; jj < A_i[m+1]; jj++)
-             * {
-             *         j = A_j[jj];
-             *  y_data[m] += A_data[jj] * x_data[j];
-             * } */
-            if ( num_vectors==1 )
-            {
-               tempx = 0;
-               for (jj = A_i[m]; jj < A_i[m+1]; jj++)
-                  tempx +=  A_data[jj] * x_data[A_j[jj]];
-               y_data[m] += tempx;
-            }
-            else
-               for ( j=0; j<num_vectors; ++j )
-               {
-                  tempx = 0;
-                  for (jj = A_i[m]; jj < A_i[m+1]; jj++) 
-                     tempx +=  A_data[jj] * x_data[ j*vecstride_x + A_j[jj]*idxstride_x ];
-                  y_data[ j*vecstride_y + m*idxstride_y] += tempx;
-               }
-         }
-      }
-      else // num_vectors > 1
-      {
+				/*
+				 * for (jj = A_i[m]; jj < A_i[m+1]; jj++)
+				 * {
+				 *         j = A_j[jj];
+				 *  y_data[m] += A_data[jj] * x_data[j];
+				 * } */
+				if ( num_vectors==1 )
+				{
+					tempx = 0;
+					for (jj = A_i[m]; jj < A_i[m+1]; jj++)
+						tempx +=  A_data[jj] * x_data[A_j[jj]];
+					y_data[m] += tempx;
+				}
+				else
+					for ( j=0; j<num_vectors; ++j )
+					{
+						tempx = 0;
+						for (jj = A_i[m]; jj < A_i[m+1]; jj++) 
+							tempx +=  A_data[jj] * x_data[ j*vecstride_x + A_j[jj]*idxstride_x ];
+						y_data[ j*vecstride_y + m*idxstride_y] += tempx;
+					}
+			}
+		}
+		else // num_vectors > 1
+		{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i,j,jj,tempx) HYPRE_SMP_SCHEDULE
 #endif
-         for (i = 0; i < num_rows; i++)
-         {
-            for (j = 0; j < num_vectors; ++j)
-            {
-               tempx = 0;
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  tempx += A_data[jj] * x_data[ j*vecstride_x + A_j[jj]*idxstride_x ];
-               }
-               y_data[ j*vecstride_y + i*idxstride_y ] += tempx;
-            }
-         }
-      }
+			for (i = 0; i < num_rows; i++)
+			{
+				for (j = 0; j < num_vectors; ++j)
+				{
+					tempx = 0;
+					for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+					{
+						tempx += A_data[jj] * x_data[ j*vecstride_x + A_j[jj]*idxstride_x ];
+					}
+					y_data[ j*vecstride_y + i*idxstride_y ] += tempx;
+				}
+			}
+		}
 
-      /*-----------------------------------------------------------------
-       * y = alpha*y
-       *-----------------------------------------------------------------*/
+		/*-----------------------------------------------------------------
+		 * y = alpha*y
+		 *-----------------------------------------------------------------*/
 
-      if (alpha != 1.0)
-      {
+		if (alpha != 1.0)
+		{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
-         for (i = 0; i < num_rows*num_vectors; i++)
-            y_data[i] *= alpha;
-      }
-   }
-   else
-   { // JSP: this is currently the only path optimized
+			for (i = 0; i < num_rows*num_vectors; i++)
+				y_data[i] *= alpha;
+		}
+	}
+	else
+	{ // JSP: this is currently the only path optimized
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel private(i,jj,tempx)
 #endif
-      {
-      HYPRE_Int iBegin = hypre_CSRMatrixGetLoadBalancedPartitionBegin(A);
-      HYPRE_Int iEnd = hypre_CSRMatrixGetLoadBalancedPartitionEnd(A);
-      hypre_assert(iBegin <= iEnd);
-      hypre_assert(iBegin >= 0 && iBegin <= num_rows);
-      hypre_assert(iEnd >= 0 && iEnd <= num_rows);
+		{
+			HYPRE_Int iBegin = hypre_CSRMatrixGetLoadBalancedPartitionBegin(A);
+			HYPRE_Int iEnd = hypre_CSRMatrixGetLoadBalancedPartitionEnd(A);
+			hypre_assert(iBegin <= iEnd);
+			hypre_assert(iBegin >= 0 && iBegin <= num_rows);
+			hypre_assert(iEnd >= 0 && iEnd <= num_rows);
 
-      if (0 == temp)
-      {
-         if (1 == alpha) // JSP: a common path
-         {
-            for (i = iBegin; i < iEnd; i++)
-            {
-               tempx = 0.0;
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  tempx += A_data[jj] * x_data[A_j[jj]];
-               }
-               y_data[i] = tempx;
-            }
-         } // y = A*x
-         else if (-1 == alpha)
-         {
-            for (i = iBegin; i < iEnd; i++)
-            {
-               tempx = 0.0;
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  tempx -= A_data[jj] * x_data[A_j[jj]];
-               }
-               y_data[i] = tempx;
-            }
-         } // y = -A*x
-         else
-         {
-            for (i = iBegin; i < iEnd; i++)
-            {
-               tempx = 0.0;
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  tempx += A_data[jj] * x_data[A_j[jj]];
-               }
-               y_data[i] = alpha*tempx;
-            }
-         } // y = alpha*A*x
-      } // temp == 0
-      else if (-1 == temp) // beta == -alpha
-      {
-         if (1 == alpha) // JSP: a common path
-         {
-            for (i = iBegin; i < iEnd; i++)
-            {
-               tempx = -b_data[i];
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  tempx += A_data[jj] * x_data[A_j[jj]];
-               }
-               y_data[i] = tempx;
-            }
-         } // y = A*x - y
-         else if (-1 == alpha) // JSP: a common path
-         {
-            for (i = iBegin; i < iEnd; i++)
-            {
-               tempx = b_data[i];
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  tempx -= A_data[jj] * x_data[A_j[jj]];
-               }
-               y_data[i] = tempx;
-            }
-         } // y = -A*x + y
-         else
-         {
-            for (i = iBegin; i < iEnd; i++)
-            {
-               tempx = -b_data[i];
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  tempx += A_data[jj] * x_data[A_j[jj]];
-               }
-               y_data[i] = alpha*tempx;
-            }
-         } // y = alpha*(A*x - y)
-      } // temp == -1
-      else if (1 == temp)
-      {
-         if (1 == alpha) // JSP: a common path
-         {
-            for (i = iBegin; i < iEnd; i++)
-            {
-               tempx = b_data[i];
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  tempx += A_data[jj] * x_data[A_j[jj]];
-               }
-               y_data[i] = tempx;
-            }
-         } // y = A*x + y
-         else if (-1 == alpha)
-         {
-            for (i = iBegin; i < iEnd; i++)
-            {
-               tempx = -b_data[i];
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  tempx -= A_data[jj] * x_data[A_j[jj]];
-               }
-               y_data[i] = tempx;
-            }
-         } // y = -A*x - y
-         else
-         {
-            for (i = iBegin; i < iEnd; i++)
-            {
-               tempx = b_data[i];
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  tempx += A_data[jj] * x_data[A_j[jj]];
-               }
-               y_data[i] = alpha*tempx;
-            }
-         } // y = alpha*(A*x + y)
-      }
-      else
-      {
-         if (1 == alpha) // JSP: a common path
-         {
-            for (i = iBegin; i < iEnd; i++)
-            {
-               tempx = b_data[i]*temp;
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  tempx += A_data[jj] * x_data[A_j[jj]];
-               }
-               y_data[i] = tempx;
-            }
-         } // y = A*x + temp*y
-         else if (-1 == alpha)
-         {
-            for (i = iBegin; i < iEnd; i++)
-            {
-               tempx = -b_data[i]*temp;
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  tempx -= A_data[jj] * x_data[A_j[jj]];
-               }
-               y_data[i] = tempx;
-            }
-         } // y = -A*x - temp*y
-         else
-         {
-            for (i = iBegin; i < iEnd; i++)
-            {
-               tempx = b_data[i]*temp;
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  tempx += A_data[jj] * x_data[A_j[jj]];
-               }
-               y_data[i] = alpha*tempx;
-            }
-         } // y = alpha*(A*x + temp*y)
-      } // temp != 0 && temp != -1 && temp != 1
-      } // omp parallel
-   }
+			if (0 == temp)
+			{
+				if (1 == alpha) // JSP: a common path
+				{
+					for (i = iBegin; i < iEnd; i++)
+					{
+						tempx = 0.0;
+						for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+						{
+							tempx += A_data[jj] * x_data[A_j[jj]];
+						}
+						y_data[i] = tempx;
+					}
+				} // y = A*x
+				else if (-1 == alpha)
+				{
+					for (i = iBegin; i < iEnd; i++)
+					{
+						tempx = 0.0;
+						for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+						{
+							tempx -= A_data[jj] * x_data[A_j[jj]];
+						}
+						y_data[i] = tempx;
+					}
+				} // y = -A*x
+				else
+				{
+					for (i = iBegin; i < iEnd; i++)
+					{
+						tempx = 0.0;
+						for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+						{
+							tempx += A_data[jj] * x_data[A_j[jj]];
+						}
+						y_data[i] = alpha*tempx;
+					}
+				} // y = alpha*A*x
+			} // temp == 0
+			else if (-1 == temp) // beta == -alpha
+			{
+				if (1 == alpha) // JSP: a common path
+				{
+					for (i = iBegin; i < iEnd; i++)
+					{
+						tempx = -b_data[i];
+						for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+						{
+							tempx += A_data[jj] * x_data[A_j[jj]];
+						}
+						y_data[i] = tempx;
+					}
+				} // y = A*x - y
+				else if (-1 == alpha) // JSP: a common path
+				{
+					for (i = iBegin; i < iEnd; i++)
+					{
+						tempx = b_data[i];
+						for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+						{
+							tempx -= A_data[jj] * x_data[A_j[jj]];
+						}
+						y_data[i] = tempx;
+					}
+				} // y = -A*x + y
+				else
+				{
+					for (i = iBegin; i < iEnd; i++)
+					{
+						tempx = -b_data[i];
+						for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+						{
+							tempx += A_data[jj] * x_data[A_j[jj]];
+						}
+						y_data[i] = alpha*tempx;
+					}
+				} // y = alpha*(A*x - y)
+			} // temp == -1
+			else if (1 == temp)
+			{
+				if (1 == alpha) // JSP: a common path
+				{
+					for (i = iBegin; i < iEnd; i++)
+					{
+						tempx = b_data[i];
+						for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+						{
+							tempx += A_data[jj] * x_data[A_j[jj]];
+						}
+						y_data[i] = tempx;
+					}
+				} // y = A*x + y
+				else if (-1 == alpha)
+				{
+					for (i = iBegin; i < iEnd; i++)
+					{
+						tempx = -b_data[i];
+						for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+						{
+							tempx -= A_data[jj] * x_data[A_j[jj]];
+						}
+						y_data[i] = tempx;
+					}
+				} // y = -A*x - y
+				else
+				{
+					for (i = iBegin; i < iEnd; i++)
+					{
+						tempx = b_data[i];
+						for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+						{
+							tempx += A_data[jj] * x_data[A_j[jj]];
+						}
+						y_data[i] = alpha*tempx;
+					}
+				} // y = alpha*(A*x + y)
+			}
+			else
+			{
+				if (1 == alpha) // JSP: a common path
+				{
+					for (i = iBegin; i < iEnd; i++)
+					{
+						tempx = b_data[i]*temp;
+						for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+						{
+							tempx += A_data[jj] * x_data[A_j[jj]];
+						}
+						y_data[i] = tempx;
+					}
+				} // y = A*x + temp*y
+				else if (-1 == alpha)
+				{
+					for (i = iBegin; i < iEnd; i++)
+					{
+						tempx = -b_data[i]*temp;
+						for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+						{
+							tempx -= A_data[jj] * x_data[A_j[jj]];
+						}
+						y_data[i] = tempx;
+					}
+				} // y = -A*x - temp*y
+				else
+				{
+					for (i = iBegin; i < iEnd; i++)
+					{
+						tempx = b_data[i]*temp;
+						for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+						{
+							tempx += A_data[jj] * x_data[A_j[jj]];
+						}
+						y_data[i] = alpha*tempx;
+					}
+				} // y = alpha*(A*x + temp*y)
+			} // temp != 0 && temp != -1 && temp != 1
+		} // omp parallel
+	}
 
-   if (x == y) hypre_SeqVectorDestroy(x_tmp);
+	if (x == y) hypre_SeqVectorDestroy(x_tmp);
 
 #ifdef HYPRE_PROFILE
-   hypre_profile_times[HYPRE_TIMER_ID_MATVEC] += hypre_MPI_Wtime() - time_begin;
+	hypre_profile_times[HYPRE_TIMER_ID_MATVEC] += hypre_MPI_Wtime() - time_begin;
 #endif
-   return ierr;
+	return ierr;
 }
 
 // for multivectors
 //
 
 /* y[offset:end, k2] = alpha*A[offset:end,:]*x(:, k1) + beta*b[offset:end, k3] */
-HYPRE_Int
+	HYPRE_Int
 hypre_CSRMatrixMatvecMultOutOfPlace( HYPRE_Complex    alpha,
-                                 hypre_CSRMatrix *A,
-                                 hypre_Vector    *x,
-HYPRE_Int k1,
-                                 HYPRE_Complex    beta,
-                                 hypre_Vector    *b,
-HYPRE_Int k3,
-                                 hypre_Vector    *y,
-HYPRE_Int k2,
-                                 HYPRE_Int        offset     )
+		hypre_CSRMatrix *A,
+		hypre_Vector    *x,
+		HYPRE_Int k1,
+		HYPRE_Complex    beta,
+		hypre_Vector    *b,
+		HYPRE_Int k3,
+		hypre_Vector    *y,
+		HYPRE_Int k2,
+		HYPRE_Int        offset     )
 {
-HYPRE_Int ret, ierr = 101;
+	HYPRE_Int ret, ierr = 101;
 #if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)  
-ret=hypre_CSRMatrixMatvecMultDevice( alpha,A,x,k1, beta,b,k3, y,k2, offset);
-  return ret;
+	ret=hypre_CSRMatrixMatvecMultDevice( alpha,A,x,k1, beta,b,k3, y,k2, offset);
+	return ret;
 #else
-printf("it does not work with MANAGED nor without GPU! change your parameters or write a proper function\n");
-   return ierr;
+	printf("it does not work with MANAGED nor without GPU! change your parameters or write a proper function\n");
+	return ierr;
 #endif
 }
 
 
 
-HYPRE_Int
+	HYPRE_Int
 hypre_CSRMatrixMatvec( HYPRE_Complex    alpha,
-                       hypre_CSRMatrix *A,
-                       hypre_Vector    *x,
-                       HYPRE_Complex    beta,
-                       hypre_Vector    *y     )
+		hypre_CSRMatrix *A,
+		hypre_Vector    *x,
+		HYPRE_Complex    beta,
+		hypre_Vector    *y     )
 {
-   return hypre_CSRMatrixMatvecOutOfPlace(alpha, A, x, beta, y, y, 0);
+	return hypre_CSRMatrixMatvecOutOfPlace(alpha, A, x, beta, y, y, 0);
 }
 
-HYPRE_Int
+	HYPRE_Int
 hypre_CSRMatrixMatvecMult( HYPRE_Complex    alpha,
-                       hypre_CSRMatrix *A,
-                       hypre_Vector    *x,
-HYPRE_Int k1,
-                       HYPRE_Complex    beta,
-                       hypre_Vector    *y,
-HYPRE_Int k2     )
+		hypre_CSRMatrix *A,
+		hypre_Vector    *x,
+		HYPRE_Int k1,
+		HYPRE_Complex    beta,
+		hypre_Vector    *y,
+		HYPRE_Int k2     )
 {
-   return hypre_CSRMatrixMatvecMultOutOfPlace(alpha, A, x,k1, beta, y,k2, y,k2, 0);
+	return hypre_CSRMatrixMatvecMultOutOfPlace(alpha, A, x,k1, beta, y,k2, y,k2, 0);
 }
 #if defined (HYPRE_USE_MANAGED)
-HYPRE_Int
+	HYPRE_Int
 hypre_CSRMatrixMatvec3( HYPRE_Complex    alpha,
-                       hypre_CSRMatrix *A,
-                       hypre_Vector    *x,
-                       HYPRE_Complex    beta,
-                       hypre_Vector    *y     )
+		hypre_CSRMatrix *A,
+		hypre_Vector    *x,
+		HYPRE_Complex    beta,
+		hypre_Vector    *y     )
 {
-   return hypre_CSRMatrixMatvecOutOfPlaceOOMP3(alpha, A, x, beta, y, y, 0);
+	return hypre_CSRMatrixMatvecOutOfPlaceOOMP3(alpha, A, x, beta, y, y, 0);
 }
 #endif
 
@@ -539,719 +539,702 @@ hypre_CSRMatrixMatvec3( HYPRE_Complex    alpha,
  *   From Van Henson's modification of hypre_CSRMatrixMatvec.
  *--------------------------------------------------------------------------*/
 
-HYPRE_Int
+	HYPRE_Int
 hypre_CSRMatrixMatvecT( HYPRE_Complex    alpha,
-                        hypre_CSRMatrix *A,
-                        hypre_Vector    *x,
-                        HYPRE_Complex    beta,
-                        hypre_Vector    *y     )
+		hypre_CSRMatrix *A,
+		hypre_Vector    *x,
+		HYPRE_Complex    beta,
+		hypre_Vector    *y     )
 {
-//printf("calling matvec TRANSPOSE!! alpha %16.16f beta %16.16f\n", alpha, beta);
-//alpha = 1.0f, beta =0.0f;
-   HYPRE_Int         i, j, jv, jj;
-   HYPRE_Complex    *y_data = hypre_VectorData(y);
-   HYPRE_Complex    *A_data    = hypre_CSRMatrixData(A);
-   HYPRE_Int         num_cols  = hypre_CSRMatrixNumCols(A);
-   HYPRE_Int         num_vectors = hypre_VectorNumVectors(x);
-   HYPRE_Int         y_size = hypre_VectorSize(y);
+	//printf("calling matvec TRANSPOSE!! alpha %16.16f beta %16.16f\n", alpha, beta);
+	//alpha = 1.0f, beta =0.0f;
+	HYPRE_Int         i, j, jv, jj;
+	HYPRE_Complex    *y_data = hypre_VectorData(y);
+	HYPRE_Complex    *A_data    = hypre_CSRMatrixData(A);
+	HYPRE_Int         num_cols  = hypre_CSRMatrixNumCols(A);
+	HYPRE_Int         num_vectors = hypre_VectorNumVectors(x);
+	HYPRE_Int         y_size = hypre_VectorSize(y);
 
 
 #ifdef HYPRE_USE_GPU
-//printf("I mean,  matvec TRANSPOSE GPU!!");
-// set y to zero
-   
-      for (i = 0; i < num_cols*num_vectors; i++){
-         y_data[i] = 0.0f;
-}
-PUSH_RANGE_PAYLOAD("MATVEC-T",0, hypre_CSRMatrixNumRows(A));
-   HYPRE_Int ret=hypre_CSRMatrixMatvecDeviceT( alpha,A,x,beta,y,y,0);
-   POP_RANGE;
-  return ret;
+	//printf("I mean,  matvec TRANSPOSE GPU!!");
+	// set y to zero
+
+	for (i = 0; i < num_cols*num_vectors; i++){
+		y_data[i] = 0.0f;
+	}
+	PUSH_RANGE_PAYLOAD("MATVEC-T",0, hypre_CSRMatrixNumRows(A));
+	HYPRE_Int ret=hypre_CSRMatrixMatvecDeviceT( alpha,A,x,beta,y,y,0);
+	POP_RANGE;
+	return ret;
 #ifdef HYPRE_PROFILE
-   hypre_profile_times[HYPRE_TIMER_ID_MATVEC] += hypre_MPI_Wtime() - time_begin;
+	hypre_profile_times[HYPRE_TIMER_ID_MATVEC] += hypre_MPI_Wtime() - time_begin;
 #endif
 #endif
 
 
-   HYPRE_Int        *A_i       = hypre_CSRMatrixI(A);
-   HYPRE_Int        *A_j       = hypre_CSRMatrixJ(A);
-   HYPRE_Int         num_rows  = hypre_CSRMatrixNumRows(A);
+	HYPRE_Int        *A_i       = hypre_CSRMatrixI(A);
+	HYPRE_Int        *A_j       = hypre_CSRMatrixJ(A);
+	HYPRE_Int         num_rows  = hypre_CSRMatrixNumRows(A);
 
-   HYPRE_Complex    *x_data = hypre_VectorData(x);
-   HYPRE_Int         x_size = hypre_VectorSize(x);
-   HYPRE_Int         idxstride_y = hypre_VectorIndexStride(y);
-   HYPRE_Int         vecstride_y = hypre_VectorVectorStride(y);
-   HYPRE_Int         idxstride_x = hypre_VectorIndexStride(x);
-   HYPRE_Int         vecstride_x = hypre_VectorVectorStride(x);
+	HYPRE_Complex    *x_data = hypre_VectorData(x);
+	HYPRE_Int         x_size = hypre_VectorSize(x);
+	HYPRE_Int         idxstride_y = hypre_VectorIndexStride(y);
+	HYPRE_Int         vecstride_y = hypre_VectorVectorStride(y);
+	HYPRE_Int         idxstride_x = hypre_VectorIndexStride(x);
+	HYPRE_Int         vecstride_x = hypre_VectorVectorStride(x);
 
-   HYPRE_Complex     temp;
+	HYPRE_Complex     temp;
 
-   HYPRE_Complex    *y_data_expand;
-   HYPRE_Int         my_thread_num = 0, offset = 0;
-   
-   HYPRE_Int         num_threads;
+	HYPRE_Complex    *y_data_expand;
+	HYPRE_Int         my_thread_num = 0, offset = 0;
 
-   HYPRE_Int         ierr  = 0;
+	HYPRE_Int         num_threads;
 
-   hypre_Vector     *x_tmp = NULL;
+	HYPRE_Int         ierr  = 0;
 
-   /*---------------------------------------------------------------------
-    *  Check for size compatibility.  MatvecT returns ierr = 1 if
-    *  length of X doesn't equal the number of rows of A,
-    *  ierr = 2 if the length of Y doesn't equal the number of 
-    *  columns of A, and ierr = 3 if both are true.
-    *
-    *  Because temporary vectors are often used in MatvecT, none of 
-    *  these conditions terminates processing, and the ierr flag
-    *  is informational only.
-    *--------------------------------------------------------------------*/
+	hypre_Vector     *x_tmp = NULL;
 
-   hypre_assert( num_vectors == hypre_VectorNumVectors(y) );
- 
-   if (num_rows != x_size)
-      ierr = 1;
+	/*---------------------------------------------------------------------
+	 *  Check for size compatibility.  MatvecT returns ierr = 1 if
+	 *  length of X doesn't equal the number of rows of A,
+	 *  ierr = 2 if the length of Y doesn't equal the number of 
+	 *  columns of A, and ierr = 3 if both are true.
+	 *
+	 *  Because temporary vectors are often used in MatvecT, none of 
+	 *  these conditions terminates processing, and the ierr flag
+	 *  is informational only.
+	 *--------------------------------------------------------------------*/
 
-   if (num_cols != y_size)
-      ierr = 2;
+	hypre_assert( num_vectors == hypre_VectorNumVectors(y) );
 
-   if (num_rows != x_size && num_cols != y_size)
-      ierr = 3;
-   /*-----------------------------------------------------------------------
-    * Do (alpha == 0.0) computation - RDF: USE MACHINE EPS
-    *-----------------------------------------------------------------------*/
+	if (num_rows != x_size)
+		ierr = 1;
 
-   if (alpha == 0.0)
-   {
+	if (num_cols != y_size)
+		ierr = 2;
+
+	if (num_rows != x_size && num_cols != y_size)
+		ierr = 3;
+	/*-----------------------------------------------------------------------
+	 * Do (alpha == 0.0) computation - RDF: USE MACHINE EPS
+	 *-----------------------------------------------------------------------*/
+
+	if (alpha == 0.0)
+	{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
-      for (i = 0; i < num_cols*num_vectors; i++)
-         y_data[i] *= beta;
+		for (i = 0; i < num_cols*num_vectors; i++)
+			y_data[i] *= beta;
 
-      return ierr;
-   }
+		return ierr;
+	}
 
-   if (x == y)
-   {
-      x_tmp = hypre_SeqVectorCloneDeep(x);
-      x_data = hypre_VectorData(x_tmp);
-   }
+	if (x == y)
+	{
+		x_tmp = hypre_SeqVectorCloneDeep(x);
+		x_data = hypre_VectorData(x_tmp);
+	}
 
-   /*-----------------------------------------------------------------------
-    * y = (beta/alpha)*y
-    *-----------------------------------------------------------------------*/
+	/*-----------------------------------------------------------------------
+	 * y = (beta/alpha)*y
+	 *-----------------------------------------------------------------------*/
 
-   temp = beta / alpha;
-   
-   if (temp != 1.0)
-   {
-      if (temp == 0.0)
-      {
+	temp = beta / alpha;
+
+	if (temp != 1.0)
+	{
+		if (temp == 0.0)
+		{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
-         for (i = 0; i < num_cols*num_vectors; i++)
-            y_data[i] = 0.0;
-      }
-      else
-      {
+			for (i = 0; i < num_cols*num_vectors; i++)
+				y_data[i] = 0.0;
+		}
+		else
+		{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
-         for (i = 0; i < num_cols*num_vectors; i++)
-            y_data[i] *= temp;
-      }
-   }
+			for (i = 0; i < num_cols*num_vectors; i++)
+				y_data[i] *= temp;
+		}
+	}
 
-   /*-----------------------------------------------------------------
-    * y += A^T*x
-    *-----------------------------------------------------------------*/
-   num_threads = hypre_NumThreads();
-   if (num_threads > 1)
-   {
-      y_data_expand = hypre_CTAlloc(HYPRE_Complex,  num_threads*y_size, HYPRE_MEMORY_HOST);
+	/*-----------------------------------------------------------------
+	 * y += A^T*x
+	 *-----------------------------------------------------------------*/
+	num_threads = hypre_NumThreads();
+	if (num_threads > 1)
+	{
+		y_data_expand = hypre_CTAlloc(HYPRE_Complex,  num_threads*y_size, HYPRE_MEMORY_HOST);
 
-      if ( num_vectors==1 )
-      {
+		if ( num_vectors==1 )
+		{
 
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel private(i,jj,j,my_thread_num,offset)
 #endif
-         {                                      
-            my_thread_num = hypre_GetThreadNum();
-            offset =  y_size*my_thread_num;
+			{                                      
+				my_thread_num = hypre_GetThreadNum();
+				offset =  y_size*my_thread_num;
 #ifdef HYPRE_USING_OPENMP
 #pragma omp for HYPRE_SMP_SCHEDULE
 #endif
-            for (i = 0; i < num_rows; i++)
-            {
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  j = A_j[jj];
-                  y_data_expand[offset + j] += A_data[jj] * x_data[i];
-               }
-            }
+				for (i = 0; i < num_rows; i++)
+				{
+					for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+					{
+						j = A_j[jj];
+						y_data_expand[offset + j] += A_data[jj] * x_data[i];
+					}
+				}
 
-            /* implied barrier (for threads)*/           
+				/* implied barrier (for threads)*/           
 #ifdef HYPRE_USING_OPENMP
 #pragma omp for HYPRE_SMP_SCHEDULE
 #endif
-            for (i = 0; i < y_size; i++)
-            {
-               for (j = 0; j < num_threads; j++)
-               {
-                  y_data[i] += y_data_expand[j*y_size + i];
-                  
-               }
-            }
+				for (i = 0; i < y_size; i++)
+				{
+					for (j = 0; j < num_threads; j++)
+					{
+						y_data[i] += y_data_expand[j*y_size + i];
 
-         } /* end parallel threaded region */
-      }
-      else
-      {
-         /* multiple vector case is not threaded */
-         for (i = 0; i < num_rows; i++)
-         {
-            for ( jv=0; jv<num_vectors; ++jv )
-            {
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  j = A_j[jj];
-                  y_data[ j*idxstride_y + jv*vecstride_y ] +=
-                     A_data[jj] * x_data[ i*idxstride_x + jv*vecstride_x];
-               }
-            }
-         }
-      }
+					}
+				}
 
-      hypre_TFree(y_data_expand, HYPRE_MEMORY_HOST);
+			} /* end parallel threaded region */
+		}
+		else
+		{
+			/* multiple vector case is not threaded */
+			for (i = 0; i < num_rows; i++)
+			{
+				for ( jv=0; jv<num_vectors; ++jv )
+				{
+					for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+					{
+						j = A_j[jj];
+						y_data[ j*idxstride_y + jv*vecstride_y ] +=
+							A_data[jj] * x_data[ i*idxstride_x + jv*vecstride_x];
+					}
+				}
+			}
+		}
 
-   }
-   else 
-   {
-      for (i = 0; i < num_rows; i++)
-      {
-         if ( num_vectors==1 )
-         {
-            for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-            {
-               j = A_j[jj];
-               y_data[j] += A_data[jj] * x_data[i];
-            }
-         }
-         else
-         {
-            for ( jv=0; jv<num_vectors; ++jv )
-            {
-               for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-               {
-                  j = A_j[jj];
-                  y_data[ j*idxstride_y + jv*vecstride_y ] +=
-                     A_data[jj] * x_data[ i*idxstride_x + jv*vecstride_x ];
-               }
-            }
-         }
-      }
-   }
-   /*-----------------------------------------------------------------
-    * y = alpha*y
-    *-----------------------------------------------------------------*/
+		hypre_TFree(y_data_expand, HYPRE_MEMORY_HOST);
 
-   if (alpha != 1.0)
-   {
+	}
+	else 
+	{
+		for (i = 0; i < num_rows; i++)
+		{
+			if ( num_vectors==1 )
+			{
+				for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+				{
+					j = A_j[jj];
+					y_data[j] += A_data[jj] * x_data[i];
+				}
+			}
+			else
+			{
+				for ( jv=0; jv<num_vectors; ++jv )
+				{
+					for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+					{
+						j = A_j[jj];
+						y_data[ j*idxstride_y + jv*vecstride_y ] +=
+							A_data[jj] * x_data[ i*idxstride_x + jv*vecstride_x ];
+					}
+				}
+			}
+		}
+	}
+	/*-----------------------------------------------------------------
+	 * y = alpha*y
+	 *-----------------------------------------------------------------*/
+
+	if (alpha != 1.0)
+	{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
-      for (i = 0; i < num_cols*num_vectors; i++)
-         y_data[i] *= alpha;
-   }
+		for (i = 0; i < num_cols*num_vectors; i++)
+			y_data[i] *= alpha;
+	}
 
-   if (x == y) hypre_SeqVectorDestroy(x_tmp);
+	if (x == y) hypre_SeqVectorDestroy(x_tmp);
 
-   return ierr;
+	return ierr;
 }
 
 /*--------------------------------------------------------------------------
  * hypre_CSRMatrixMatvec_FF
  *--------------------------------------------------------------------------*/
 
-HYPRE_Int
+	HYPRE_Int
 hypre_CSRMatrixMatvec_FF( HYPRE_Complex    alpha,
-                          hypre_CSRMatrix *A,
-                          hypre_Vector    *x,
-                          HYPRE_Complex    beta,
-                          hypre_Vector    *y,
-                          HYPRE_Int       *CF_marker_x,
-                          HYPRE_Int       *CF_marker_y,
-                          HYPRE_Int        fpt )
+		hypre_CSRMatrix *A,
+		hypre_Vector    *x,
+		HYPRE_Complex    beta,
+		hypre_Vector    *y,
+		HYPRE_Int       *CF_marker_x,
+		HYPRE_Int       *CF_marker_y,
+		HYPRE_Int        fpt )
 {
-   HYPRE_Complex    *A_data   = hypre_CSRMatrixData(A);
-   HYPRE_Int        *A_i      = hypre_CSRMatrixI(A);
-   HYPRE_Int        *A_j      = hypre_CSRMatrixJ(A);
-   HYPRE_Int         num_rows = hypre_CSRMatrixNumRows(A);
-   HYPRE_Int         num_cols = hypre_CSRMatrixNumCols(A);
+	HYPRE_Complex    *A_data   = hypre_CSRMatrixData(A);
+	HYPRE_Int        *A_i      = hypre_CSRMatrixI(A);
+	HYPRE_Int        *A_j      = hypre_CSRMatrixJ(A);
+	HYPRE_Int         num_rows = hypre_CSRMatrixNumRows(A);
+	HYPRE_Int         num_cols = hypre_CSRMatrixNumCols(A);
 
-   HYPRE_Complex    *x_data = hypre_VectorData(x);
-   HYPRE_Complex    *y_data = hypre_VectorData(y);
-   HYPRE_Int         x_size = hypre_VectorSize(x);
-   HYPRE_Int         y_size = hypre_VectorSize(y);
+	HYPRE_Complex    *x_data = hypre_VectorData(x);
+	HYPRE_Complex    *y_data = hypre_VectorData(y);
+	HYPRE_Int         x_size = hypre_VectorSize(x);
+	HYPRE_Int         y_size = hypre_VectorSize(y);
 
-   HYPRE_Complex      temp;
+	HYPRE_Complex      temp;
 
-   HYPRE_Int         i, jj;
+	HYPRE_Int         i, jj;
 
-   HYPRE_Int         ierr = 0;
+	HYPRE_Int         ierr = 0;
 
-   /*---------------------------------------------------------------------
-    *  Check for size compatibility.  Matvec returns ierr = 1 if
-    *  length of X doesn't equal the number of columns of A,
-    *  ierr = 2 if the length of Y doesn't equal the number of rows
-    *  of A, and ierr = 3 if both are true.
-    *
-    *  Because temporary vectors are often used in Matvec, none of
-    *  these conditions terminates processing, and the ierr flag
-    *  is informational only.
-    *--------------------------------------------------------------------*/
+	/*---------------------------------------------------------------------
+	 *  Check for size compatibility.  Matvec returns ierr = 1 if
+	 *  length of X doesn't equal the number of columns of A,
+	 *  ierr = 2 if the length of Y doesn't equal the number of rows
+	 *  of A, and ierr = 3 if both are true.
+	 *
+	 *  Because temporary vectors are often used in Matvec, none of
+	 *  these conditions terminates processing, and the ierr flag
+	 *  is informational only.
+	 *--------------------------------------------------------------------*/
 
-   if (num_cols != x_size)
-      ierr = 1;
+	if (num_cols != x_size)
+		ierr = 1;
 
-   if (num_rows != y_size)
-      ierr = 2;
+	if (num_rows != y_size)
+		ierr = 2;
 
-   if (num_cols != x_size && num_rows != y_size)
-      ierr = 3;
+	if (num_cols != x_size && num_rows != y_size)
+		ierr = 3;
 
-   /*-----------------------------------------------------------------------
-    * Do (alpha == 0.0) computation - RDF: USE MACHINE EPS
-    *-----------------------------------------------------------------------*/
+	/*-----------------------------------------------------------------------
+	 * Do (alpha == 0.0) computation - RDF: USE MACHINE EPS
+	 *-----------------------------------------------------------------------*/
 
-   if (alpha == 0.0)
-   {
+	if (alpha == 0.0)
+	{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
-      for (i = 0; i < num_rows; i++)
-         if (CF_marker_x[i] == fpt) y_data[i] *= beta;
+		for (i = 0; i < num_rows; i++)
+			if (CF_marker_x[i] == fpt) y_data[i] *= beta;
 
-      return ierr;
-   }
+		return ierr;
+	}
 
-   /*-----------------------------------------------------------------------
-    * y = (beta/alpha)*y
-    *-----------------------------------------------------------------------*/
+	/*-----------------------------------------------------------------------
+	 * y = (beta/alpha)*y
+	 *-----------------------------------------------------------------------*/
 
-   temp = beta / alpha;
+	temp = beta / alpha;
 
-   if (temp != 1.0)
-   {
-      if (temp == 0.0)
-      {
+	if (temp != 1.0)
+	{
+		if (temp == 0.0)
+		{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
-         for (i = 0; i < num_rows; i++)
-            if (CF_marker_x[i] == fpt) y_data[i] = 0.0;
-      }
-      else
-      {
+			for (i = 0; i < num_rows; i++)
+				if (CF_marker_x[i] == fpt) y_data[i] = 0.0;
+		}
+		else
+		{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
-         for (i = 0; i < num_rows; i++)
-            if (CF_marker_x[i] == fpt) y_data[i] *= temp;
-      }
-   }
+			for (i = 0; i < num_rows; i++)
+				if (CF_marker_x[i] == fpt) y_data[i] *= temp;
+		}
+	}
 
-   /*-----------------------------------------------------------------
-    * y += A*x
-    *-----------------------------------------------------------------*/
+	/*-----------------------------------------------------------------
+	 * y += A*x
+	 *-----------------------------------------------------------------*/
 
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i,jj) HYPRE_SMP_SCHEDULE
 #endif
 
-   for (i = 0; i < num_rows; i++)
-   {
-      if (CF_marker_x[i] == fpt)
-      {
-         temp = y_data[i];
-         for (jj = A_i[i]; jj < A_i[i+1]; jj++)
-            if (CF_marker_y[A_j[jj]] == fpt) temp += A_data[jj] * x_data[A_j[jj]];
-         y_data[i] = temp;
-      }
-   }
+	for (i = 0; i < num_rows; i++)
+	{
+		if (CF_marker_x[i] == fpt)
+		{
+			temp = y_data[i];
+			for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+				if (CF_marker_y[A_j[jj]] == fpt) temp += A_data[jj] * x_data[A_j[jj]];
+			y_data[i] = temp;
+		}
+	}
 
-   /*-----------------------------------------------------------------
-    * y = alpha*y
-    *-----------------------------------------------------------------*/
+	/*-----------------------------------------------------------------
+	 * y = alpha*y
+	 *-----------------------------------------------------------------*/
 
-   if (alpha != 1.0)
-   {
+	if (alpha != 1.0)
+	{
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
-      for (i = 0; i < num_rows; i++)
-         if (CF_marker_x[i] == fpt) y_data[i] *= alpha;
-   }
+		for (i = 0; i < num_rows; i++)
+			if (CF_marker_x[i] == fpt) y_data[i] *= alpha;
+	}
 
-   return ierr;
+	return ierr;
 }
 #ifdef HYPRE_USE_GPU
-HYPRE_Int
+	HYPRE_Int
 hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
-                       hypre_CSRMatrix *A,
-                       hypre_Vector    *x,
-                       HYPRE_Complex    beta,
-		       hypre_Vector    *b,
-		       hypre_Vector    *y,
-		       HYPRE_Int offset )
+		hypre_CSRMatrix *A,
+		hypre_Vector    *x,
+		HYPRE_Complex    beta,
+		hypre_Vector    *b,
+		hypre_Vector    *y,
+		HYPRE_Int offset )
 {
 
-  static cusparseHandle_t handle;
-  static cusparseMatDescr_t descr;
-  static HYPRE_Int FirstCall=1;
-  cusparseStatus_t status;
-  static cudaStream_t s[10];
-  static HYPRE_Int myid;
+	static cusparseHandle_t handle;
+	static cusparseMatDescr_t descr;
+	static HYPRE_Int FirstCall=1;
+	cusparseStatus_t status;
+	static cudaStream_t s[10];
+	static HYPRE_Int myid;
 #if HYPRE_USE_MANAGED
-  if (b!=y){
+	if (b!=y){
 
-    PUSH_RANGE_PAYLOAD("MEMCPY",1,y->size-offset);
-    VecCopy(y->data,b->data,(y->size-offset),HYPRE_STREAM(4));
-    POP_RANGE
-  }
+		PUSH_RANGE_PAYLOAD("MEMCPY",1,y->size-offset);
+		VecCopy(y->data,b->data,(y->size-offset),HYPRE_STREAM(4));
+		POP_RANGE
+	}
 #endif
-  if (x==y) fprintf(stderr,"ERROR::x and y are the same pointer in hypre_CSRMatrixMatvecDevice\n");
+	if (x==y) fprintf(stderr,"ERROR::x and y are the same pointer in hypre_CSRMatrixMatvecDevice\n");
 
-  if (FirstCall){
-    PUSH_RANGE("FIRST_CALL",4);
+	if (FirstCall){
+		PUSH_RANGE("FIRST_CALL",4);
 
-    handle=getCusparseHandle();
-    
-    status= cusparseCreateMatDescr(&descr); 
-    if (status != CUSPARSE_STATUS_SUCCESS) {
-      exit(2);
-    } 
-    
-    cusparseSetMatType(descr,CUSPARSE_MATRIX_TYPE_GENERAL);
-    cusparseSetMatIndexBase(descr,CUSPARSE_INDEX_BASE_ZERO);
+		handle=getCusparseHandle();
+
+		status= cusparseCreateMatDescr(&descr); 
+		if (status != CUSPARSE_STATUS_SUCCESS) {
+			exit(2);
+		} 
+
+		cusparseSetMatType(descr,CUSPARSE_MATRIX_TYPE_GENERAL);
+		cusparseSetMatIndexBase(descr,CUSPARSE_INDEX_BASE_ZERO);
 #ifdef HYPRE_USE_MANAGED 
- hypre_CSRMatrixPrefetchToDevice(A);
+		hypre_CSRMatrixPrefetchToDevice(A);
 #endif    
-    FirstCall=0;
-    hypre_int jj;
-    for(jj=0;jj<5;jj++)
-      s[jj]=HYPRE_STREAM(jj);
-    nvtxNameCudaStreamA(s[4], "HYPRE_COMPUTE_STREAM");
-    hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
-    myid++;
-    POP_RANGE;
-  }
+		FirstCall=0;
+		hypre_int jj;
+		for(jj=0;jj<5;jj++)
+			s[jj]=HYPRE_STREAM(jj);
+		nvtxNameCudaStreamA(s[4], "HYPRE_COMPUTE_STREAM");
+		hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
+		myid++;
+		POP_RANGE;
+	}
 
 
 
-  PUSH_RANGE("PREFETCH+SPMV",2);
+	PUSH_RANGE("PREFETCH+SPMV",2);
 
 #ifdef HYPRE_USE_MANAGED 
-  hypre_SeqVectorPrefetchToDevice(x);
-  hypre_SeqVectorPrefetchToDevice(y);
+	hypre_SeqVectorPrefetchToDevice(x);
+	hypre_SeqVectorPrefetchToDevice(y);
 #endif
-//cudaEvent_t start, stop;
-//cudaEventCreate(&start);
-//cudaEventCreate(&stop);
-int ii;  
-  if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
+	//cudaEvent_t start, stop;
+	//cudaEventCreate(&start);
+	//cudaEventCreate(&stop);
+	int ii;  
+	if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
 #ifdef HYPRE_USE_MANAGED 
-printf("matvec: using managed \n");
-for (ii=0;ii<1; ++ii){
-cusparseErrchk(cusparseDcsrmv(handle ,
-				CUSPARSE_OPERATION_NON_TRANSPOSE, 
-				A->num_rows-offset, A->num_cols, A->num_nonzeros,
-				&alpha, descr,
-				A->data ,A->i+offset,A->j,
-				x->data, &beta, y->data+offset));
-  }
+	printf("matvec: using managed \n");
+	for (ii=0;ii<1; ++ii){
+		cusparseErrchk(cusparseDcsrmv(handle ,
+					CUSPARSE_OPERATION_NON_TRANSPOSE, 
+					A->num_rows-offset, A->num_cols, A->num_nonzeros,
+					&alpha, descr,
+					A->data ,A->i+offset,A->j,
+					x->data, &beta, y->data+offset));
+	}
 #endif
 #if defined(HYPRE_USE_GPU) && !defined(HYPRE_USE_MANAGED)
-printf("not using managed, vector size %d  \n", x->size);
+	printf("not using managed, vector size %d  \n", x->size);
 
-HYPRE_Complex * ddd = x->d_data;
-HYPRE_Complex * hdd = (HYPRE_Complex*) calloc(x->size, sizeof(HYPRE_Complex));
-cudaMemcpy( hdd, &ddd[0], (x->size)*sizeof(HYPRE_Complex), cudaMemcpyDeviceToHost);
-for (int ii=0; ii<x->size; ++ii){
-if (hdd[ii]!=0)
-printf("element %d of the off-d vector is %16.16f \n",ii, hdd[ii]);
-}
+	HYPRE_Complex * ddd = x->d_data;
+	HYPRE_Complex * hdd = (HYPRE_Complex*) calloc(x->size, sizeof(HYPRE_Complex));
+	cudaMemcpy( hdd, &ddd[0], (x->size)*sizeof(HYPRE_Complex), cudaMemcpyDeviceToHost);
+	for (int ii=0; ii<x->size; ++ii){
+		if (hdd[ii]!=0)
+			printf("element %d of the off-d vector is %16.16f \n",ii, hdd[ii]);
+	}
 #if 0
-for (ii=A->num_rows-1; ii<A->num_rows+1; ii++)
-{
-printf("A->i[%d] = %d \n", ii, A->i[ii]);
-printf("A->j[%d] = %d \n", A->i[ii], A->j[A->i[ii]]);
-printf("A->data[%d] = %16.16f \n", A->i[ii], A->data[A->i[ii]]);
-}
+	for (ii=A->num_rows-1; ii<A->num_rows+1; ii++)
+	{
+		printf("A->i[%d] = %d \n", ii, A->i[ii]);
+		printf("A->j[%d] = %d \n", A->i[ii], A->j[A->i[ii]]);
+		printf("A->data[%d] = %16.16f \n", A->i[ii], A->data[A->i[ii]]);
+	}
 #endif 
-cublasHandle_t myHandle;
-double KSres;
-  cublasCreate(&myHandle);
-cublasDdot (myHandle, x->size,
-                           x->d_data, 1,
-                           x->d_data, 1,
-                           &KSres);
-printf("matvec off diag, just before x^Tx = %16.16f \n", KSres);
-for (ii=0;ii<1; ++ii){
-status = cusparseDcsrmv(handle ,
+	cublasHandle_t myHandle;
+	double KSres;
+	cublasCreate(&myHandle);
+	cublasDdot (myHandle, x->size,
+			x->d_data, 1,
+			x->d_data, 1,
+			&KSres);
+	printf("matvec off diag, just before x^Tx = %16.16f \n", KSres);
+	for (ii=0;ii<1; ++ii){
+		status = cusparseDcsrmv(handle ,
 				CUSPARSE_OPERATION_NON_TRANSPOSE, 
 				A->num_rows-offset, A->num_cols, A->num_nonzeros,
 				&alpha, descr,
 				A->d_data ,A->d_i+offset,A->d_j,
 				x->d_data, &beta, y->d_data+offset);
-//printf("status %d \n", status); 
- }
+		//printf("status %d \n", status); 
+	}
 
 
-cublasDdot (myHandle, y->size,
-                           y->d_data, 1,
-                           y->d_data, 1,
-                           &KSres);
-printf("matvec off diag, just after y^Ty = %16.16f \n", KSres);
+	cublasDdot (myHandle, y->size,
+			y->d_data, 1,
+			y->d_data, 1,
+			&KSres);
+	printf("matvec off diag, just after y^Ty = %16.16f \n", KSres);
 #endif
-printf("dev matvec DONE \n");
-//cudaEventRecord(stop);
-//cudaEventSynchronize(stop);
-//float kernelElapsed;
-//int gflops = 2*A->num_nonzeros;
+	printf("dev matvec DONE \n");
+	//cudaEventRecord(stop);
+	//cudaEventSynchronize(stop);
+	//float kernelElapsed;
+	//int gflops = 2*A->num_nonzeros;
 
-//cudaEventElapsedTime(&kernelElapsed, start, stop);
-//kernelElapsed*=100.0;
-//double kernelRes = gflops/(kernelElapsed*1000.*1000.);
-//printf("kernel time %16.16f gflops %16.16f nnz %d size %d x %d\n",kernelElapsed, kernelRes, A->num_nonzeros, A->num_rows, A->num_cols);
- 
- if (!GetAsyncMode()){
-  hypre_CheckErrorDevice(cudaStreamSynchronize(s[4]));
-  }
-  POP_RANGE;
-  
-  return 0;
-  
+	//cudaEventElapsedTime(&kernelElapsed, start, stop);
+	//kernelElapsed*=100.0;
+	//double kernelRes = gflops/(kernelElapsed*1000.*1000.);
+	//printf("kernel time %16.16f gflops %16.16f nnz %d size %d x %d\n",kernelElapsed, kernelRes, A->num_nonzeros, A->num_rows, A->num_cols);
+
+	if (!GetAsyncMode()){
+		hypre_CheckErrorDevice(cudaStreamSynchronize(s[4]));
+	}
+	POP_RANGE;
+
+	return 0;
+
 }
 //KS code
 //
 //version for multivectors (i.e., A*x(:, k1) = y(:, k2)
 //
 
-HYPRE_Int
+	HYPRE_Int
 hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
-                       hypre_CSRMatrix *A,
-                       hypre_Vector    *x,
-HYPRE_Int k1,
-                       HYPRE_Complex    beta,
-		       hypre_Vector    *b,
-HYPRE_Int k3,
-		       hypre_Vector    *y,
-HYPRE_Int k2,
-		       HYPRE_Int offset )
+		hypre_CSRMatrix *A,
+		hypre_Vector    *x,
+		HYPRE_Int k1,
+		HYPRE_Complex    beta,
+		hypre_Vector    *b,
+		HYPRE_Int k3,
+		hypre_Vector    *y,
+		HYPRE_Int k2,
+		HYPRE_Int offset )
 {
 
-   HYPRE_Int         x_size = hypre_VectorSize(x);
-   HYPRE_Int         y_size = hypre_VectorSize(y);
-  static cusparseHandle_t handle;
-  static cusparseMatDescr_t descr;
-  static HYPRE_Int FirstCall=1;
-  cusparseStatus_t status;
-  static cudaStream_t s[10];
-  static HYPRE_Int myid;
+	HYPRE_Int         x_size = hypre_VectorSize(x);
+	HYPRE_Int         y_size = hypre_VectorSize(y);
+HYPRE_Complex * xddata =  x->d_data;
+HYPRE_Complex * yddata =  y->d_data;
 
-  if (b!=y){
-// printf("copying vector inside matvec \n");
-    PUSH_RANGE_PAYLOAD("MEMCPY",1,y->size-offset);
-//    VecCopy(y->data,b->data,(y->size-offset),HYPRE_STREAM(4));
-    POP_RANGE
-  }
+	static cusparseHandle_t handle;
+	static cusparseMatDescr_t descr;
+	static HYPRE_Int FirstCall=1;
+	cusparseStatus_t status;
+	static cudaStream_t s[10];
+	static HYPRE_Int myid;
 
- // if (x==y) fprintf(stderr,"MULTIVEC ERROR::x and y are the same pointer in hypre_CSRMatrixMatvecDevice\n");
+	if (b!=y){
+		// printf("copying vector inside matvec \n");
+		PUSH_RANGE_PAYLOAD("MEMCPY",1,y->size-offset);
+		//    VecCopy(y->data,b->data,(y->size-offset),HYPRE_STREAM(4));
+		POP_RANGE
+	}
 
-  if (FirstCall){
-    PUSH_RANGE("FIRST_CALL",4);
+	// if (x==y) fprintf(stderr,"MULTIVEC ERROR::x and y are the same pointer in hypre_CSRMatrixMatvecDevice\n");
 
-    handle=getCusparseHandle();
-    
-    status= cusparseCreateMatDescr(&descr); 
-    if (status != CUSPARSE_STATUS_SUCCESS) {
-      exit(2);
-    } 
-    
-    cusparseSetMatType(descr,CUSPARSE_MATRIX_TYPE_GENERAL);
-    cusparseSetMatIndexBase(descr,CUSPARSE_INDEX_BASE_ZERO);
-    FirstCall=0;
-    hypre_int jj;
-    for(jj=0;jj<5;jj++)
-      s[jj]=HYPRE_STREAM(jj);
-    nvtxNameCudaStreamA(s[4], "HYPRE_COMPUTE_STREAM");
-    hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
-    myid++;
-    POP_RANGE;
-  }
+	if (FirstCall){
+		PUSH_RANGE("FIRST_CALL",4);
 
- double KSres;
-//cudaMemcpy( dst, src, size, cudaMemcpyHostToDevice);
-cublasHandle_t myHandle;
-HYPRE_Complex * xddata = x->d_data;
-HYPRE_Complex * yddata = y->d_data;
-  cublasCreate(&myHandle);
-/*cublasDdot (myHandle, x_size,
-                          &xddata[k1*x_size], 1,
-                           &xddata[k1*x_size], 1,
-                           &KSres);
-printf("just before matvec, xtx is %16.16f, x_size = %d \n", KSres, x_size); 
-*/
- PUSH_RANGE("PREFETCH+SPMV",2);
+		handle=getCusparseHandle();
 
-  if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
-//printf("k1 = %d k2 = %d k3 = %d num_cols = %d num_rows = %d, num non zeros %d \n", A->num_cols, A->num_rows, A->num_nonzeros, k1, k2, k3);
-//printf("xsize %d ysize %d k1 = %d k2 = %d \n", x_size, y_size, k1, k2);
-status = cusparseDcsrmv(handle ,
-				CUSPARSE_OPERATION_NON_TRANSPOSE, 
-				A->num_rows-offset, A->num_cols, A->num_nonzeros,
-				&alpha, descr,
-				A->d_data ,A->d_i,A->d_j,
-				&xddata[k1*x_size], &beta, &yddata[k2*y_size]);
-//printf("Matvec passed with status %d \n", status); 
-  POP_RANGE;
-/*  
-cublasDdot (myHandle, y_size,
-                           &yddata[k2*y_size], 1,
-                           &yddata[k2*y_size], 1,
-                           &KSres);
-printf("just after matvec, yty is %16.16f y_size =  %d, k2 = %d \n", KSres, y_size, k2); 
-*/ 
- return 0;
-  
+		status= cusparseCreateMatDescr(&descr); 
+		if (status != CUSPARSE_STATUS_SUCCESS) {
+			exit(2);
+		} 
+
+		cusparseSetMatType(descr,CUSPARSE_MATRIX_TYPE_GENERAL);
+		cusparseSetMatIndexBase(descr,CUSPARSE_INDEX_BASE_ZERO);
+		FirstCall=0;
+		hypre_int jj;
+		for(jj=0;jj<5;jj++)
+			s[jj]=HYPRE_STREAM(jj);
+		nvtxNameCudaStreamA(s[4], "HYPRE_COMPUTE_STREAM");
+		hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
+		myid++;
+		POP_RANGE;
+	}
+
+	double KSres;
+	//cudaMemcpy( dst, src, size, cudaMemcpyHostToDevice);
+	PUSH_RANGE("PREFETCH+SPMV",2);
+
+	if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
+	status = cusparseDcsrmv(handle ,
+			CUSPARSE_OPERATION_NON_TRANSPOSE, 
+			A->num_rows-offset, A->num_cols, A->num_nonzeros,
+			&alpha, descr,
+			A->d_data ,A->d_i,A->d_j,
+			&xddata[k1*x_size], &beta, &yddata[k2*y_size]);
+	POP_RANGE;
+	return 0;
+
 }
 
 
 
 HYPRE_Int
 hypre_CSRMatrixMatvecDeviceT( HYPRE_Complex    alpha,
-                       hypre_CSRMatrix *A,
-                       hypre_Vector    *x,
-                       HYPRE_Complex    beta,
-                       hypre_Vector    *b,
-                       hypre_Vector    *y,
-                       HYPRE_Int offset ){
+		hypre_CSRMatrix *A,
+		hypre_Vector    *x,
+		HYPRE_Complex    beta,
+		hypre_Vector    *b,
+		hypre_Vector    *y,
+		HYPRE_Int offset ){
 
-  if (x==y) fprintf(stderr,"ERROR::x and y are the same pointer in hypre_CSRMatrixMatvecDevice\n");
-static int FirstCall=1;
-HYPRE_Int myid;  
-if (FirstCall){
-    PUSH_RANGE("FIRST_CALL",4);  
-    
-    
-    FirstCall=0;
-    hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
-    myid++;
-    POP_RANGE;
-  }
-
-  PUSH_RANGE("PREFETCH+SPMV",2);
-
-  hypre_CSRMatrixPrefetchToDevice(A);
-  hypre_SeqVectorPrefetchToDevice(x);
-  hypre_SeqVectorPrefetchToDevice(y);
-  
-  if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
-//experimental code
-
-HYPRE_Real * d_Adata, *d_xdata, *d_ydata;
-HYPRE_Int *d_Ai, *d_Aj;
-
-//printf("Num rows in matrix-T matrix = %d num cols %d , nnz = %d \n", A->num_rows,A->num_cols,  A->i[A->num_rows]);
-/*cudaMalloc((void **)&d_Adata, A->num_nonzeros*sizeof(HYPRE_Real));
-cudaMalloc((void **)&d_xdata, A->num_rows*sizeof(HYPRE_Real));
-cudaMalloc((void **)&d_ydata, A->num_cols*sizeof(HYPRE_Real));
-cudaMalloc((void **)&d_Ai, (A->num_rows+1)*sizeof(HYPRE_Int));
-cudaMalloc((void **)&d_Aj, A->num_nonzeros*sizeof(HYPRE_Int));
-
-cudaMemcpy(d_Adata,A->data,A->num_nonzeros*sizeof(HYPRE_Real),cudaMemcpyDeviceToDevice);
-cudaMemcpy(d_xdata,x->data,A->num_rows*sizeof(HYPRE_Real),cudaMemcpyDeviceToDevice);
-cudaMemcpy(d_ydata,y->data,A->num_cols*sizeof(HYPRE_Real),cudaMemcpyDeviceToDevice);
-cudaMemcpy(d_Ai,A->i,(A->num_rows+1)*sizeof(HYPRE_Int),cudaMemcpyDeviceToDevice);
-cudaMemcpy(d_Aj,A->j,A->num_nonzeros*sizeof(HYPRE_Int),cudaMemcpyDeviceToDevice);
-
-cudaDeviceSynchronize();
-*/
+	if (x==y) fprintf(stderr,"ERROR::x and y are the same pointer in hypre_CSRMatrixMatvecDevice\n");
+	static int FirstCall=1;
+	HYPRE_Int myid;  
+	if (FirstCall){
+		PUSH_RANGE("FIRST_CALL",4);  
 
 
-cudaEvent_t start, stop;
-cudaEventCreate(&start);
-cudaEventCreate(&stop);
-int ii;  
+		FirstCall=0;
+		hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
+		myid++;
+		POP_RANGE;
+	}
+
+	PUSH_RANGE("PREFETCH+SPMV",2);
+
+	hypre_CSRMatrixPrefetchToDevice(A);
+	hypre_SeqVectorPrefetchToDevice(x);
+	hypre_SeqVectorPrefetchToDevice(y);
+
+	if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
+	//experimental code
+
+	HYPRE_Real * d_Adata, *d_xdata, *d_ydata;
+	HYPRE_Int *d_Ai, *d_Aj;
+
+	//printf("Num rows in matrix-T matrix = %d num cols %d , nnz = %d \n", A->num_rows,A->num_cols,  A->i[A->num_rows]);
+	/*cudaMalloc((void **)&d_Adata, A->num_nonzeros*sizeof(HYPRE_Real));
+		cudaMalloc((void **)&d_xdata, A->num_rows*sizeof(HYPRE_Real));
+		cudaMalloc((void **)&d_ydata, A->num_cols*sizeof(HYPRE_Real));
+		cudaMalloc((void **)&d_Ai, (A->num_rows+1)*sizeof(HYPRE_Int));
+		cudaMalloc((void **)&d_Aj, A->num_nonzeros*sizeof(HYPRE_Int));
+
+		cudaMemcpy(d_Adata,A->data,A->num_nonzeros*sizeof(HYPRE_Real),cudaMemcpyDeviceToDevice);
+		cudaMemcpy(d_xdata,x->data,A->num_rows*sizeof(HYPRE_Real),cudaMemcpyDeviceToDevice);
+		cudaMemcpy(d_ydata,y->data,A->num_cols*sizeof(HYPRE_Real),cudaMemcpyDeviceToDevice);
+		cudaMemcpy(d_Ai,A->i,(A->num_rows+1)*sizeof(HYPRE_Int),cudaMemcpyDeviceToDevice);
+		cudaMemcpy(d_Aj,A->j,A->num_nonzeros*sizeof(HYPRE_Int),cudaMemcpyDeviceToDevice);
+
+		cudaDeviceSynchronize();
+		*/
 
 
-HYPRE_Real * d_test1, *d_test2;
-HYPRE_Int numBytes = A->num_nonzeros*(sizeof(HYPRE_Real)+sizeof(HYPRE_Int)) + (1+ A->num_rows)*sizeof(HYPRE_Int)+2*sizeof(HYPRE_Real)*A->num_rows;
-numBytes/=2;
-
-cudaMallocManaged((void **)&d_test1, numBytes);
-cudaMallocManaged((void **)&d_test2, numBytes);
-cudaMemPrefetchAsync(d_test1, numBytes, HYPRE_DEVICE); 
-cudaMemPrefetchAsync(d_test2, numBytes, HYPRE_DEVICE); 
+	cudaEvent_t start, stop;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	int ii;  
 
 
+	HYPRE_Real * d_test1, *d_test2;
+	HYPRE_Int numBytes = A->num_nonzeros*(sizeof(HYPRE_Real)+sizeof(HYPRE_Int)) + (1+ A->num_rows)*sizeof(HYPRE_Int)+2*sizeof(HYPRE_Real)*A->num_rows;
+	numBytes/=2;
 
-PUSH_RANGE("D2DCopyMatvecT", 2);
-cudaEventRecord(start);
-//for (ii=0; ii<100; ii++){
-//cudaMemcpy(d_test1, d_test2, numBytes, cudaMemcpyDeviceToDevice);
-//}
-cudaEventRecord(stop);
-POP_RANGE;
-//printf("\n MatvecT: copying %d bytes \n", numBytes);
-cudaFree(d_test1);
-cudaFree(d_test2);
-
-cudaEventSynchronize(stop);
-float copyElapsed;
-
-cudaEventElapsedTime(&copyElapsed, start, stop);
-//now compute the bw and the roofline
- double copyBandwidth = ((numBytes*100*2.)/(1000.*1000.*copyElapsed));
-numBytes*=2;
-int gflops = 2*A->num_nonzeros;
- double roofline = (copyBandwidth*gflops)/(numBytes);
-//printf("MatvecT copyTime %16.16f effective BW: %16.16f, roofline %16.16f \n",copyElapsed, copyBandwidth, roofline);
+	cudaMallocManaged((void **)&d_test1, numBytes);
+	cudaMallocManaged((void **)&d_test2, numBytes);
+	cudaMemPrefetchAsync(d_test1, numBytes, HYPRE_DEVICE); 
+	cudaMemPrefetchAsync(d_test2, numBytes, HYPRE_DEVICE); 
 
 
 
-cudaEventRecord(start);
-//for (ii=0;ii<100; ++ii){
- 
-MatvecTCSR(A->num_rows, alpha, A->data, A->i, A->j, x->data,0.0f, y->data);
+	PUSH_RANGE("D2DCopyMatvecT", 2);
+	cudaEventRecord(start);
+	//for (ii=0; ii<100; ii++){
+	//cudaMemcpy(d_test1, d_test2, numBytes, cudaMemcpyDeviceToDevice);
+	//}
+	cudaEventRecord(stop);
+	POP_RANGE;
+	//printf("\n MatvecT: copying %d bytes \n", numBytes);
+	cudaFree(d_test1);
+	cudaFree(d_test2);
 
-//}
-cudaEventRecord(stop);
-cudaEventSynchronize(stop);
-float kernelElapsed;
+	cudaEventSynchronize(stop);
+	float copyElapsed;
 
-cudaEventElapsedTime(&kernelElapsed, start, stop);
-//kernelElapsed*=100.0;
-//double kernelRes = gflops/(kernelElapsed*1000.*1000.);
-//printf("matvecT time %16.16f gflops %16.16f nnz %d size %d x %d\n",kernelElapsed, kernelRes, A->num_nonzeros, A->num_rows, A->num_cols);
-
-  POP_RANGE;  
-//HYPRE_Int i, j, jj;
-     /* for (i = 0; i < A->num_rows; i++)
-      {
-HYPRE_Real xx = x->data[i];
-            for (jj = A->i[i]; jj < A->i[i+1]; jj++)
-            {
-              
-               y->data[A->j[jj]] += A->data[jj] * xx;
-            }
-         }*/
+	cudaEventElapsedTime(&copyElapsed, start, stop);
+	//now compute the bw and the roofline
+	double copyBandwidth = ((numBytes*100*2.)/(1000.*1000.*copyElapsed));
+	numBytes*=2;
+	int gflops = 2*A->num_nonzeros;
+	double roofline = (copyBandwidth*gflops)/(numBytes);
+	//printf("MatvecT copyTime %16.16f effective BW: %16.16f, roofline %16.16f \n",copyElapsed, copyBandwidth, roofline);
 
 
-return 0;
+
+	cudaEventRecord(start);
+	//for (ii=0;ii<100; ++ii){
+
+	MatvecTCSR(A->num_rows, alpha, A->data, A->i, A->j, x->data,0.0f, y->data);
+
+	//}
+	cudaEventRecord(stop);
+	cudaEventSynchronize(stop);
+	float kernelElapsed;
+
+	cudaEventElapsedTime(&kernelElapsed, start, stop);
+	//kernelElapsed*=100.0;
+	//double kernelRes = gflops/(kernelElapsed*1000.*1000.);
+	//printf("matvecT time %16.16f gflops %16.16f nnz %d size %d x %d\n",kernelElapsed, kernelRes, A->num_nonzeros, A->num_rows, A->num_cols);
+
+	POP_RANGE;  
+	//HYPRE_Int i, j, jj;
+	/* for (i = 0; i < A->num_rows; i++)
+		 {
+		 HYPRE_Real xx = x->data[i];
+		 for (jj = A->i[i]; jj < A->i[i+1]; jj++)
+		 {
+
+		 y->data[A->j[jj]] += A->data[jj] * xx;
+		 }
+		 }*/
+
+
+	return 0;
 }
 
 #endif

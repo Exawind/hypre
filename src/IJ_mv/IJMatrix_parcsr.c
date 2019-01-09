@@ -1687,7 +1687,7 @@ hypre_IJMatrixAssembleOffProcValsParCSR( hypre_IJMatrix *matrix,
 
 	HYPRE_Int myid;
 	hypre_MPI_Comm_rank(comm, &myid);
-	printf("partition NOT GIVEN on proc %d\n", myid);
+	//printf("partition NOT GIVEN on proc %d\n", myid);
 	hypre_MPI_Request *requests = NULL;
 	hypre_MPI_Status *status = NULL;
 	HYPRE_Int i, ii, j, j2, jj, n, row;
@@ -1868,7 +1868,7 @@ hypre_MPI_Barrier(comm);
 		vec_start = recv_vec_starts[i];
 		vec_len = recv_vec_starts[i+1] - vec_start;
 		ip = recv_procs[i];
-		printf("receiving\n");     
+		//printf("receiving\n");     
 		hypre_MPI_Irecv(&recv_i[vec_start], vec_len, HYPRE_MPI_INT, ip, 0, comm, 
 				&requests[j++]);
 	}
@@ -1959,7 +1959,7 @@ hypre_IJMatrixAssembleOffProcValsParCSR( hypre_IJMatrix *matrix,
 
 	HYPRE_Int myid;
 	hypre_MPI_Comm_rank(comm, &myid);
-	printf("partition GIVEN on proc %d \n", myid);
+	//printf("partition GIVEN on proc %d \n", myid);
 	HYPRE_Int i, j, k, in_i;
 
 	HYPRE_Int proc_id, last_proc, prev_id, tmp_id;
@@ -2666,7 +2666,7 @@ hypre_IJMatrixAssembleParCSR(hypre_IJMatrix *matrix)
 	{
 
 		hypre_MPI_Comm_rank(comm, &my_id);
-		printf("AUX flag id %d \n", my_id);
+		//printf("AUX flag id %d \n", my_id);
 		num_rows = row_partitioning[my_id+1] - row_partitioning[my_id]; 
 		hypre_AuxParCSRMatrixCreate(&aux_matrix, num_rows, num_rows, NULL);
 		hypre_AuxParCSRMatrixNeedAux(aux_matrix) = 0;
@@ -2972,8 +2972,8 @@ hypre_IJMatrixAssembleParCSR(hypre_IJMatrix *matrix)
 			
 				 hypre_ParCSRMatrixColMapOffd(par_matrix) = col_map_offd;    
 //works	
-if (offd){printf("NUM COLS OFFD %d current NUM COLS OFF D \n ", num_cols_offd, hypre_CSRMatrixNumCols(offd));}
-else {printf("ERROR! off diagonal part  DNE\n");}	
+//if (offd){printf("NUM COLS OFFD %d current NUM COLS OFF D \n ", num_cols_offd, hypre_CSRMatrixNumCols(offd));}
+//else {printf("ERROR! off diagonal part  DNE\n");}	
   
  		 hypre_CSRMatrixNumCols(offd) = num_cols_offd;    
  		// hypre_CSRMatrixNumCols(offd) = 1;    

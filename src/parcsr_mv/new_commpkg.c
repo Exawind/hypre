@@ -143,6 +143,7 @@ hypre_ParCSRCommPkgCreateApart_core(
    hypre_DataExchangeResponse        response_obj1, response_obj2;
    hypre_ProcListElements            send_proc_obj; 
 
+
 #if mydebug
    HYPRE_Int tmp_int, index;
 #endif
@@ -200,6 +201,7 @@ hypre_ParCSRCommPkgCreateApart_core(
    ex_num_contacts = 0;
 
    /*estimate the storage needed*/
+
    if (num_cols_off_d > 0 && (apart->row_end - apart->row_start) > 0  )
    {
       size = col_map_off_d[num_cols_off_d-1] - col_map_off_d[0];
@@ -463,6 +465,7 @@ hypre_ParCSRCommPkgCreateApart_core(
          }
          ct += sz;
       }
+
       /* clean up */
       hypre_TFree(orig_order, HYPRE_MEMORY_HOST);
       hypre_TFree(orig_send_elements, HYPRE_MEMORY_HOST);
