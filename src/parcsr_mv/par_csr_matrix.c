@@ -193,6 +193,26 @@ hypre_ParCSRMatrixDestroy( hypre_ParCSRMatrix *matrix )
 }
 
 /*--------------------------------------------------------------------------
+ * hypre_ParCSRMatrixCopyCPUtoGPU
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+hypre_ParCSRMatrixCopyCPUtoGPU( hypre_ParCSRMatrix *matrix )
+{
+   if (!matrix)
+   {
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+//printf("COPYING DIAG PART ...............................................\n");
+   hypre_CSRMatrixCopyCPUtoGPU(hypre_ParCSRMatrixDiag(matrix));
+//printf("COPYING OFF DIAG PART ...............................................\n");
+   hypre_CSRMatrixCopyCPUtoGPU(hypre_ParCSRMatrixOffd(matrix));
+   return hypre_error_flag;
+}
+
+
+/*--------------------------------------------------------------------------
  * hypre_ParCSRMatrixInitialize
  *--------------------------------------------------------------------------*/
 
@@ -213,6 +233,8 @@ hypre_ParCSRMatrixInitialize( hypre_ParCSRMatrix *matrix )
 
    return hypre_error_flag;
 }
+
+
 
 /*--------------------------------------------------------------------------
  * hypre_ParCSRMatrixSetNumNonzeros

@@ -20,7 +20,7 @@
 #define HYPRE_PARCSR_MV_HEADER
 
 #include "HYPRE_utilities.h"
-#include "HYPRE_seq_mv.h"
+#include "../seq_mv/HYPRE_seq_mv.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,10 +65,19 @@ HYPRE_Int HYPRE_ParVectorPrint( HYPRE_ParVector vector , const char *file_name )
 HYPRE_Int HYPRE_ParVectorSetConstantValues( HYPRE_ParVector vector , HYPRE_Complex value );
 HYPRE_Int HYPRE_ParVectorSetRandomValues( HYPRE_ParVector vector , HYPRE_Int seed );
 HYPRE_Int HYPRE_ParVectorCopy( HYPRE_ParVector x , HYPRE_ParVector y );
+HYPRE_Int HYPRE_ParVectorCopyOneOfMult( HYPRE_ParVector x , HYPRE_Int k1,  HYPRE_ParVector y, HYPRE_Int k2 );
 HYPRE_Int HYPRE_ParVectorScale( HYPRE_Complex value , HYPRE_ParVector x );
+HYPRE_Int HYPRE_ParVectorScaleOneOfMult( HYPRE_Complex value , HYPRE_ParVector x, HYPRE_Int k1 );
+
 HYPRE_Int HYPRE_ParVectorInnerProd( HYPRE_ParVector x , HYPRE_ParVector y , HYPRE_Real *prod );
+HYPRE_Int HYPRE_ParVectorInnerProdOneOfMult( HYPRE_ParVector x , HYPRE_Int k1,  HYPRE_ParVector y , HYPRE_Int k2,  HYPRE_Real *prod );
+HYPRE_Int HYPRE_ParVectorAxpyOneOfMult(HYPRE_Complex alpha,  HYPRE_ParVector x , HYPRE_Int k1,  HYPRE_ParVector y , HYPRE_Int k2 );
+
 HYPRE_Int HYPRE_VectorToParVector( MPI_Comm comm , HYPRE_Vector b , HYPRE_Int *partitioning , HYPRE_ParVector *vector );
 HYPRE_Int HYPRE_ParVectorGetValues( HYPRE_ParVector vector , HYPRE_Int num_values , HYPRE_Int *indices, HYPRE_Complex *values );
+
+HYPRE_Int HYPRE_ParVectorCopyDataCPUtoGPU( HYPRE_ParVector vector );
+HYPRE_Int HYPRE_ParVectorCopyDataGPUtoCPU( HYPRE_ParVector vector );
 
 #ifdef __cplusplus
 }

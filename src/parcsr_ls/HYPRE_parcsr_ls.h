@@ -15,9 +15,9 @@
 #define HYPRE_PARCSR_LS_HEADER
 
 #include "HYPRE_utilities.h"
-#include "HYPRE_seq_mv.h"
-#include "HYPRE_parcsr_mv.h"
-#include "HYPRE_IJ_mv.h"
+#include "../seq_mv/HYPRE_seq_mv.h"
+#include "../parcsr_mv/HYPRE_parcsr_mv.h"
+#include "../IJ_mv/HYPRE_IJ_mv.h"
 
 #ifdef __cplusplus
 extern "C" {

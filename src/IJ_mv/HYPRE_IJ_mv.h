@@ -194,6 +194,8 @@ HYPRE_Int HYPRE_IJMatrixAddToValues2(HYPRE_IJMatrix       matrix,
  **/
 HYPRE_Int HYPRE_IJMatrixAssemble(HYPRE_IJMatrix matrix);
 
+
+
 /**
  * Gets number of nonzeros elements for {\tt nrows} rows specified in {\tt rows}
  * and returns them in {\tt ncols}, which needs to be allocated by the
@@ -203,6 +205,7 @@ HYPRE_Int HYPRE_IJMatrixGetRowCounts(HYPRE_IJMatrix  matrix,
                                      HYPRE_Int       nrows,
                                      HYPRE_Int      *rows,
                                      HYPRE_Int      *ncols);
+
 
 /**
  * Gets values for {\tt nrows} rows or partial rows of the matrix.  
@@ -430,6 +433,11 @@ HYPRE_Int HYPRE_IJVectorAddToValues(HYPRE_IJVector       vector,
  **/
 HYPRE_Int HYPRE_IJVectorAssemble(HYPRE_IJVector vector);
 
+
+/* for GPU use only */
+
+HYPRE_Int HYPRE_IJVectorCopyDataCPUtoGPU(HYPRE_IJVector vector);
+HYPRE_Int HYPRE_IJVectorCopyDataGPUtoCPU(HYPRE_IJVector vector);
 /**
  * Gets values in vector.  Usage details are analogous to
  * \Ref{HYPRE_IJVectorSetValues}.

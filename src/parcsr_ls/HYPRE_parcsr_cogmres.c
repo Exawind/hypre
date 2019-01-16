@@ -30,14 +30,15 @@ HYPRE_ParCSRCOGMRESCreate( MPI_Comm comm, HYPRE_Solver *solver )
       hypre_COGMRESFunctionsCreate(
          hypre_CAlloc, hypre_ParKrylovFree, hypre_ParKrylovCommInfo,
          hypre_ParKrylovCreateVector,
-         hypre_ParKrylovCreateVectorArray,
+         hypre_ParKrylovCreateMultiVector,
+         hypre_ParKrylovUpdateVectorCPU,
          hypre_ParKrylovDestroyVector, hypre_ParKrylovMatvecCreate,
          hypre_ParKrylovMatvec, hypre_ParKrylovMatvecDestroy,
-         hypre_ParKrylovInnerProd, hypre_ParKrylovMassInnerProd, 
-         hypre_ParKrylovMassDotpTwo, hypre_ParKrylovCopyVector,
+         hypre_ParKrylovInnerProdOneOfMult, hypre_ParKrylovMassInnerProdMult, 
+         hypre_ParKrylovMassInnerProdWithScalingMult, hypre_ParKrylovCopyVectorOneOfMult,
          //hypre_ParKrylovCopyVector,
-         hypre_ParKrylovClearVector,
-         hypre_ParKrylovScaleVector, hypre_ParKrylovAxpy,hypre_ParKrylovMassAxpy,
+         hypre_ParKrylovClearVectorOneOfMult,
+         hypre_ParKrylovScaleVectorOneOfMult, hypre_ParKrylovAxpyOneOfMult,hypre_ParKrylovMassAxpyMult,
          hypre_ParKrylovIdentitySetup, hypre_ParKrylovIdentity );
    *solver = ( (HYPRE_Solver) hypre_COGMRESCreate( cogmres_functions ) );
 
@@ -209,6 +210,12 @@ HYPRE_ParCSRCOGMRESSetPrintLevel( HYPRE_Solver solver,
                                 HYPRE_Int print_level)
 {
    return( HYPRE_COGMRESSetPrintLevel( solver, print_level ) );
+}
+
+HYPRE_Int HYPRE_ParCSRCOGMRESSetGSoption( HYPRE_Solver solver,
+    HYPRE_Int GSoption)
+{
+  return( HYPRE_COGMRESSetGSoption( solver, GSoption ) );
 }
 
 /*--------------------------------------------------------------------------

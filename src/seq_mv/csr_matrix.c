@@ -90,6 +90,107 @@ hypre_CSRMatrixDestroy( hypre_CSRMatrix *matrix )
 }
 
 /*--------------------------------------------------------------------------
+ * hypre_CSRMatrixCopyGPUtoCPU
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+hypre_CSRMatrixCopyGPUtoCPU( hypre_CSRMatrix *matrix ){
+
+  HYPRE_Int  num_rows     = hypre_CSRMatrixNumRows(matrix);
+  HYPRE_Int  num_nonzeros = hypre_CSRMatrixNumNonzeros(matrix);
+#if (HYPRE_USE_GPU)
+  cudaMemcpy( hypre_CSRMatrixData(matrix),  hypre_CSRMatrixDeviceData(matrix), num_nonzeros*sizeof(HYPRE_Complex), cudaMemcpyDeviceToDevice);
+  cudaMemcpy( hypre_CSRMatrixI(matrix),  hypre_CSRMatrixDeviceI(matrix), num_rows*sizeof(HYPRE_Int), cudaMemcpyDeviceToDevice);
+  cudaMemcpy( hypre_CSRMatrixJ(matrix),  hypre_CSRMatrixDeviceJ(matrix), num_nonzeros*sizeof(HYPRE_Int), cudaMemcpyDeviceToDevice);
+#else
+  cudaMemcpy( hypre_CSRMatrixData(matrix),  hypre_CSRMatrixDeviceData(matrix), num_nonzeros*sizeof(HYPRE_Complex), cudaMemcpyDeviceToHost);
+  cudaMemcpy( hypre_CSRMatrixI(matrix),  hypre_CSRMatrixDeviceI(matrix), num_rows*sizeof(HYPRE_Int), cudaMemcpyDeviceToHost);
+  cudaMemcpy( hypre_CSRMatrixJ(matrix),  hypre_CSRMatrixDeviceJ(matrix), num_nonzeros*sizeof(HYPRE_Int), cudaMemcpyDeviceToHost);
+#endif
+}
+
+/*--------------------------------------------------------------------------
+ * hypre_CSRMatrixCopyCPUtoGPU
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+hypre_CSRMatrixCopyCPUtoGPU( hypre_CSRMatrix *matrix ){
+
+  HYPRE_Int  num_rows     = hypre_CSRMatrixNumRows(matrix);
+  HYPRE_Int  num_nonzeros = hypre_CSRMatrixNumNonzeros(matrix);
+
+  //printf("\nabout to copy matrix data to the gpu, numnon zeros %d\n", num_nonzeros);
+  hypre_CheckErrorDevice(cudaPeekAtLastError());
+#if (HYPRE_USE_GPU)
+  /*
+   *
+   cudaMemcpy (A_dataGPUonly,AA->data, 
+   num_nonzeros*sizeof(HYPRE_Real),
+   cudaMemcpyDeviceToDevice );
+   * */
+  if (!matrix->d_data){
+    //printf("no matrix d data, num non-zeros %d \n", num_nonzeros);
+    if (num_nonzeros){
+      hypre_CSRMatrixDeviceData(matrix)    = hypre_CTAlloc(HYPRE_Complex,  num_nonzeros, HYPRE_MEMORY_DEVICE);
+    }
+
+  }
+  //printf("data alloced\n");
+  hypre_CheckErrorDevice(cudaPeekAtLastError());
+  //printf("error check passed\n");
+  if (!matrix->data){printf("oups no data in the matrix \n");}
+  else {
+    HYPRE_Complex *mdata = matrix->data;
+    for (int j=num_nonzeros-1; j<num_nonzeros-20; --j){
+
+      //printf("data[%d ] = %16.16f \n", j, mdata[j]);
+    }
+  }
+ //printf("num non zeros %d \n", num_nonzeros);
+  cudaMemcpy(matrix->d_data, matrix->data,
+      num_nonzeros*sizeof(HYPRE_Complex), cudaMemcpyDeviceToDevice);
+  hypre_CheckErrorDevice(cudaPeekAtLastError());
+
+  //  printf("\ncopied matrix data to the GPU\n");
+  if (!matrix->d_i){
+
+    if (num_rows){
+
+      hypre_CSRMatrixDeviceI(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_rows + 1, HYPRE_MEMORY_DEVICE);
+    }
+  }
+
+
+  if (!matrix->d_j){
+
+    if (num_nonzeros){
+
+      hypre_CSRMatrixDeviceJ(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_nonzeros, HYPRE_MEMORY_DEVICE);
+    }
+  }
+
+  //printf("num non zeros %d \n", num_nonzeros);
+  cudaMemcpy(hypre_CSRMatrixDeviceJ(matrix), hypre_CSRMatrixJ(matrix),   num_nonzeros*sizeof(HYPRE_Int), cudaMemcpyDeviceToDevice);
+
+  hypre_CheckErrorDevice(cudaPeekAtLastError());
+  //printf("\ncopied matrixJ to the GPU\n");
+  //printf("num rows %d \n", num_rows);
+  cudaMemcpy(hypre_CSRMatrixDeviceI(matrix), hypre_CSRMatrixI(matrix),   (num_rows+1)*sizeof(HYPRE_Int), cudaMemcpyDeviceToDevice);
+
+  hypre_CheckErrorDevice(cudaPeekAtLastError());
+  //printf("\ncopied matrix to the GPU\n");
+
+#else
+cudaMemcpy( hypre_CSRMatrixDeviceData(matrix),hypre_CSRMatrixData(matrix),   num_nonzeros*sizeof(HYPRE_Complex), cudaMemcpyHostToDevice);
+  cudaMemcpy(hypre_CSRMatrixDeviceJ(matrix), hypre_CSRMatrixJ(matrix),   num_nonzeros*sizeof(HYPRE_Int), cudaMemcpyHostToDevice);
+  cudaMemcpy(hypre_CSRMatrixDeviceI(matrix), hypre_CSRMatrixI(matrix),  ( num_rows+1)*sizeof(HYPRE_Int), cudaMemcpyHostToDevice);
+#endif
+}
+
+
+
+
+/*--------------------------------------------------------------------------
  * hypre_CSRMatrixInitialize
  *--------------------------------------------------------------------------*/
 

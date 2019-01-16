@@ -325,6 +325,65 @@ HYPRE_IJVectorAddToValues( HYPRE_IJVector        vector,
    return hypre_error_flag;
 }
 
+/*-------------------------------------------
+ *  * KS: HYPRE_IJVectorCopyDataCPUtoGPU
+ *   * purpose: if not using unified memory, this function simply copies the data back and forth
+ *    * needs to be called expicitely
+ *     * ------------------------------------------*/
+
+HYPRE_Int
+HYPRE_IJVectorCopyDataCPUtoGPU( HYPRE_IJVector  vector ){
+   hypre_IJVector *vec = (hypre_IJVector *) vector;
+
+   if (!vec)
+   {
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+
+   if ( hypre_IJVectorObjectType(vec) == HYPRE_PARCSR )
+   {
+      return( hypre_IJVectorCopyDataCPUtoGPUPar(vec) );
+   }
+   else
+   {
+      hypre_error_in_arg(1);
+   }
+
+   return hypre_error_flag;
+}
+
+
+/*-------------------------------------------
+ *  * KS: HYPRE_IJVectorCopyDataGPUtoCPU
+ *   * purpose: if not using unified memory, this function simply copies the data back and forth
+ *    * needs to be called expicitely
+ *     * ------------------------------------------*/
+
+HYPRE_Int
+HYPRE_IJVectorCopyDataGPUtoCPU( HYPRE_IJVector  vector ){
+   hypre_IJVector *vec = (hypre_IJVector *) vector;
+
+   if (!vec)
+   {
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+
+   if ( hypre_IJVectorObjectType(vec) == HYPRE_PARCSR )
+   {
+      return( hypre_IJVectorCopyDataGPUtoCPUPar(vec) );
+   }
+   else
+   {
+      hypre_error_in_arg(1);
+   }
+
+   return hypre_error_flag;
+}
+
+
+
 /*--------------------------------------------------------------------------
  * HYPRE_IJVectorAssemble
  *--------------------------------------------------------------------------*/
