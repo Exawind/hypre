@@ -686,7 +686,7 @@ r = (*(cogmres_functions->CreateVector))(b);
   //	b_norm = sqrt(b_norm);
   HYPRE_Real one = 1.0f, minusone = -1.0f, zero = 0.0f;
 
-#if 0
+#if 1
 
   if ( print_level>1 && my_id == 0 )
   {
