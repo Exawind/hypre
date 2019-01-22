@@ -643,7 +643,7 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
 {
 printf("starting matvec\n");
   hypre_CheckErrorDevice(cudaPeekAtLastError());
-#if 0
+#if 1
   hypre_ParCSRCommHandle *comm_handle;
   hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
 printf("test 1 passed \n");
