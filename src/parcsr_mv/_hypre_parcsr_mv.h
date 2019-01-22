@@ -680,6 +680,11 @@ extern "C" {
   HYPRE_Int HYPRE_ParCSRMatrixMatvec ( HYPRE_Complex alpha , HYPRE_ParCSRMatrix A , HYPRE_ParVector x , HYPRE_Complex beta , HYPRE_ParVector y );
   HYPRE_Int HYPRE_ParCSRMatrixMatvecT ( HYPRE_Complex alpha , HYPRE_ParCSRMatrix A , HYPRE_ParVector x , HYPRE_Complex beta , HYPRE_ParVector y );
 
+  HYPRE_Int HYPRE_ParCSRMatrixMatvecMult ( HYPRE_Complex alpha , HYPRE_ParCSRMatrix A , HYPRE_ParVector x ,HYPRE_Int k1,  HYPRE_Complex beta , HYPRE_ParVector y, HYPRE_Int k2 );
+  HYPRE_Int hypre_ParCSRMatrixMatvecMult ( HYPRE_Complex alpha , hypre_ParCSRMatrix *A , hypre_ParVector *x ,HYPRE_Int k1, HYPRE_Complex beta , hypre_ParVector *y, HYPRE_Int k2 );
+  HYPRE_Int hypre_ParCSRMatrixMatvecMultOutOfPlace ( HYPRE_Complex alpha , hypre_ParCSRMatrix *A , hypre_ParVector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_ParVector *b,HYPRE_Int k3, hypre_ParVector *y, HYPRE_Int k2 );
+
+
   /* HYPRE_parcsr_vector.c */
   HYPRE_Int HYPRE_ParVectorCreate ( MPI_Comm comm , HYPRE_Int global_size , HYPRE_Int *partitioning , HYPRE_ParVector *vector );
   HYPRE_Int HYPRE_ParMultiVectorCreate ( MPI_Comm comm , HYPRE_Int global_size , HYPRE_Int *partitioning , HYPRE_Int number_vectors , HYPRE_ParVector *vector );

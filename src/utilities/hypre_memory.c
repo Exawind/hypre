@@ -62,7 +62,8 @@ static inline HYPRE_Int hypre_RedefMemLocation(HYPRE_Int location)
 
    if (location == HYPRE_MEMORY_SHARED)
    {
-      return HYPRE_MEMORY_SHARED_ACT;
+printf("original %d and returning %d \n",HYPRE_MEMORY_SHARED, HYPRE_MEMORY_SHARED );
+      return HYPRE_MEMORY_SHARED;
    }
 
    if (location == HYPRE_MEMORY_HOST_PINNED)
@@ -187,6 +188,7 @@ hypre_DeviceMalloc(size_t size, HYPRE_Int zeroinit)
    HYPRE_OMPOffload(hypre__offload_device_num, ptr, size, "enter", "alloc");
 #elif defined(HYPRE_USING_CUDA)
    /* cudaMalloc */
+printf("cuda malloC!\n");
    hypre_CheckErrorDevice( cudaMalloc(&ptr, size + sizeof(size_t)*HYPRE_MEM_PAD_LEN) );
    hypre_CheckErrorDevice( cudaDeviceSynchronize() );
    hypre_Memcpy(ptr, &size, sizeof(size_t), HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_HOST);
@@ -208,9 +210,10 @@ hypre_UnifiedMalloc(size_t size, HYPRE_Int zeroinit)
 {
    void *ptr = NULL;
 
-#if defined(HYPRE_USING_CUDA) || defined(HYPRE_USING_DEVICE_OPENMP)
+#if defined(HYPRE_USING_GPU) || defined(HYPRE_USING_DEVICE_OPENMP)
    size_t count = size + sizeof(size_t)*HYPRE_MEM_PAD_LEN;
    /* with UM, managed memory alloc */
+printf("UNIFIED MALLOC!!\n");
    hypre_CheckErrorDevice( cudaMallocManaged(&ptr, count, CUDAMEMATTACHTYPE) );
    hypre_CheckErrorDevice( cudaMemAdvise(ptr, count, cudaMemAdviseSetPreferredLocation, HYPRE_DEVICE) );
    size_t *sp = (size_t*) ptr;
@@ -267,14 +270,17 @@ hypre_MAlloc_core(size_t size, HYPRE_Int zeroinit, HYPRE_Int location)
    {
       case HYPRE_MEMORY_HOST :
          /* ask for cpu memory */
+//printf("host malloc \n");
          ptr = hypre_HostMalloc(size, zeroinit);
          break;
       case HYPRE_MEMORY_DEVICE :
          /* ask for device memory */
+printf("dev pure malloc \n");
          ptr = hypre_DeviceMalloc(size, zeroinit);
          break;
       case HYPRE_MEMORY_SHARED :
          /* ask for unified memory */
+printf("uni malloc \n");
          ptr = hypre_UnifiedMalloc(size, zeroinit);
          break;
       case HYPRE_MEMORY_HOST_PINNED :
@@ -283,6 +289,7 @@ hypre_MAlloc_core(size_t size, HYPRE_Int zeroinit, HYPRE_Int location)
          break;
       default :
          /* unrecognized location */
+printf("error, no malloc \n");
          hypre_WrongMemoryLocation();
    }
 

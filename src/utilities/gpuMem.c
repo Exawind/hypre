@@ -64,7 +64,7 @@ void hypre_GPUInit(hypre_int use_device)
          {
             // THIS IS A HACK THAT WORKS ONLY AT LLNL
             /* No mpibind or it is a single rank run */
-            hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
+            hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD,(HYPRE_Int* ) &myid );
             //affs(myid);
             hypre_MPI_Comm node_comm;
             hypre_MPI_Info info;
@@ -72,8 +72,8 @@ void hypre_GPUInit(hypre_int use_device)
             hypre_MPI_Comm_split_type(hypre_MPI_COMM_WORLD, hypre_MPI_COMM_TYPE_SHARED, myid, info, &node_comm);
             hypre_int round_robin=1;
             hypre_int myNodeid, NodeSize;
-            hypre_MPI_Comm_rank(node_comm, &myNodeid);
-            hypre_MPI_Comm_size(node_comm, &NodeSize);
+            hypre_MPI_Comm_rank(node_comm, (HYPRE_Int *)  &myNodeid);
+            hypre_MPI_Comm_size(node_comm, (HYPRE_Int * ) &NodeSize);
             if (round_robin)
             {
                /* Round robin allocation of GPUs. Does not account for affinities */
@@ -90,8 +90,8 @@ void hypre_GPUInit(hypre_int use_device)
                hypre_MPI_Comm numa_comm;
                hypre_MPI_Comm_split(node_comm,getnuma(),myNodeid,&numa_comm);
                hypre_int myNumaId,NumaSize;
-               hypre_MPI_Comm_rank(numa_comm, &myNumaId);
-               hypre_MPI_Comm_size(numa_comm, &NumaSize);
+               hypre_MPI_Comm_rank(numa_comm, (HYPRE_Int *) &myNumaId);
+               hypre_MPI_Comm_size(numa_comm, (HYPRE_Int *) &NumaSize);
                hypre_int domain_devices=nDevices/2; /* Again hardwired for 2 NUMA domains */
                HYPRE_DEVICE = getnuma()*2+myNumaId%domain_devices;
                hypre_CheckErrorDevice(cudaSetDevice(HYPRE_DEVICE));

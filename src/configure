@@ -2625,7 +2625,7 @@ hypre_using_openmp=no
 hypre_using_device_openmp=no
 hypre_using_insure=no
 hypre_using_cuda=no
-hypre_using_gpu=no
+hypre_using_gpu=yes
 hypre_using_um=no
 
 hypre_using_caliper=no
@@ -2914,7 +2914,7 @@ fi
 # Check whether --enable-unified-memory was given.
 if test "${enable_unified_memory+set}" = set; then :
   enableval=$enable_unified_memory; case "${enableval}" in
-    yes) hypre_using_um=yes ;;
+    yes) hypre_using_um=no ;;
     no)  hypre_using_um=no ;;
     *)   hypre_using_um=no ;;
  esac
@@ -8266,7 +8266,7 @@ done
 
       if test "x$HYPRE_CUDA_SM" = "x"
    then
-      HYPRE_CUDA_SM=60
+      HYPRE_CUDA_SM=70
    fi
 
    HYPRE_CUDA_GENCODE="-gencode arch=compute_${HYPRE_CUDA_SM},\"code=sm_${HYPRE_CUDA_SM}\""
@@ -8438,7 +8438,7 @@ fi
 if test "x$hypre_using_um" = "xyes"
 then
 
-$as_echo "#define HYPRE_USING_UNIFIED_MEMORY 1" >>confdefs.h
+$as_echo "#define HYPRE_USING_UNIFIED_MEMORY 0" >>confdefs.h
 
 else
    if test "x$hypre_user_chose_cuda" = "xyes" || test "x$hypre_using_device_openmp" = "xyes"

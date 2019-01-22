@@ -618,8 +618,8 @@ void *       (*CreateMultiVector)  (void *vectors, HYPRE_Int num_vectors );
    void *       (*UpdateVectorCPU)  ( void *vector );
 HYPRE_Int    (*DestroyVector) ( void *vector );
     void *       (*MatvecCreate)  ( void *A, void *x );
-    HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-	void *x, HYPRE_Complex beta, void *y );
+   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
+                                   void *x,HYPRE_Int k1, HYPRE_Complex beta, void *y, HYPRE_Int k2 );
     HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
     HYPRE_Real   (*InnerProd)     ( void *x, HYPRE_Int i1,void *y, HYPRE_Int i2 );
     HYPRE_Int    (*MassInnerProd) ( void *x, HYPRE_Int k1, void *y, HYPRE_Int k2, void *result);
@@ -706,15 +706,16 @@ void *       (*CreateMultiVector)  (void *vectors, HYPRE_Int num_vectors ),
    void *       (*UpdateVectorCPU)  ( void *vector ),
 HYPRE_Int    (*DestroyVector) ( void *vector ),
 	  void *       (*MatvecCreate)  ( void *A, void *x ),
-	  HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A, void *x, HYPRE_Complex beta, void *y ),
+   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
+                                   void *x,HYPRE_Int k1, HYPRE_Complex beta, void *y, HYPRE_Int k2 ),
 	  HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
-	  HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
+	  HYPRE_Real   (*InnerProd)     ( void *x,HYPRE_Int k1, void *y, HYPRE_Int k2 ),
 	  HYPRE_Int    (*MassInnerProd) ( void *x, HYPRE_Int k1, void *y, HYPRE_Int k2, void *result),
 	  HYPRE_Int    (*MassInnerProdWithScaling)   ( void *x, HYPRE_Int i1, void *y,HYPRE_Int i2, void *scaleFactors, void *result),
-	  HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
+	  HYPRE_Int    (*CopyVector)    ( void *x,HYPRE_Int i1,  void *y, HYPRE_Int i2 ),
 	  HYPRE_Int    (*ClearVector)   ( void *x ),
-	  HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
-	  HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
+	  HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x, HYPRE_Int k1 ),
+	  HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x,HYPRE_Int k1, void *y, HYPRE_Int k2 ),
 	  HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex *alpha, void *x,HYPRE_Int i1, void *y, HYPRE_Int i2),
 	  HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
 	  HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )

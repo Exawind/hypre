@@ -353,6 +353,9 @@ HYPRE_Int hypre_IJMatrixSetRowSizesISIS ( hypre_IJMatrix *matrix , HYPRE_Int *si
 HYPRE_Int hypre_IJMatrixSetDiagRowSizesISIS ( hypre_IJMatrix *matrix , HYPRE_Int *sizes );
 HYPRE_Int hypre_IJMatrixSetOffDiagRowSizesISIS ( hypre_IJMatrix *matrix , HYPRE_Int *sizes );
 HYPRE_Int hypre_IJMatrixInitializeISIS ( hypre_IJMatrix *matrix );
+HYPRE_Int HYPRE_IJMatrixCopyCPUtoGPU ( HYPRE_IJMatrix matrix );
+HYPRE_Int HYPRE_IJMatrixCopyGPUtoCPU ( HYPRE_IJMatrix matrix );
+
 HYPRE_Int hypre_IJMatrixInsertBlockISIS ( hypre_IJMatrix *matrix , HYPRE_Int m , HYPRE_Int n , HYPRE_Int *rows , HYPRE_Int *cols , HYPRE_Complex *coeffs );
 HYPRE_Int hypre_IJMatrixAddToBlockISIS ( hypre_IJMatrix *matrix , HYPRE_Int m , HYPRE_Int n , HYPRE_Int *rows , HYPRE_Int *cols , HYPRE_Complex *coeffs );
 HYPRE_Int hypre_IJMatrixInsertRowISIS ( hypre_IJMatrix *matrix , HYPRE_Int n , HYPRE_Int row , HYPRE_Int *indices , HYPRE_Complex *coeffs );

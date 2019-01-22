@@ -28,18 +28,26 @@ HYPRE_ParCSRCOGMRESCreate( MPI_Comm comm, HYPRE_Solver *solver )
    }
    cogmres_functions =
       hypre_COGMRESFunctionsCreate(
-         hypre_CAlloc, hypre_ParKrylovFree, hypre_ParKrylovCommInfo,
+         hypre_CAlloc, hypre_ParKrylovFree, 
+         hypre_ParKrylovCommInfo,
          hypre_ParKrylovCreateVector,
          hypre_ParKrylovCreateMultiVector,
          hypre_ParKrylovUpdateVectorCPU,
-         hypre_ParKrylovDestroyVector, hypre_ParKrylovMatvecCreate,
-         hypre_ParKrylovMatvec, hypre_ParKrylovMatvecDestroy,
-         hypre_ParKrylovInnerProdOneOfMult, hypre_ParKrylovMassInnerProdMult, 
-         hypre_ParKrylovMassInnerProdWithScalingMult, hypre_ParKrylovCopyVectorOneOfMult,
+         hypre_ParKrylovDestroyVector, 
+         hypre_ParKrylovMatvecCreate,
+         hypre_ParKrylovMatvecMult, 
+         hypre_ParKrylovMatvecDestroy,
+         hypre_ParKrylovInnerProdOneOfMult, 
+         hypre_ParKrylovMassInnerProdMult, 
+         hypre_ParKrylovMassInnerProdWithScalingMult, 
+         hypre_ParKrylovCopyVectorOneOfMult,
          //hypre_ParKrylovCopyVector,
-         hypre_ParKrylovClearVectorOneOfMult,
-         hypre_ParKrylovScaleVectorOneOfMult, hypre_ParKrylovAxpyOneOfMult,hypre_ParKrylovMassAxpyMult,
-         hypre_ParKrylovIdentitySetup, hypre_ParKrylovIdentity );
+         hypre_ParKrylovClearVector,
+         hypre_ParKrylovScaleVectorOneOfMult, 
+         hypre_ParKrylovAxpyOneOfMult,
+         hypre_ParKrylovMassAxpyMult,
+         hypre_ParKrylovIdentitySetup, 
+         hypre_ParKrylovIdentity );
    *solver = ( (HYPRE_Solver) hypre_COGMRESCreate( cogmres_functions ) );
 
    return hypre_error_flag;

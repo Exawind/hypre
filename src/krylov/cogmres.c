@@ -15,7 +15,7 @@
 //#include "_hypre_parcsr_ls.h"
 //#include "_hypre_parcsr_ls.h"
 
-#ifdef HYPRE_USE_GPU
+#ifdef HYPRE_USING_GPU
 #include "../seq_mv/gpukernels.h"
 #endif
 /*--------------------------------------------------------------------------
@@ -34,7 +34,7 @@
       HYPRE_Int    (*DestroyVector) ( void *vector ),
       void *       (*MatvecCreate)  ( void *A, void *x ),
       HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-	void *x, HYPRE_Complex beta, void *y ),
+	void *x,HYPRE_Int k1, HYPRE_Complex beta, void *y, HYPRE_Int k2 ),
       HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
       HYPRE_Real   (*InnerProd)     ( void *x,HYPRE_Int i1,  void *y, HYPRE_Int i2 ),
       HYPRE_Int    (*MassInnerProd) (void *x,HYPRE_Int k1, void *y, HYPRE_Int k2, void *result),
@@ -252,7 +252,6 @@ HYPRE_Int idx(HYPRE_Int r, HYPRE_Int c, HYPRE_Int n){
 
 void GramSchmidt (HYPRE_Int option,
     HYPRE_Int i,
-    HYPRE_Int sz, 
     HYPRE_Int k_dim,
     void * Vspace,
     HYPRE_Real * Hcolumn,
@@ -421,7 +420,7 @@ void GramSchmidt (HYPRE_Int option,
 		sz);*/
 
   //  hypre_ParKrylovMassInnerProdMult(Vspace,i, Vspace, i, HcolumnGPU);
-    (*(cf->MassInnerProdWithScaling))(Vspace,i, Vspace, i, HcolumnGPU);
+    (*(cf->MassInnerProd))(Vspace,i, Vspace, i, HcolumnGPU);
     cudaMemcpy ( &rv[0],HcolumnGPU,
 	i*sizeof(HYPRE_Real),
 	cudaMemcpyDeviceToHost );
@@ -636,6 +635,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
   }
 
   (cogmres_data -> w) = (*(cogmres_functions->CreateVector))(b);
+w = cogmres_data -> w;
 //CreateVecrtie in this case will unuitialize it too  
 r = (*(cogmres_functions->CreateVector))(b);
   //hypre_ParVectorInitialize(w);	
@@ -646,14 +646,14 @@ r = (*(cogmres_functions->CreateVector))(b);
 
   rv = hypre_CTAllocF(HYPRE_Real, k_dim+1, cogmres_functions, HYPRE_MEMORY_HOST);
 
-  hypre_CSRMatrix * AA = hypre_ParCSRMatrixDiag((hypre_ParCSRMatrix *)A);
+ // hypre_CSRMatrix * AA = hypre_ParCSRMatrixDiag((hypre_ParCSRMatrix *)A);
 
-  HYPRE_Int         num_rows = AA->num_rows;
-  HYPRE_Int         num_cols = AA->num_cols;
-  HYPRE_Int         num_nonzeros = AA->num_nonzeros;
+ // HYPRE_Int         num_rows = AA->num_rows;
+  //HYPRE_Int         num_cols = A->num_cols;
+ // HYPRE_Int         num_nonzeros = AA->num_nonzeros;
   //Mod Oct 2018
 
-  HYPRE_Int sz = num_cols;	
+//  HYPRE_Int sz = num_cols;	
   HYPRE_Real * tempH;
   HYPRE_Real * tempRV;
 
@@ -672,8 +672,8 @@ r = (*(cogmres_functions->CreateVector))(b);
     cudaMalloc ( &tempRV, sizeof(HYPRE_Real)*(k_dim+1)); 
     cudaMalloc ( &tempH, sizeof(HYPRE_Real)*(k_dim+1)); 
   }
-  HYPRE_Real * tempV;
-  cudaMalloc ( &tempV, sizeof(HYPRE_Real)*(sz)); 
+//  HYPRE_Real * tempV;
+//  cudaMalloc ( &tempV, sizeof(HYPRE_Real)*(sz)); 
 
 
   hh = hypre_CTAllocF(HYPRE_Real, (k_dim+1)*k_dim, cogmres_functions, HYPRE_MEMORY_HOST);
@@ -686,6 +686,7 @@ r = (*(cogmres_functions->CreateVector))(b);
   //	b_norm = sqrt(b_norm);
   HYPRE_Real one = 1.0f, minusone = -1.0f, zero = 0.0f;
 
+#if 0
 
   if ( print_level>1 && my_id == 0 )
   {
@@ -709,7 +710,8 @@ r = (*(cogmres_functions->CreateVector))(b);
 
   iter = 0;
   //works
-  //printf("ABOUT TO START OUTER WHILE \n");
+  printf("ABOUT TO START OUTER WHILEi, max_iter = %d iter = %d \n", max_iter, iter);
+
   while (iter < max_iter)
   {
     if (solverTimers)
@@ -737,20 +739,23 @@ r = (*(cogmres_functions->CreateVector))(b);
       }// if usePrecond
 
       //hypre_ParKrylovCopyVectorOneOfMult(bb, 0, p, 0);
-      (*(cogmres_functions->CopyVector))(b, 0, p, 0);
+	printf("copying b to p!!\n");
+ (*(cogmres_functions->CopyVector))(b, 0, p, 0);
 
       if (solverTimers){
 	time3 = MPI_Wtime();
       }
 
-      hypre_ParKrylovMatvecMult(matvec_data,
+    
+printf("before mv: norm of vector x %16.16f norm of p %16.16f \n ", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)),sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0)));
+  (*(cogmres_functions->Matvec))(matvec_data,
 	  minusone,
 	  A,
 	  x,
 	  0,
 	  one,
 	  p, 0);
-
+printf("norm of p after mv: %16.16f \n",sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0)) );
    //   hypre_ParVectorCopyDataGPUtoCPU(p);
 
 	(*(cogmres_functions->UpdateVectorCPU))(p);
@@ -770,14 +775,14 @@ r = (*(cogmres_functions->CreateVector))(b);
 
       //		r_norm = sqrt(hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0));
       r_norm = sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0));
-      //printf("current r_norm %16.16f \n", r_norm);		
+      printf("current r_norm %16.16f \n", r_norm);		
       if ( logging>0 || print_level > 0)
       {
 	norms[iter] = r_norm;
 	if ( print_level>1 && my_id == 0 ){
 
-	  //		hypre_printf("L2 norm of b: %16.16f\n", b_norm);
-	  //	hypre_printf("Initial L2 norm of residual: %16.16f\n", r_norm);
+	  	hypre_printf("L2 norm of b: %16.16f\n", b_norm);
+	  	hypre_printf("Initial L2 norm of residual: %16.16f\n", r_norm);
 
 	}
       }
@@ -785,7 +790,8 @@ r = (*(cogmres_functions->CreateVector))(b);
       // conv criteria 
 
       epsilon = hypre_max(a_tol,r_tol*r_norm);
-    }//if
+    }//if iter == 0
+iter++;
 
     //otherwise, we already have p[0] from previous cycle
 
@@ -814,7 +820,6 @@ r = (*(cogmres_functions->CreateVector))(b);
     }
 
 
-#if 1	
     while (i < k_dim && iter < max_iter)
     {
       i++;
@@ -841,10 +846,10 @@ r = (*(cogmres_functions->CreateVector))(b);
 	  preconTime += (time4-time3);
 	  matvecPreconTime += (time4-time3);
 	}
-	cudaMemcpy (tempV,
+/*	cudaMemcpy (tempV,
 	    x->local_vector->data, 
 	    (sz)*sizeof(HYPRE_Real),
-	    cudaMemcpyDeviceToDevice ); 
+	    cudaMemcpyDeviceToDevice );*/ 
 
 	if (solverTimers)
 	  time1 = MPI_Wtime();
@@ -860,10 +865,11 @@ r = (*(cogmres_functions->CreateVector))(b);
 	// not using preconddd
 	if (solverTimers)
 	  time1 = MPI_Wtime();
-
+printf("copying vector p %d to w \n", i-1);
 	//hypre_ParKrylovCopyVectorOneOfMult(p, i-1, w, 0);
 	(*(cogmres_functions->CopyVector))(p, i-1, w, 0);
-	hypre_ParKrylovMatvecMult(matvec_data,
+
+	(*(cogmres_functions->Matvec))(matvec_data,
 	    one,
 	    A,
 	    w,
@@ -887,7 +893,6 @@ r = (*(cogmres_functions->CreateVector))(b);
 
 	GramSchmidt (0, 
 	    i, 
-	    sz,
 	    k_dim, 
 	    p,
 	    hh, 
@@ -900,7 +905,6 @@ r = (*(cogmres_functions->CreateVector))(b);
 	//printf("starting GS\n");
 	GramSchmidt (GSoption, 
 	    i, 
-	    sz, 
 	    k_dim,
 	    p, 
 	    hh, 
@@ -914,7 +918,6 @@ r = (*(cogmres_functions->CreateVector))(b);
       if ((GSoption >=3)){
 	GramSchmidt (GSoption, 
 	    i, 
-	    sz, 
 	    k_dim,
 	    p, 
 	    hh, 
@@ -970,7 +973,6 @@ r = (*(cogmres_functions->CreateVector))(b);
       }//conv check
     }//while (inner)
 
-#endif
     //compute solution 
 
     if (solverTimers)
@@ -1088,7 +1090,7 @@ r = (*(cogmres_functions->CreateVector))(b);
 
     //hypre_ParKrylovCopyVectorOneOfMult(bb, 0, p, 0);
     (*(cogmres_functions->CopyVector))(b, 0, p, 0);
-    hypre_ParKrylovMatvecMult(matvec_data,
+     (*(cogmres_functions->Matvec))(matvec_data,
 	minusone,
 	A,
 	x,
@@ -1133,9 +1135,9 @@ r = (*(cogmres_functions->CreateVector))(b);
     hypre_printf("timeAll(%d,%d)                =  ",GSoption+1, k_dim/5);
 
   }
-
+#endif
+return 0;
 }//Solve
-
 
 
 
@@ -1166,6 +1168,51 @@ hypre_COGMRESGetKDim( void   *cogmres_vdata,
   *k_dim = (cogmres_data -> k_dim);
 
   return hypre_error_flag;
+}
+
+
+/*--------------------------------------------------------------------------
+ * hypre_COGMRESSetUnroll, hypre_COGMRESGetUnroll
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+hypre_COGMRESSetUnroll( void   *cogmres_vdata,
+        HYPRE_Int   unroll )
+{
+   hypre_COGMRESData *cogmres_data =(hypre_COGMRESData *) cogmres_vdata;
+   (cogmres_data -> unroll) = unroll;
+   return hypre_error_flag;
+}
+
+HYPRE_Int
+hypre_COGMRESGetUnroll( void   *cogmres_vdata,
+        HYPRE_Int * unroll )
+{
+   hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+   *unroll = (cogmres_data -> unroll);
+   return hypre_error_flag;
+}
+
+/*--------------------------------------------------------------------------
+ * hypre_COGMRESSetCGS, hypre_COGMRESGetCGS
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+hypre_COGMRESSetCGS( void   *cogmres_vdata,
+        HYPRE_Int   cgs )
+{
+   hypre_COGMRESData *cogmres_data =(hypre_COGMRESData *) cogmres_vdata;
+   (cogmres_data -> cgs) = cgs;
+   return hypre_error_flag;
+}
+
+HYPRE_Int
+hypre_COGMRESGetCGS( void   *cogmres_vdata,
+        HYPRE_Int * cgs )
+{
+   hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
+   *cgs = (cogmres_data -> cgs);
+   return hypre_error_flag;
 }
 
 /*--------------------------------------------------------------------------

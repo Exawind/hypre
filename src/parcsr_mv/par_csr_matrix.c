@@ -192,6 +192,28 @@ hypre_ParCSRMatrixDestroy( hypre_ParCSRMatrix *matrix )
    return hypre_error_flag;
 }
 
+
+/*--------------------------------------------------------------------------
+ * hypre_ParCSRMatrixCopyGPUtoCPU
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+hypre_ParCSRMatrixCopyGPUtoCPU( hypre_ParCSRMatrix *matrix )
+{
+   if (!matrix)
+   {
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+   hypre_CSRMatrixCopyGPUtoCPU(hypre_ParCSRMatrixDiag(matrix));
+   hypre_CSRMatrixCopyGPUtoCPU(hypre_ParCSRMatrixOffd(matrix));
+   return hypre_error_flag;
+}
+
+
+
+
+
 /*--------------------------------------------------------------------------
  * hypre_ParCSRMatrixCopyCPUtoGPU
  *--------------------------------------------------------------------------*/

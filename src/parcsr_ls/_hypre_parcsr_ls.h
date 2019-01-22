@@ -1020,6 +1020,7 @@ HYPRE_Int HYPRE_ParCSRCOGMRESSetPrecond ( HYPRE_Solver solver , HYPRE_PtrToParSo
 HYPRE_Int HYPRE_ParCSRCOGMRESGetPrecond ( HYPRE_Solver solver , HYPRE_Solver *precond_data_ptr );
 HYPRE_Int HYPRE_ParCSRCOGMRESSetLogging ( HYPRE_Solver solver , HYPRE_Int logging );
 HYPRE_Int HYPRE_ParCSRCOGMRESSetPrintLevel ( HYPRE_Solver solver , HYPRE_Int print_level );
+HYPRE_Int HYPRE_ParCSRCOGMRESSetGSoption ( HYPRE_Solver solver , HYPRE_Int gsOption );
 HYPRE_Int HYPRE_ParCSRCOGMRESGetNumIterations ( HYPRE_Solver solver , HYPRE_Int *num_iterations );
 HYPRE_Int HYPRE_ParCSRCOGMRESGetFinalRelativeResidualNorm ( HYPRE_Solver solver , HYPRE_Real *norm );
 HYPRE_Int HYPRE_ParCSRCOGMRESGetResidual ( HYPRE_Solver solver , HYPRE_ParVector *residual );
@@ -1627,6 +1628,12 @@ void *hypre_ParKrylovMatvecCreate ( void *A , void *x );
 HYPRE_Int hypre_ParKrylovMatvec ( void *matvec_data , HYPRE_Complex alpha , void *A , void *x , HYPRE_Complex beta , void *y );
 HYPRE_Int hypre_ParKrylovMatvecT ( void *matvec_data , HYPRE_Complex alpha , void *A , void *x , HYPRE_Complex beta , void *y );
 HYPRE_Int hypre_ParKrylovMatvecDestroy ( void *matvec_data );
+
+void *hypre_ParKrylovMatvecMultCreate ( void *A , void *x );
+HYPRE_Int hypre_ParKrylovMatvecMult ( void *matvec_data , HYPRE_Complex alpha , void *A , void *x ,HYPRE_Int k1, HYPRE_Complex beta , void *y, HYPRE_Int k2 );
+HYPRE_Int hypre_ParKrylovMatvecMultDestroy ( void *matvec_data );
+
+
 HYPRE_Real hypre_ParKrylovInnerProd ( void *x , void *y );
 HYPRE_Real hypre_ParKrylovInnerProdOneOfMult ( void *x ,HYPRE_Int k1, void *y, HYPRE_Int k2 );
 HYPRE_Int hypre_ParKrylovAxpyOneOfMult(HYPRE_Complex alpha,  void *x , HYPRE_Int k1,  void *  y , HYPRE_Int k2);
@@ -1634,9 +1641,9 @@ HYPRE_Int hypre_ParKrylovMassInnerProd ( void *x , void **y, HYPRE_Int k, HYPRE_
 HYPRE_Int hypre_ParKrylovMassDotpTwo ( void *x , void *y , void **z, HYPRE_Int k, HYPRE_Int unroll, void *result_x, void *result_y );
 HYPRE_Int hypre_ParKrylovMassAxpy( HYPRE_Complex *alpha, void **x, void *y, HYPRE_Int k, HYPRE_Int unroll);
 
-void  hypre_ParKrylovMassInnerProdMult ( void *x ,HYPRE_Int k, void *y, HYPRE_Int k2, void *result );
-void  hypre_ParKrylovMassInnerProdWithScalingMult ( void *x ,HYPRE_Int k, void *y, HYPRE_Int k2,void *scaleFactors, void *result );
-void hypre_ParKrylovMassAxpyMult( HYPRE_Real *alpha, void *x, HYPRE_Int k, void *y, HYPRE_Int k2);
+HYPRE_Int  hypre_ParKrylovMassInnerProdMult ( void *x ,HYPRE_Int k, void *y, HYPRE_Int k2, void *result );
+HYPRE_Int  hypre_ParKrylovMassInnerProdWithScalingMult ( void *x ,HYPRE_Int k, void *y, HYPRE_Int k2,void *scaleFactors, void *result );
+HYPRE_Int  hypre_ParKrylovMassAxpyMult( HYPRE_Real *alpha, void *x, HYPRE_Int k, void *y, HYPRE_Int k2);
 
 
 void  hypre_ParKrylovMassInnerProdGPU ( void *x , void *y, int k, int n,  void *result );

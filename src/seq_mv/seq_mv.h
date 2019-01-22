@@ -59,7 +59,7 @@ typedef struct
    HYPRE_Int     *rownnz;
    HYPRE_Int      num_rownnz;
 
-#ifdef HYPRE_USING_UNIFIED_MEMORY
+#ifdef HYPRE_USING_GPU
   /* Flag to keeping track of prefetching */
   HYPRE_Int on_device;
 #endif
@@ -269,6 +269,35 @@ void VecScale(double *u, double *v, double *l1_norm, int num_rows,cudaStream_t s
 void VecScaleSplit(double *u, double *v, double *l1_norm, int num_rows,cudaStream_t s);
 void CudaCompileFlagCheck();
 void PackOnDevice(HYPRE_Complex *send_data,HYPRE_Complex *x_local_data, hypre_int *send_map, hypre_int begin,hypre_int end,cudaStream_t s);
+ void PackOnDeviceGPUonly(HYPRE_Complex *send_data,HYPRE_Complex *x_local_data, hypre_int *send_map, hypre_int begin,hypre_int end);
+
+void MassAxpyGPUonly(int N,    int k,
+    const  double  * x_data,
+    double *y_data,
+    const  double   * alpha);
+void MassInnerProdGPUonly(const double * __restrict__ u,
+    const double * __restrict__ v,
+    double * result,
+    const int k,
+    const int N);
+void MassInnerProdWithScalingGPUonly(const double * __restrict__ u,
+    const double * __restrict__ v,
+const double * __restrict__ scaleFactors,
+    double * result,
+    const int k,
+    const int N);
+void ScaleGPUonly(double * __restrict__ u,
+    const double alpha,
+    const int N);
+void AxpyGPUonly(const double * __restrict__ u,
+     double * __restrict__ v,
+    const double alpha,
+    const int N);
+void InnerProdGPUonly(const double * __restrict__ u,
+    const double * __restrict__ v,
+    double *result,
+    const int N);
+
 #endif
 #endif
 
@@ -292,7 +321,7 @@ HYPRE_Int hypre_CSRMatrixPrintHB ( hypre_CSRMatrix *matrix_input , char *file_na
 HYPRE_Int hypre_CSRMatrixCopy ( hypre_CSRMatrix *A , hypre_CSRMatrix *B , HYPRE_Int copy_data );
 hypre_CSRMatrix *hypre_CSRMatrixClone ( hypre_CSRMatrix *A );
 hypre_CSRMatrix *hypre_CSRMatrixUnion ( hypre_CSRMatrix *A , hypre_CSRMatrix *B , HYPRE_Int *col_map_offd_A , HYPRE_Int *col_map_offd_B , HYPRE_Int **col_map_offd_C );
-#ifdef HYPRE_USING_UNIFIED_MEMORY
+#ifdef HYPRE_USING_GPU
 void hypre_CSRMatrixPrefetchToDevice(hypre_CSRMatrix *A);
 void hypre_CSRMatrixPrefetchToHost(hypre_CSRMatrix *A);
 hypre_int hypre_CSRMatrixIsManaged(hypre_CSRMatrix *a);
@@ -305,13 +334,20 @@ void hypre_CSRMatrixUnMapFromDevice(hypre_CSRMatrix *A);
 /* csr_matvec.c */
 // y[offset:end] = alpha*A[offset:end,:]*x + beta*b[offset:end]
 HYPRE_Int hypre_CSRMatrixMatvecOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
+
+ HYPRE_Int hypre_CSRMatrixMatvecMultOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1,  HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
+
 HYPRE_Int hypre_CSRMatrixMatvecOutOfPlaceOOMP ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
 // y = alpha*A + beta*y
 HYPRE_Int hypre_CSRMatrixMatvec ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *y );
+ HYPRE_Int hypre_CSRMatrixMatvecMult ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1, HYPRE_Complex beta , hypre_Vector *y, HYPRE_Int k2 );
+
 HYPRE_Int hypre_CSRMatrixMatvecT ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *y );
 HYPRE_Int hypre_CSRMatrixMatvec_FF ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *y , HYPRE_Int *CF_marker_x , HYPRE_Int *CF_marker_y , HYPRE_Int fpt );
 #ifdef HYPRE_USING_GPU
 HYPRE_Int hypre_CSRMatrixMatvecDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
+HYPRE_Int hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_Vector *b,HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
+
 #endif
 /* genpart.c */
 HYPRE_Int hypre_GeneratePartitioning ( HYPRE_Int length , HYPRE_Int num_procs , HYPRE_Int **part_ptr );
@@ -426,7 +462,7 @@ HYPRE_Int HYPRE_SeqVectorCopyDataGPUtoCPU( hypre_Vector *vector );
   void  hypre_SeqVectorMassInnerProdDeviceDevice ( HYPRE_Real *x ,  HYPRE_Real *y, HYPRE_Int n,HYPRE_Int k, HYPRE_Real * result);
 
 HYPRE_Complex hypre_VectorSumElts ( hypre_Vector *vector );
-#ifdef HYPRE_USING_UNIFIED_MEMORY
+#ifdef HYPRE_USING_GPU
 HYPRE_Complex hypre_VectorSumAbsElts ( hypre_Vector *vector );
 HYPRE_Int hypre_SeqVectorCopyDevice ( hypre_Vector *x , hypre_Vector *y );
 HYPRE_Int hypre_SeqVectorAxpyDevice( HYPRE_Complex alpha , hypre_Vector *x , hypre_Vector *y );
