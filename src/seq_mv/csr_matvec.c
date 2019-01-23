@@ -958,7 +958,6 @@ hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
   PUSH_RANGE("PREFETCH+SPMV",2);
 
   if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
-printf("matvec mult device \n");
 
   status = cusparseDcsrmv(handle ,
       CUSPARSE_OPERATION_NON_TRANSPOSE,

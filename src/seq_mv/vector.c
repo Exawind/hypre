@@ -155,11 +155,11 @@ hypre_SeqVectorInitialize( hypre_Vector *vector )
 
   if ( ! hypre_VectorData(vector) ){
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
-printf("seq vector, init dev data\n");
+//printf("seq vector, init dev data\n");
     hypre_VectorDeviceData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_DEVICE);
 #endif   
     hypre_VectorData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_SHARED);
-printf("seq vector, init cpu data\n");
+//printf("seq vector, init cpu data\n");
 
   }
   if ( multivec_storage_method == 0 )
@@ -337,13 +337,13 @@ HYPRE_Real   hypre_SeqVectorInnerProdOneOfMult( hypre_Vector *x, HYPRE_Int k1,
   //printf("about to multiply HYPRE_USING_GPU %di, k1 = %d k2=%d size = %d \n", HYPRE_USING_GPU, k1, k2, size);
 
 #if defined(HYPRE_USING_GPU)
-  printf("will be using cublas \n");
+  //printf("will be using cublas \n");
   static cublasHandle_t handle;
   static HYPRE_Int firstcall=1;
   HYPRE_Complex *x_data = hypre_VectorDeviceData(x);
   HYPRE_Complex *y_data = hypre_VectorDeviceData(y);
   HYPRE_Complex *x_dataCPU = hypre_VectorData(x);
-  printf("IHA SIZE = %d \n", size);
+  //printf("IHA SIZE = %d \n", size);
   cublasStatus_t stat;
   if (firstcall){
     handle = getCublasHandle();
@@ -352,7 +352,7 @@ HYPRE_Real   hypre_SeqVectorInnerProdOneOfMult( hypre_Vector *x, HYPRE_Int k1,
   stat=cublasDdot(handle, (HYPRE_Int)size,  &x_data[x_size*k1], 1,
       &y_data[y_size*k2], 1,
       &result);
-printf("gpu result = %f \n", result);
+//printf("gpu result = %f \n", result);
   return result;
 #else
   HYPRE_Complex *x_data = hypre_VectorData(x);
@@ -360,7 +360,7 @@ printf("gpu result = %f \n", result);
   int i;
   for (i = 0; i < size; i++)
     result += hypre_conj(y_data[k2*size+i]) * x_data[k1*size+i];
-printf("cpu result = %f \n", result);
+//printf("cpu result = %f \n", result);
   return result;
 #endif
 
@@ -463,11 +463,11 @@ hypre_SeqVectorSetConstantValues( hypre_Vector *v,
 #if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY) /* CUDA */
   HYPRE_Int      ierr  = 0;
 //  VecSet(hypre_VectorData(v),hypre_VectorSize(v),value,HYPRE_STREAM(4));
-printf("GPU+unified \n");
+//printf("GPU+unified \n");
 
 #else /*GPU only,  CPU or OMP 4.5 */
 #if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU)
-printf("GPU+non unified");
+//printf("GPU+non unified");
   //HYPRE_Complex * hData = hypre_VectorData(v);
 
   //hypre_SeqVectorCopyDataCPUtoGPU(v);
@@ -692,7 +692,7 @@ hypre_SeqVectorCopyOneOfMult( hypre_Vector *x, HYPRE_Int k1,
 
   HYPRE_Int      size   = hypre_VectorSize(x);
   HYPRE_Int      size_y   = hypre_VectorSize(y);
-printf("sizes %d and ^%d \n", size, size_y);
+//printf("sizes %d and ^%d \n", size, size_y);
 #if 1
 #ifdef HYPRE_USING_GPU
   //      return hypre_SeqVectorCopyDevice(x,y);
@@ -700,11 +700,11 @@ printf("sizes %d and ^%d \n", size, size_y);
 
   HYPRE_Complex *x_dataDevice = hypre_VectorDeviceData(x);
   HYPRE_Complex *y_dataDevice = hypre_VectorDeviceData(y);
-printf("copying gpu v data to gpu v data\n");
+//printf("copying gpu v data to gpu v data\n");
   int stat =    cudaMemcpy (&y_dataDevice[k2*size_y],&x_dataDevice[k1*size],
       size_y*sizeof(HYPRE_Complex),
       cudaMemcpyDeviceToDevice );
-printf("copying gpu v data to gpu v data -- done\n");
+//printf("copying gpu v data to gpu v data -- done\n");
 #endif
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
@@ -724,7 +724,7 @@ printf("copying gpu v data to gpu v data -- done\n");
 #endif
 
 
-printf("copying cpu v data to cpu v data\n");
+//printf("copying cpu v data to cpu v data\n");
 #if defined(HYPRE_USING_OPENMP_OFFLOAD)
 #pragma omp target teams  distribute  parallel for private(i) num_teams(NUM_TEAMS) thread_limit(NUM_THREADS) is_device_ptr(y_data,x_data)
 #elif defined(HYPRE_USING_MAPPED_OPENMP_OFFLOAD)
@@ -741,7 +741,7 @@ printf("copying cpu v data to cpu v data\n");
   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] += hypre_MPI_Wtime();
 #endif
 
-printf("copying cpu v data to cpu v data DONE\n");
+//printf("copying cpu v data to cpu v data DONE\n");
 #ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD   
   UpdateDRC(y);
 #endif

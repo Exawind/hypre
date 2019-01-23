@@ -202,7 +202,7 @@ hypre_CSRMatrixInitialize( hypre_CSRMatrix *matrix )
 /*   HYPRE_Int  num_rownnz = hypre_CSRMatrixNumRownnz(matrix); */
 
    HYPRE_Int  ierr=0;
-printf("this is matrix init, num_nonzeros = %d\n", num_nonzeros);
+//printf("this is matrix init, num_nonzeros = %d\n", num_nonzeros);
    if ( ! hypre_CSRMatrixData(matrix) && num_nonzeros )
       hypre_CSRMatrixData(matrix) = hypre_CTAlloc(HYPRE_Complex,  num_nonzeros, HYPRE_MEMORY_SHARED);
    else {

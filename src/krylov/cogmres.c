@@ -710,7 +710,6 @@ r = (*(cogmres_functions->CreateVector))(b);
 
   iter = 0;
   //works
-  printf("ABOUT TO START OUTER WHILEi, max_iter = %d iter = %d \n", max_iter, iter);
 
   while (iter < max_iter)
   {
@@ -739,7 +738,6 @@ r = (*(cogmres_functions->CreateVector))(b);
       }// if usePrecond
 
       //hypre_ParKrylovCopyVectorOneOfMult(bb, 0, p, 0);
-	printf("copying b to p!!\n");
  (*(cogmres_functions->CopyVector))(b, 0, p, 0);
 
       if (solverTimers){
@@ -747,7 +745,6 @@ r = (*(cogmres_functions->CreateVector))(b);
       }
 
     
-printf("before mv: norm of vector x %16.16f norm of p %16.16f \n ", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)),sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0)));
   (*(cogmres_functions->Matvec))(matvec_data,
 	  minusone,
 	  A,
@@ -755,7 +752,6 @@ printf("before mv: norm of vector x %16.16f norm of p %16.16f \n ", sqrt((*(cogm
 	  0,
 	  one,
 	  p, 0);
-printf("norm of p after mv: %16.16f \n",sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0)) );
    //   hypre_ParVectorCopyDataGPUtoCPU(p);
 
 	(*(cogmres_functions->UpdateVectorCPU))(p);
@@ -775,7 +771,6 @@ printf("norm of p after mv: %16.16f \n",sqrt((*(cogmres_functions->InnerProd))(p
 
       //		r_norm = sqrt(hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0));
       r_norm = sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0));
-      printf("current r_norm %16.16f \n", r_norm);		
       if ( logging>0 || print_level > 0)
       {
 	norms[iter] = r_norm;
@@ -865,7 +860,6 @@ iter++;
 	// not using preconddd
 	if (solverTimers)
 	  time1 = MPI_Wtime();
-printf("copying vector p %d to w \n", i-1);
 	//hypre_ParKrylovCopyVectorOneOfMult(p, i-1, w, 0);
 	(*(cogmres_functions->CopyVector))(p, i-1, w, 0);
 

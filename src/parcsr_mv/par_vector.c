@@ -156,11 +156,11 @@ HYPRE_Int hypre_ParVectorCopyDataCPUtoGPU( hypre_ParVector *vector )
 hypre_ParVectorCopyOneOfMult( hypre_ParVector *x, HYPRE_Int k1,
     hypre_ParVector *y, HYPRE_Int k2 )
 {
-printf("k1 = %d k2=%d \n", k1, k2);
+//printf("k1 = %d k2=%d \n", k1, k2);
   hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
-printf("have x_local \n"); 
+//printf("have x_local \n"); 
  hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
-printf("have y_local\n");
+//printf("have y_local\n");
 if (x_local == NULL) printf("no x\n");  
 if (y_local == NULL) printf("no y\n");  
 //return 0;
@@ -575,15 +575,15 @@ hypre_ParVectorInnerProdOneOfMult( hypre_ParVector *x,HYPRE_Int k1,
 {
   MPI_Comm      comm    = hypre_ParVectorComm(x);
   hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
-printf("x local exists...");
+//printf("x local exists...");
   hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
-printf("y local exists...");
+//printf("y local exists...");
 ///hypre_ParVectorLocalVectori/
-printf("Depth 1 INSIDE IP, sizes %d %d \n", x_local->size, y_local->size);
+//printf("Depth 1 INSIDE IP, sizes %d %d \n", x_local->size, y_local->size);
   HYPRE_Real result = 0.0;
   HYPRE_Real local_result = hypre_SeqVectorInnerProdOneOfMult(x_local,k1, y_local, k2);
 
-printf("local result, after all reduce %16.16f \n", result);
+//printf("local result, after all reduce %16.16f \n", result);
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] -= hypre_MPI_Wtime();
 #endif
@@ -594,7 +594,7 @@ hypre_MPI_Barrier(comm);
   hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] += hypre_MPI_Wtime();
 #endif
 
-printf("global result, after all reduce %16.16f \n", result);
+//printf("global result, after all reduce %16.16f \n", result);
   return result;
 }
 
