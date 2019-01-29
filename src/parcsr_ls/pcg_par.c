@@ -144,6 +144,49 @@ hypre_ParKrylovMatvecCreate( void   *A,
   void *matvec_data;
 
   matvec_data = NULL;
+//new
+
+
+#if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU) 
+  hypre_ParCSRMatrix * AA = (hypre_ParCSRMatrix *) A;
+
+  hypre_CSRMatrix   *offd   = hypre_ParCSRMatrixOffd(AA);
+
+  HYPRE_Int          num_cols_offd = hypre_CSRMatrixNumCols(offd);
+
+  hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(AA);
+
+  if (!comm_pkg)
+  {
+    hypre_MatvecCommPkgCreate(AA);
+    comm_pkg = hypre_ParCSRMatrixCommPkg(AA);
+  }
+
+  HYPRE_Int num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
+  AA->x_tmp = hypre_SeqVectorCreate( num_cols_offd );
+
+  hypre_SeqVectorInitialize(AA->x_tmp);
+
+  AA->x_buf = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
+      (comm_pkg,  num_sends), HYPRE_MEMORY_DEVICE);
+//round 2 of new code
+//
+
+ HYPRE_Int begin = hypre_ParCSRCommPkgSendMapStart(comm_pkg, 0);
+ HYPRE_Int end   = hypre_ParCSRCommPkgSendMapStart(comm_pkg, num_sends);
+  AA->comm_d =  hypre_CTAlloc(HYPRE_Int,  (end-begin), HYPRE_MEMORY_DEVICE);;
+if ((end-begin) != 0)
+{
+  cudaMemcpy(AA->comm_d,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),  (end-begin) * sizeof(HYPRE_Int),cudaMemcpyHostToDevice  );
+}
+#endif
+
+
+
+//endof new
+
+
+
 
   return ( matvec_data );
 }

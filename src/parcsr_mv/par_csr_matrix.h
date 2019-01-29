@@ -80,6 +80,9 @@ typedef struct hypre_ParCSRMatrix_struct
                                               no_global_partition option is used
                                               (compile-time option)*/
 
+hypre_Vector      *x_tmp;
+HYPRE_Complex * x_buf;
+HYPRE_Int * comm_d;
 } hypre_ParCSRMatrix;
 
 /*--------------------------------------------------------------------------
