@@ -369,7 +369,6 @@ hypre_Free(void *ptr, HYPRE_Int location)
    {
       return;
    }
-
    location = hypre_RedefMemLocation(location);
 
    switch (location)

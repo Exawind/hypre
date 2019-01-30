@@ -67,10 +67,14 @@ HYPRE_BoomerAMGSolve( HYPRE_Solver solver,
 {
 
 
-   return( hypre_BoomerAMGSolve( (void *) solver,
+ HYPRE_Int ret = ( hypre_BoomerAMGSolve( (void *) solver,
                                  (hypre_ParCSRMatrix *) A,
                                  (hypre_ParVector *) b,
                                  (hypre_ParVector *) x ) );
+
+hypre_ParVectorCopyDataCPUtoGPU(x);
+printf("copying vector to GPU!\n");
+return ret;
 }
 
 /*--------------------------------------------------------------------------

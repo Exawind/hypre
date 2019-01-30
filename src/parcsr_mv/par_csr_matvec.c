@@ -1086,7 +1086,7 @@ PackOnDeviceGPUonly((HYPRE_Complex*)x_buf_data,
 
     comm_handle = hypre_CTAlloc(hypre_ParCSRCommHandle, 1, HYPRE_MEMORY_HOST);
     comm_handle = hypre_ParCSRCommHandleCreate
-      ( 1, comm_pkg, x_buf_data,&x_tmp_data[k1*x_local_size] );
+      ( 111, comm_pkg, x_buf_data,&x_tmp_data[k1*x_local_size] );
 
   if (num_cols_offd) {hypre_CSRMatrixMatvecMult( alpha, offd, x_tmp, k1, 1.0, y_local, k2); }
 

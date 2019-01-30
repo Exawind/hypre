@@ -1,5 +1,5 @@
 #define solverTimers 1
-#define usePrecond 0
+#define usePrecond 1
 
 
 /******************************************************************************
@@ -634,6 +634,12 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
     norms          = (cogmres_data -> norms);
   }
 
+if (usePrecond){
+
+  (cogmres_data -> w_2) = (*(cogmres_functions->CreateVector))(b);
+w_2 = cogmres_data -> w_2;
+}
+
   (cogmres_data -> w) = (*(cogmres_functions->CreateVector))(b);
 w = cogmres_data -> w;
 //CreateVecrtie in this case will unuitialize it too  
@@ -726,9 +732,14 @@ r = (*(cogmres_functions->CreateVector))(b);
 	}
 
 	//hypre_ParKrylovCopyVectorOneOfMult(xx, 0, w, 0);
-	(*(cogmres_functions->CopyVector))(x, 0, w, 0);
-	precond(precond_data, A, w, x);
+	//(*(cogmres_functions->CopyVector))(x, 0, w, 0);
+//KS: if iter == 0, x has the right CPU data, no need to copy	
+printf("Starting norm before precon %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
+precond(precond_data, A, x,w );
+printf("Starting norm after precon %f \n", sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
+// precomd automatically updates GPU version of w
 
+	//(*(cogmres_functions->CopyVector))(w, 0, x, 0);
 
 	if (solverTimers){
 	  time4 = MPI_Wtime();
@@ -748,7 +759,7 @@ r = (*(cogmres_functions->CreateVector))(b);
   (*(cogmres_functions->Matvec))(matvec_data,
 	  minusone,
 	  A,
-	  x,
+	  w,
 	  0,
 	  one,
 	  p, 0);
@@ -761,13 +772,16 @@ r = (*(cogmres_functions->CreateVector))(b);
 	mvTime += (time4-time3);
       }
 
-
+#if 0
+//no need to do this
       if (usePrecond){
 	//xx = w //
 
 	//hypre_ParKrylovCopyVectorOneOfMult(w, 0, xx, 0);
+
 	(*(cogmres_functions->CopyVector))(w, 0, x, 0);
       }
+#endif
 
       //		r_norm = sqrt(hypre_ParKrylovInnerProdOneOfMult(p,0,p, 0));
       r_norm = sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0));
@@ -823,18 +837,23 @@ iter++;
 	//x = M * p[i-1]
 	//p[i] = A*x
 
-	(*(cogmres_functions->ClearVector))(w);
-	(*(cogmres_functions->ClearVector))(x);
+
+//	(*(cogmres_functions->ClearVector))(w);
+//	(*(cogmres_functions->ClearVector))(x);
 	/*cudaMemcpy (w->local_vector->data,
 	    &p[(i-1)*sz], 
 	    (sz)*sizeof(HYPRE_Real),
 	    cudaMemcpyDeviceToDevice ); */
 
+
+	(*(cogmres_functions->CopyVector))(p, i-1, w_2, 0);
 	if (solverTimers){
 	  time3 = MPI_Wtime();
 	}
-	precond(precond_data, A, w, x);
 
+printf("norm before precon %f \n", sqrt((*(cogmres_functions->InnerProd))(w_2,0,w_2, 0)));
+	precond(precond_data, A, w_2, w);
+printf("norm after precon %f \n", sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
 	if (solverTimers){
 	  time4 = MPI_Wtime();
 
@@ -846,6 +865,13 @@ iter++;
 	    (sz)*sizeof(HYPRE_Real),
 	    cudaMemcpyDeviceToDevice );*/ 
 
+	(*(cogmres_functions->Matvec))(matvec_data,
+	    one,
+	    A,
+	    w,
+	    0,
+	    zero,
+	    p, i);
 	if (solverTimers)
 	  time1 = MPI_Wtime();
 	if (solverTimers){
@@ -1038,8 +1064,8 @@ iter++;
   }
   if (usePrecond){
 
-    (*(cogmres_functions->ClearVector))(w);
-    (*(cogmres_functions->ClearVector))(x);
+    //(*(cogmres_functions->ClearVector))(w);
+    //(*(cogmres_functions->ClearVector))(x);
     //	cudaMemcpy (w->local_vector->data,x_GPUonly,
     //	(sz)*sizeof(HYPRE_Real),
     //	cudaMemcpyDeviceToDevice );
@@ -1048,8 +1074,11 @@ iter++;
       time3 = MPI_Wtime();
     }
 
+printf("end norm of x before precon  %f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
+    (*(cogmres_functions->CopyVector))(x, 0, w, 0);
     precond(precond_data, A, w, x);
 
+printf("end norm of x AFTER precon  %f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
     //	cudaMemcpy (p, b_GPUonly,
     //		(sz)*sizeof(HYPRE_Real),
     //			cudaMemcpyDeviceToDevice );
@@ -1079,6 +1108,16 @@ iter++;
       preconTime+=(time4-time3);
       matvecPreconTime += (time4-time3);
     }
+    (*(cogmres_functions->CopyVector))(b, 0, p, 0);
+     (*(cogmres_functions->Matvec))(matvec_data,
+	minusone,
+	A,
+	x,
+	0,
+	one,
+	p, 0);
+
+printf("Ending, norm of true res  %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0)));
   }//if use precond
   else{
 

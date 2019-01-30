@@ -2418,8 +2418,6 @@ hypre_SeqVectorCopyDevice( hypre_Vector *x,
     hypre_Vector *y )
 {
 
-  HYPRE_Complex *x_data = hypre_VectorData(x);
-  HYPRE_Complex *y_data = hypre_VectorData(y);
   HYPRE_Int      size   = hypre_VectorSize(x);
   HYPRE_Int      size_y   = hypre_VectorSize(y);
   /* HYPRE_Int      i; */
@@ -2427,6 +2425,18 @@ hypre_SeqVectorCopyDevice( hypre_Vector *x,
 
   if (size > size_y) size = size_y;
   size *=hypre_VectorNumVectors(x);
+
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+
+  HYPRE_Complex *x_data = hypre_VectorDeviceData(x);
+  HYPRE_Complex *y_data = hypre_VectorDeviceData(y);
+
+  cudaMemcpy ( y_data,x_data,
+      size*sizeof(HYPRE_Complex),
+      cudaMemcpyDeviceToDevice );
+#else
+  HYPRE_Complex *x_data = hypre_VectorData(x);
+  HYPRE_Complex *y_data = hypre_VectorData(y);
   PUSH_RANGE_PAYLOAD("VECCOPYDEVICE",2,size);
   hypre_SeqVectorPrefetchToDevice(x);
   hypre_SeqVectorPrefetchToDevice(y);
@@ -2435,6 +2445,7 @@ hypre_SeqVectorCopyDevice( hypre_Vector *x,
 #endif
   cudaStreamSynchronize(HYPRE_STREAM(4));
   POP_RANGE;
+#endif
   return ierr;
 }
 

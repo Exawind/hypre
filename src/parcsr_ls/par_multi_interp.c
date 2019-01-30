@@ -306,7 +306,7 @@ hypre_BoomerAMGBuildMultipass( hypre_ParCSRMatrix  *A,
    {
       comm_handle = hypre_ParCSRCommHandleCreate(11, comm_pkg, int_buf_data,
                                                  CF_marker_offd);
-      hypre_ParCSRCommHandleDestroy(comm_handle);
+     hypre_ParCSRCommHandleDestroy(comm_handle);
    }
 
    if (num_functions > 1)
@@ -322,7 +322,7 @@ hypre_BoomerAMGBuildMultipass( hypre_ParCSRMatrix  *A,
       {
          comm_handle = hypre_ParCSRCommHandleCreate(11, comm_pkg, int_buf_data,
                                                     dof_func_offd);
-         hypre_ParCSRCommHandleDestroy(comm_handle);
+          hypre_ParCSRCommHandleDestroy(comm_handle);
       }
    }
 
@@ -419,7 +419,7 @@ hypre_BoomerAMGBuildMultipass( hypre_ParCSRMatrix  *A,
    {
       comm_handle = hypre_ParCSRCommHandleCreate(11, comm_pkg, int_buf_data,
                                                  fine_to_coarse_offd);
-      hypre_ParCSRCommHandleDestroy(comm_handle);
+     hypre_ParCSRCommHandleDestroy(comm_handle);
    }
 
    new_recv_vec_start = hypre_CTAlloc(HYPRE_Int, num_recvs+1, HYPRE_MEMORY_HOST);
@@ -589,7 +589,7 @@ hypre_BoomerAMGBuildMultipass( hypre_ParCSRMatrix  *A,
       {
          comm_handle = hypre_ParCSRCommHandleCreate(11, comm_pkg, int_buf_data,
                                                     assigned_offd);
-         hypre_ParCSRCommHandleDestroy(comm_handle);
+       hypre_ParCSRCommHandleDestroy(comm_handle);
       }
    }
 
@@ -711,7 +711,7 @@ hypre_BoomerAMGBuildMultipass( hypre_ParCSRMatrix  *A,
 
          comm_handle = hypre_ParCSRCommHandleCreate (11, comm_pkg,
                                                      P_ncols, &Pext_i[1]);
-         hypre_ParCSRCommHandleDestroy(comm_handle);
+        hypre_ParCSRCommHandleDestroy(comm_handle);
 
          if (Pext_send_size > old_Pext_send_size)
          {
@@ -1350,7 +1350,7 @@ hypre_BoomerAMGBuildMultipass( hypre_ParCSRMatrix  *A,
 
             comm_handle = hypre_ParCSRCommHandleCreate (1, tmp_comm_pkg,
                                                         Pext_send_data, Pext_data);
-            hypre_ParCSRCommHandleDestroy(comm_handle);
+          hypre_ParCSRCommHandleDestroy(comm_handle);
 
             hypre_TFree(Pext_send_map_start[pass], HYPRE_MEMORY_HOST);
             hypre_TFree(Pext_recv_vec_start[pass], HYPRE_MEMORY_HOST);
@@ -1718,7 +1718,7 @@ hypre_BoomerAMGBuildMultipass( hypre_ParCSRMatrix  *A,
 
             comm_handle = hypre_ParCSRCommHandleCreate (1, tmp_comm_pkg,
                                                         Pext_send_data, Pext_data);
-            hypre_ParCSRCommHandleDestroy(comm_handle);
+           hypre_ParCSRCommHandleDestroy(comm_handle);
 
             hypre_TFree(Pext_send_map_start[pass], HYPRE_MEMORY_HOST);
             hypre_TFree(Pext_recv_vec_start[pass], HYPRE_MEMORY_HOST);

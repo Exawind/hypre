@@ -1977,7 +1977,7 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
 #ifdef HYPRE_PROFILE
    hypre_profile_times[HYPRE_TIMER_ID_PMIS] -= hypre_MPI_Wtime();
 #endif
-
+printf("setup 8-1\n");
    MPI_Comm 	       comm            = hypre_ParCSRMatrixComm(S);
    hypre_ParCSRCommPkg      *comm_pkg        = hypre_ParCSRMatrixCommPkg(S);
    hypre_ParCSRCommHandle   *comm_handle;
@@ -1993,6 +1993,7 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
    HYPRE_Int                 num_variables   = hypre_CSRMatrixNumRows(S_diag);
    HYPRE_Int 		       num_cols_offd = 0;
                   
+printf("setup 8-2\n");
    /* hypre_CSRMatrix    *S_ext;
    HYPRE_Int                *S_ext_i;
    HYPRE_Int                *S_ext_j; */
@@ -2066,6 +2067,7 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
         comm_pkg = hypre_ParCSRMatrixCommPkg(A); 
    }
 
+printf("setup 8-3\n");
    num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
 
    int_buf_data = hypre_CTAlloc(HYPRE_Int,  hypre_ParCSRCommPkgSendMapStart(comm_pkg, 
@@ -2082,6 +2084,7 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
       S_offd_j = hypre_CSRMatrixJ(S_offd);
    }
 
+printf("setup 8-4\n");
    /*----------------------------------------------------------
     * Compute the measures
     *
@@ -2095,6 +2098,7 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
 
    measure_array = hypre_CTAlloc(HYPRE_Real,  num_variables+num_cols_offd, HYPRE_MEMORY_HOST);
 
+printf("setup 8-5\n");
    /* first calculate the local part of the sums for the external nodes */
 #ifdef HYPRE_USING_OPENMP
    HYPRE_Int *measure_array_temp = hypre_CTAlloc(HYPRE_Int,  num_variables+num_cols_offd, HYPRE_MEMORY_HOST);
@@ -2123,6 +2127,7 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
    comm_handle = hypre_ParCSRCommHandleCreate(2, comm_pkg, 
                         &measure_array[num_variables], buf_data);
 
+printf("setup 8-6\n");
    /* calculate the local part for the local nodes */
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
@@ -2146,10 +2151,12 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
    }
 #endif // HYPRE_USING_OPENMP
 
+printf("setup 8-7\n");
    /* finish the communication */
    if (num_procs > 1)
    hypre_ParCSRCommHandleDestroy(comm_handle);
       
+printf("setup 8-8\n");
    /* now add the externally calculated part of the local nodes to the local nodes */
    index = 0;
    for (i=0; i < num_sends; i++)
@@ -2169,11 +2176,13 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
    /* this augments the measures with a random number between 0 and 1 */
    /* (only for the local part) */
    /* this augments the measures */
+printf("setup 8-9\n");
    if (CF_init == 2 || CF_init == 4)
       hypre_BoomerAMGIndepSetInit(S, measure_array, 1);
    else
       hypre_BoomerAMGIndepSetInit(S, measure_array, 0);
 
+printf("setup 8-10\n");
    /*---------------------------------------------------
     * Initialize the graph arrays, and CF_marker arrays
     *---------------------------------------------------*/
@@ -2192,6 +2201,7 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
    /* now the local part of the graph array, and the local CF_marker array */
    graph_array = hypre_CTAlloc(HYPRE_Int,  num_variables, HYPRE_MEMORY_HOST);
 
+printf("setup 8-11\n");
    if (CF_init==1)
    { 
       CF_marker = *CF_marker_ptr;
@@ -2241,6 +2251,7 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
    }
    graph_size = cnt;
 
+printf("setup 8-12\n");
    /* now the off-diagonal part of CF_marker */
    if (num_cols_offd)
      CF_marker_offd = hypre_CTAlloc(HYPRE_Int,  num_cols_offd, HYPRE_MEMORY_HOST);
@@ -2265,12 +2276,14 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
          }
      }
    
+printf("setup 8-13\n");
    if (num_procs > 1)
      { 
        comm_handle = hypre_ParCSRCommHandleCreate(1, comm_pkg, buf_data, 
 						  &measure_array[num_variables]);
        
-       hypre_ParCSRCommHandleDestroy(comm_handle);   
+printf("setup 8-13-1\n");
+     //  hypre_ParCSRCommHandleDestroy(comm_handle);   
        
      } 
       
@@ -2286,6 +2299,7 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
    if (num_cols_offd)
      graph_array_offd2 = hypre_CTAlloc(HYPRE_Int,  num_cols_offd, HYPRE_MEMORY_HOST);
 
+printf("setup 8-14\n");
    /*******************************************************************************
     THE INDEPENDENT SET COARSENING LOOP:
    ******************************************************************************/      
@@ -2586,6 +2600,7 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
      
    } /* end while */
 
+printf("setup 8-15\n");
    /*   hypre_printf("*** MIS iteration %d\n",iter);
    hypre_printf("graph_size remaining %d\n",graph_size);
 
@@ -2601,11 +2616,15 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
     * Clean up and return
     *---------------------------------------------------*/
 
+printf("setup 8-16\n");
    hypre_TFree(measure_array, HYPRE_MEMORY_HOST);
    hypre_TFree(graph_array, HYPRE_MEMORY_HOST);
    hypre_TFree(graph_array2, HYPRE_MEMORY_HOST);
    hypre_TFree(graph_array_offd2, HYPRE_MEMORY_HOST);
+
+printf("setup 8-17\n");
    if (num_cols_offd) hypre_TFree(graph_array_offd, HYPRE_MEMORY_HOST);
+printf("setup 8-18\n");
    hypre_TFree(buf_data, HYPRE_MEMORY_HOST);
    hypre_TFree(int_buf_data, HYPRE_MEMORY_HOST);
    hypre_TFree(CF_marker_offd, HYPRE_MEMORY_HOST);
@@ -2613,9 +2632,12 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
 
    *CF_marker_ptr   = CF_marker;
 
+
+printf("setup 8-19\n");
 #ifdef HYPRE_PROFILE
    hypre_profile_times[HYPRE_TIMER_ID_PMIS] += hypre_MPI_Wtime();
 #endif
 
+printf("setup 8-20\n");
    return (ierr);
 }
