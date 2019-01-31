@@ -1075,8 +1075,14 @@ printf("norm after precon %f \n", sqrt((*(cogmres_functions->InnerProd))(w,0,w, 
     }
 
 printf("end norm of x before precon  %f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
-    (*(cogmres_functions->CopyVector))(x, 0, w, 0);
+   
+
+	(*(cogmres_functions->UpdateVectorCPU))(x);
+ (*(cogmres_functions->CopyVector))(x, 0, w, 0);
+	(*(cogmres_functions->UpdateVectorCPU))(w);
     precond(precond_data, A, w, x);
+
+	(*(cogmres_functions->UpdateVectorCPU))(x);
 
 printf("end norm of x AFTER precon  %f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
     //	cudaMemcpy (p, b_GPUonly,
