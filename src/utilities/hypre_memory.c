@@ -190,6 +190,7 @@ hypre_DeviceMalloc(size_t size, HYPRE_Int zeroinit)
    /* cudaMalloc */
 //printf("cuda malloC!\n");
    hypre_CheckErrorDevice( cudaMalloc(&ptr, size + sizeof(size_t)*HYPRE_MEM_PAD_LEN) );
+//printf("CUDA MALLOCING SIZE %d original %d \n", size, size + sizeof(size_t)*HYPRE_MEM_PAD_LEN);
    hypre_CheckErrorDevice( cudaDeviceSynchronize() );
    hypre_Memcpy(ptr, &size, sizeof(size_t), HYPRE_MEMORY_DEVICE, HYPRE_MEMORY_HOST);
    size_t *sp = (size_t*) ptr;
@@ -212,8 +213,11 @@ hypre_UnifiedMalloc(size_t size, HYPRE_Int zeroinit)
 
 #if defined(HYPRE_USING_GPU) || defined(HYPRE_USING_DEVICE_OPENMP)
    size_t count = size + sizeof(size_t)*HYPRE_MEM_PAD_LEN;
+//printf("uni malloc, mallocing %d bytes (original %d) \n", count, size);
    /* with UM, managed memory alloc */
 //printf("UNIFIED MALLOC!!\n");
+//printf("mallocing in hypre device %d \n", HYPRE_DEVICE);
+//printf("this is device %d num devices %d \n", HYPRE_DEVICE, HYPRE_DEVICE_COUNT);
    hypre_CheckErrorDevice( cudaMallocManaged(&ptr, count, CUDAMEMATTACHTYPE) );
    hypre_CheckErrorDevice( cudaMemAdvise(ptr, count, cudaMemAdviseSetPreferredLocation, HYPRE_DEVICE) );
    size_t *sp = (size_t*) ptr;

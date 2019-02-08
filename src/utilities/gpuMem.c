@@ -42,7 +42,7 @@ void hypre_GPUInit(hypre_int use_device)
       HYPRE_GPU_HANDLE=1;
       HYPRE_DEVICE=0;
       hypre_CheckErrorDevice(cudaGetDeviceCount(&nDevices));
-
+printf("I see %d devices!! \n", nDevices);
       /* XXX */
       nDevices = 1; /* DO NOT COMMENT ME OUT AGAIN! nDevices does NOT WORK !!!! */
       HYPRE_DEVICE_COUNT=nDevices;
@@ -58,7 +58,7 @@ void hypre_GPUInit(hypre_int use_device)
             HYPRE_DEVICE=0;
             hypre_CheckErrorDevice(cudaSetDevice(HYPRE_DEVICE));
             cudaDeviceGetPCIBusId ( pciBusId, 80, HYPRE_DEVICE);
-            //hypre_printf("num Devices %d\n", nDevices);
+            hypre_printf("num Devices %d\n", nDevices);
          }
          else if (nDevices==4)
          {
@@ -145,6 +145,9 @@ void hypre_GPUInit(hypre_int use_device)
       CudaCompileFlagCheck();
 #endif
    }
+else{
+printf("GPU MEM this is device %d num devices %d \n", HYPRE_DEVICE, HYPRE_DEVICE_COUNT);
+}
 }
 
 

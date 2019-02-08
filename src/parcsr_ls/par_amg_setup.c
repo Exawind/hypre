@@ -88,7 +88,7 @@ hypre_BoomerAMGSetup( void               *amg_vdata,
    HYPRE_Real     add_rlx_wt = hypre_ParAMGDataAddRelaxWt(amg_data);
 
    hypre_ParCSRBlockMatrix **A_block_array, **P_block_array, **R_block_array;
-printf("precon setup, step 1\n");
+////printf("precon setup, step 1\n");
    /* Local variables */
    HYPRE_Int                 *CF_marker;
    HYPRE_Int                 *CFN_marker;
@@ -162,7 +162,7 @@ printf("precon setup, step 1\n");
                                    0 for nothing, 1 for a Jacobi step */
 
 
-printf("precon setup, step 2\n");
+////printf("precon setup, step 2\n");
    /*for fittting interp vectors */
    /*HYPRE_Int                smooth_interp_vectors= hypre_ParAMGSmoothInterpVectors(amg_data); */
    HYPRE_Real         abs_q_trunc= hypre_ParAMGInterpVecAbsQTrunc(amg_data);
@@ -176,7 +176,7 @@ printf("precon setup, step 2\n");
    HYPRE_Int                interp_vec_first_level= hypre_ParAMGInterpVecFirstLevel(amg_data);
    HYPRE_Real        *expandp_weights =  hypre_ParAMGDataExpandPWeights(amg_data);
 
-printf("precon setup, step 3\n");
+////printf("precon setup, step 3\n");
    /* parameters for non-Galerkin stuff */
    HYPRE_Int nongalerk_num_tol = hypre_ParAMGDataNonGalerkNumTol (amg_data);
    HYPRE_Real *nongalerk_tol = hypre_ParAMGDataNonGalerkTol (amg_data);
@@ -206,7 +206,7 @@ printf("precon setup, step 3\n");
    HYPRE_Int dslu_threshold = hypre_ParAMGDataDSLUThreshold(amg_data);
 #endif
 
-printf("precon setup, step 4\n");
+////printf("precon setup, step 4\n");
 #if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY)
    if ( hypre_ParAMGDataPrintLevel(amg_data) > 3 )
    {
@@ -297,7 +297,7 @@ printf("precon setup, step 4\n");
 
    HYPRE_ANNOTATION_BEGIN("BoomerAMG.setup");
 
-printf("precon setup, step 5\n");
+//printf("precon setup, step 5\n");
    /* change in definition of standard and multipass interpolation, by
       eliminating interp_type 9 and 5 and setting sep_weight instead
       when using separation of weights option */
@@ -332,7 +332,7 @@ printf("precon setup, step 5\n");
    /* probably should disable stuff like smooth num levels at some point */
 
 
-printf("precon setup, step 6\n");
+//printf("precon setup, step 6\n");
    if (grid_relax_type[0] >= 20) /* block relaxation choosen */
    {
 
@@ -381,7 +381,7 @@ printf("precon setup, step 6\n");
 
    /* free up storage in case of new setup without prvious destroy */
 
-printf("precon setup, step 7\n");
+//printf("precon setup, step 7\n");
    if (A_array || A_block_array || P_array || P_block_array || CF_marker_array ||
        dof_func_array || R_array || R_block_array)
    {
@@ -435,7 +435,7 @@ printf("precon setup, step 7\n");
          }
       }
 
-printf("precon setup, step 8\n");
+//printf("precon setup, step 8\n");
 /* Special case use of CF_marker_array when old_num_levels == 1
    requires us to attempt this deallocation every time */
       if (CF_marker_array[0])
@@ -593,7 +593,7 @@ printf("precon setup, step 8\n");
       }
    }
 
-printf("precon setup, step 9\n");
+//printf("precon setup, step 9\n");
    if (A_array == NULL)
       A_array = hypre_CTAlloc(hypre_ParCSRMatrix*, max_levels, HYPRE_MEMORY_HOST);
    if (A_block_array == NULL)
@@ -648,7 +648,7 @@ printf("precon setup, step 9\n");
    A_array[0] = A;
 
 
-printf("precon setup, step 10\n");
+//printf("precon setup, step 10\n");
    /* interp vectors setup */
    if (interp_vec_variant == 1)
    {
@@ -801,7 +801,7 @@ printf("precon setup, step 10\n");
       }
    }
 
-printf("precon setup, step 11\n");
+//printf("precon setup, step 11\n");
    if (F_array == NULL)
       F_array = hypre_CTAlloc(hypre_ParVector*, max_levels, HYPRE_MEMORY_HOST);
    if (U_array == NULL)
@@ -817,7 +817,7 @@ printf("precon setup, step 11\n");
     * Initialize hypre_ParAMGData
     *----------------------------------------------------------*/
 
-printf("precon setup, step 12\n");
+//printf("precon setup, step 12\n");
    not_finished_coarsening = 1;
    level = 0;
 
@@ -832,15 +832,15 @@ printf("precon setup, step 12\n");
    agg_P12_max_elmts = hypre_ParAMGDataAggP12MaxElmts(amg_data);
    jacobi_trunc_threshold = hypre_ParAMGDataJacobiTruncThreshold(amg_data);
    S_commpkg_switch = hypre_ParAMGDataSCommPkgSwitch(amg_data);
-printf("precon setup, step 12.1\n");
+//printf("precon setup, step 12.1\n");
    if (smooth_num_levels > level)
    {
 
-printf("precon setup, step 12.1.1\n");
+//printf("precon setup, step 12.1.1\n");
       smoother = hypre_CTAlloc(HYPRE_Solver, smooth_num_levels, HYPRE_MEMORY_HOST);
-printf("precon setup, step 12.1.2\n");
+//printf("precon setup, step 12.1.2\n");
       hypre_ParAMGDataSmoother(amg_data) = smoother;
-printf("precon setup, step 12.1.3\n");
+//printf("precon setup, step 12.1.3\n");
    }
 
    /*-----------------------------------------------------
@@ -850,7 +850,7 @@ printf("precon setup, step 12.1.3\n");
    while (not_finished_coarsening)
    {
 
-printf("precon setup, step 12.2\n");
+//printf("precon setup, step 12.2\n");
       /* only do nodal coarsening on a fixed number of levels */
       if (level >= nodal_levels)
       {
@@ -903,7 +903,7 @@ printf("precon setup, step 12.2\n");
             hypre_ParVectorSetPartitioningOwner(U_array[level],0);
          }
 
-printf("precon setup, step 12.3\n");
+//printf("precon setup, step 12.3\n");
       }
 
       /*-------------------------------------------------------------
@@ -921,7 +921,7 @@ printf("precon setup, step 12.3\n");
 
       if ( max_levels == 1)
       {
-printf("precon setup, step 12.3.1\n");
+//printf("precon setup, step 12.3.1\n");
 	 S = NULL;
 	 coarse_pnts_global = NULL;
          CF_marker = hypre_CTAlloc(HYPRE_Int, local_size , HYPRE_MEMORY_HOST);
@@ -934,7 +934,7 @@ printf("precon setup, step 12.3.1\n");
       }
       else /* max_levels > 1 */
       {
-printf("precon setup, step 12.3.2\n");
+//printf("precon setup, step 12.3.2\n");
          if (block_mode)
          {
             local_num_vars =
@@ -949,11 +949,11 @@ printf("precon setup, step 12.3.2\n");
              hypre_ParAMGDataInterpType(amg_data) == 1)
          {
 
-printf("precon setup, step 12.3.3\n");
+//printf("precon setup, step 12.3.3\n");
 	    hypre_BoomerAMGCreateSmoothVecs(amg_data, A_array[level],
 	       hypre_ParAMGDataNumGridSweeps(amg_data)[1],
                level, &SmoothVecs);
-printf("precon setup, step 12.3.4\n");
+//printf("precon setup, step 12.3.4\n");
          }
 
 
@@ -967,7 +967,7 @@ printf("precon setup, step 12.3.4\n");
                           blocks  - before getting the strength matrix*/
 	    {
 
-printf("precon setup, step 12.3.5\n");
+//printf("precon setup, step 12.3.5\n");
                if (block_mode)
                {
                   hypre_BoomerAMGBlockCreateNodalA( A_block_array[level], hypre_abs(nodal), nodal_diag, &AN);
@@ -995,16 +995,16 @@ printf("precon setup, step 12.3.5\n");
 	       col_offd_SN_to_AN = NULL;
 	       if (strong_threshold > S_commpkg_switch)
                   hypre_BoomerAMGCreateSCommPkg(AN,SN,&col_offd_SN_to_AN);
-printf("precon setup, step 12.3.6\n");
+//printf("precon setup, step 12.3.6\n");
 	    }
 	    else /* standard AMG or unknown approach */
 	    {
-printf("precon setup, step 12.3.7\n");
+//printf("precon setup, step 12.3.7\n");
 	       hypre_BoomerAMGCreateS(A_array[level],
 				   strong_threshold, max_row_sum,
 				   num_functions, dof_func_array[level],&S);
 
-printf("precon setup, step 12.3.8\n");
+//printf("precon setup, step 12.3.8\n");
 	       col_offd_S_to_A = NULL;
 	       if (strong_threshold > S_commpkg_switch)
                   hypre_BoomerAMGCreateSCommPkg(A_array[level],S,
@@ -1012,7 +1012,7 @@ printf("precon setup, step 12.3.8\n");
 	    }
 
 
-printf("precon setup, step 12.3.9\n");
+//printf("precon setup, step 12.3.9\n");
             /* for AIR, need absolute value SOC */
             if (restri_type)
             {
@@ -1029,15 +1029,15 @@ printf("precon setup, step 12.3.9\n");
 	 else
 	 {
 
-printf("precon setup, step 12.3.10\n");
+//printf("precon setup, step 12.3.10\n");
 	    hypre_BoomerAMGCreateSmoothDirs(amg_data, A_array[level],
 	       SmoothVecs, strong_threshold,
                num_functions, dof_func_array[level], &S);
-printf("precon setup, step 12.3.11\n");
+//printf("precon setup, step 12.3.11\n");
 	 }
 
 
-printf("precon setup, step 12.4, coarsen type %d \n", coarsen_type);
+//printf("precon setup, step 12.4, coarsen type %d \n", coarsen_type);
          /**** Do the appropriate coarsening ****/
 
          if (nodal == 0) /* no nodal coarsening */
@@ -1291,7 +1291,7 @@ printf("precon setup, step 12.4, coarsen type %d \n", coarsen_type);
            }
          }
 
-printf("precon setup, step 12.5\n");
+//printf("precon setup, step 12.5\n");
          /**************************************************/
          /*********Set the fixed index to CF_marker*********/
          //num_C_point_coarse
@@ -1328,7 +1328,7 @@ printf("precon setup, step 12.5\n");
             }
          }
 
-printf("precon setup, step 12.6\n");
+//printf("precon setup, step 12.6\n");
          /*****xxxxxxxxxxxxx changes for min_coarse_size */
          /* here we will determine the coarse grid size to be able to determine if it is not smaller
 	    than requested minimal size */
@@ -1416,7 +1416,7 @@ printf("precon setup, step 12.6\n");
             }
          }
 
-printf("precon setup, step 12.7, level = %d and agg_num_levels = %d agg nterp type %d \n", level, agg_num_levels, agg_interp_type);
+//printf("precon setup, step 12.7, level = %d and agg_num_levels = %d agg nterp type %d \n", level, agg_num_levels, agg_interp_type);
          /*****xxxxxxxxxxxxx changes for min_coarse_size  end */
          if (level < agg_num_levels)
          {
@@ -1441,16 +1441,13 @@ printf("precon setup, step 12.7, level = %d and agg_num_levels = %d agg nterp ty
                {
                   hypre_BoomerAMGCorrectCFMarker (CF_marker, local_num_vars,
 			CFN_marker);
-printf("setup 12.7.1");
                   hypre_TFree(coarse_pnts_global1, HYPRE_MEMORY_HOST);
                   /*hypre_TFree(coarse_dof_func);
                   coarse_dof_func = NULL;*/
                   hypre_TFree(CFN_marker, HYPRE_MEMORY_HOST);
-printf("setup 12.7.2");
                   hypre_BoomerAMGCoarseParms(comm, local_num_vars,
                         num_functions, dof_func_array[level], CF_marker,
                         &coarse_dof_func,&coarse_pnts_global);
-printf("setup 12.7.3");
                   hypre_BoomerAMGBuildMultipass(A_array[level],
 			CF_marker, S, coarse_pnts_global,
 			num_functions, dof_func_array[level], debug_flag,
@@ -1989,7 +1986,7 @@ printf("setup 12.7.3");
 
          } /* end of no aggressive coarsening */
 
-printf("precon setup, step 13\n");
+//printf("precon setup, step 13\n");
          /*dof_func_array[level+1] = NULL;
            if (num_functions > 1 && nodal > -1 && (!block_mode) )
             dof_func_array[level+1] = coarse_dof_func;*/
@@ -2038,7 +2035,7 @@ printf("precon setup, step 13\n");
          break;
       }
 
-printf("precon setup, step 14\n");
+//printf("precon setup, step 14\n");
       if (level < agg_num_levels && coarse_size < min_coarse_size)
       {
 	 if (S)
@@ -2203,7 +2200,7 @@ printf("precon setup, step 14\n");
          } /* end apply variant */
       }/* end interp_vec_variant > 0 */
 
-printf("precon setup, step 15\n");
+//printf("precon setup, step 15\n");
       for (i=0; i < post_interp_type; i++)
          /* Improve on P with Jacobi interpolation */
          hypre_BoomerAMGJacobiInterp( A_array[level], &P, S,
@@ -2211,7 +2208,7 @@ printf("precon setup, step 15\n");
                                       CF_marker_array[level],
                                       level, jacobi_trunc_threshold, 0.5*jacobi_trunc_threshold );
 
-printf("precon setup, step 16\n");
+//printf("precon setup, step 16\n");
 
       if (!block_mode)
       {
@@ -2371,7 +2368,7 @@ printf("precon setup, step 16\n");
       hypre_TFree(SmoothVecs, HYPRE_MEMORY_HOST);
       SmoothVecs = NULL;
 
-printf("precon setup, step 17\n");
+//printf("precon setup, step 17\n");
       if (debug_flag==1)
       {
          wall_time = time_getWallclockSeconds() - wall_time;
@@ -2553,7 +2550,7 @@ printf("precon setup, step 17\n");
          grid_relax_type[3] = grid_relax_type[1];
    }
 
-printf("precon setup, step 18\n");
+//printf("precon setup, step 18\n");
    if (level > 0)
    {
       if (block_mode)
@@ -2591,7 +2588,7 @@ printf("precon setup, step 18\n");
       }
    }
 
-printf("precon setup, step 19\n");
+//printf("precon setup, step 19\n");
    /*-----------------------------------------------------------------------
     * enter all the stuff created, A[level], P[level], CF_marker[level],
     * for levels 1 through coarsest, into amg_data data structure
@@ -2913,7 +2910,7 @@ printf("precon setup, step 19\n");
      }
    } /* end of levels loop */
 
-printf("precon setup, step 20\n");
+//printf("precon setup, step 20\n");
    if ( amg_logging > 1 ) {
 
       Residual_array=
@@ -3002,7 +2999,7 @@ printf("precon setup, step 20\n");
      hypre_TFree(CFc, HYPRE_MEMORY_HOST);
   }
 
-printf("precon setup, step 21\n");
+//printf("precon setup, step 21\n");
 /* print out matrices on all levels  */
 #if DEBUG
 {
@@ -3102,6 +3099,6 @@ printf("precon setup, step 21\n");
 
    HYPRE_ANNOTATION_END("BoomerAMG.setup");
 
-printf("precon setup, step 22\n");
+//printf("precon setup, step 22\n");
    return(hypre_error_flag);
 }

@@ -67,13 +67,15 @@ HYPRE_BoomerAMGSolve( HYPRE_Solver solver,
 {
 
 
+//printf("Inner prod of the input  (inside precon)%16.16f\n", sqrt(hypre_ParVectorInnerProd(b,b)));
  HYPRE_Int ret = ( hypre_BoomerAMGSolve( (void *) solver,
                                  (hypre_ParCSRMatrix *) A,
                                  (hypre_ParVector *) b,
                                  (hypre_ParVector *) x ) );
 
+//printf("Inner prod of the result (inside precon)%16.16f\n", sqrt(hypre_ParVectorInnerProd(x,x)));
 hypre_ParVectorCopyDataCPUtoGPU(x);
-printf("copying vector to GPU!\n");
+//printf("copying vector to GPU!\n");
 return ret;
 }
 

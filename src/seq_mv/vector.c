@@ -107,14 +107,15 @@ hypre_SeqVectorCopyDataCPUtoGPU( hypre_Vector *vector )
   HYPRE_Int  ierr = 0;
   HYPRE_Complex *data, *d_data;
 
+  hypre_SeqVectorPrefetchToDevice(vector);
   data =                hypre_VectorData(vector);
   d_data = hypre_VectorDeviceData(vector);
-if (!d_data) printf("vector: no gpu data\n");
-if (!data) printf("vector: no cpu data\n");
+//  if (!d_data) printf("vector: no gpu data\n");
+//  if (!data) printf("vector: no cpu data\n");
   cudaDeviceSynchronize();
   cudaMemcpy ( d_data,data,
       size*sizeof(HYPRE_Complex),
-      cudaMemcpyHostToDevice );
+      cudaMemcpyDeviceToDevice );
 
   cudaDeviceSynchronize();
   return ierr;
@@ -134,9 +135,11 @@ hypre_SeqVectorCopyDataGPUtoCPU( hypre_Vector *vector )
   data =                hypre_VectorData(vector);
   d_data = hypre_VectorDeviceData(vector);
 
+  cudaDeviceSynchronize();
   cudaMemcpy (data,d_data,
       size*sizeof(HYPRE_Complex),
-      cudaMemcpyDeviceToHost );
+      cudaMemcpyDeviceToDevice );
+  cudaDeviceSynchronize();
   return ierr;
 }
 
@@ -155,11 +158,11 @@ hypre_SeqVectorInitialize( hypre_Vector *vector )
 
   if ( ! hypre_VectorData(vector) ){
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
-//printf("seq vector, init dev data\n");
+    //printf("seq vector, init dev data\n");
     hypre_VectorDeviceData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_DEVICE);
 #endif   
     hypre_VectorData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_SHARED);
-//printf("seq vector, init cpu data\n");
+    //printf("seq vector, init cpu data\n");
 
   }
   if ( multivec_storage_method == 0 )
@@ -352,7 +355,7 @@ HYPRE_Real   hypre_SeqVectorInnerProdOneOfMult( hypre_Vector *x, HYPRE_Int k1,
   stat=cublasDdot(handle, (HYPRE_Int)size,  &x_data[x_size*k1], 1,
       &y_data[y_size*k2], 1,
       &result);
-//printf("gpu result = %f \n", result);
+  //printf("gpu result = %f \n", result);
   return result;
 #else
   HYPRE_Complex *x_data = hypre_VectorData(x);
@@ -360,7 +363,7 @@ HYPRE_Real   hypre_SeqVectorInnerProdOneOfMult( hypre_Vector *x, HYPRE_Int k1,
   int i;
   for (i = 0; i < size; i++)
     result += hypre_conj(y_data[k2*size+i]) * x_data[k1*size+i];
-//printf("cpu result = %f \n", result);
+  //printf("cpu result = %f \n", result);
   return result;
 #endif
 
@@ -462,31 +465,40 @@ hypre_SeqVectorSetConstantValues( hypre_Vector *v,
 
 #if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY) /* CUDA */
   HYPRE_Int      ierr  = 0;
-//  VecSet(hypre_VectorData(v),hypre_VectorSize(v),value,HYPRE_STREAM(4));
-//printf("GPU+unified \n");
+  //  VecSet(hypre_VectorData(v),hypre_VectorSize(v),value,HYPRE_STREAM(4));
+  //printf("GPU+unified \n");
 
 #else /*GPU only,  CPU or OMP 4.5 */
 #if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU)
-//printf("GPU+non unified");
-  //HYPRE_Complex * hData = hypre_VectorData(v);
+ // printf("\nGPU+non unified\n");
+  HYPRE_Complex * hData = hypre_VectorData(v);
+  HYPRE_Int      size        = hypre_VectorSize(v);
+  cudaDeviceSynchronize();
+ for (int i = 0; i < size; i++)
+  {
+    hData[i] = value;
+  }
+  cudaDeviceSynchronize();
 
-  //hypre_SeqVectorCopyDataCPUtoGPU(v);
+  hypre_SeqVectorPrefetchToDevice(v);
+  cudaDeviceSynchronize();
+  hypre_SeqVectorCopyDataCPUtoGPU(v);
 
   return 0;
 #endif
 
 
-//printf("not GPU or not unified HYPRE_USING_UNIFIED_MEMORY = %d and (HYPRE_USING_GPU = %d \n", HYPRE_USING_UNIFIED_MEMORY, HYPRE_USING_GPU);
+  //printf("not GPU or not unified HYPRE_USING_UNIFIED_MEMORY = %d and (HYPRE_USING_GPU = %d \n", HYPRE_USING_UNIFIED_MEMORY, HYPRE_USING_GPU);
 #if 0 
-HYPRE_Complex *vector_data = hypre_VectorData(v);
+  HYPRE_Complex *vector_data = hypre_VectorData(v);
   HYPRE_Int      size        = hypre_VectorSize(v);
   HYPRE_Int      i;
   HYPRE_Int      ierr  = 0;
 
-printf("vector size %d  \n", size);
+  printf("vector size %d  \n", size);
   size *=hypre_VectorNumVectors(v);
 #if defined(HYPRE_USING_MAPPED_OPENMP_OFFLOAD)
-printf("mapped open mp\n");
+  printf("mapped open mp\n");
   if (!v->mapped) hypre_SeqVectorMapToDevice(v);
 #endif
 #ifdef HYPRE_USING_UNIFIED_MEMORY
@@ -506,7 +518,7 @@ printf("mapped open mp\n");
     vector_data[i] = value;
   }
 
-printf("done with vector_data size %d  \n", size);
+  printf("done with vector_data size %d  \n", size);
 #ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD
   UpdateDRC(v);
   // 2 lines below required to get exact match with baseline
@@ -524,7 +536,7 @@ printf("done with vector_data size %d  \n", size);
   return 0;
 }
 
- /*** written by KS. Scale only a part of multivectors
+/*** written by KS. Scale only a part of multivectors
  *--------------------------------------------------------------------------*/
 
   HYPRE_Int
@@ -553,7 +565,7 @@ hypre_SeqVectorScaleOneOfMult( HYPRE_Complex alpha,
     firstcall=0;
   }
 
-//  printf("scaling by %16.16f, vec lenght %d, vec start %d, k1 = %d \n", alpha, size, k1*size, k1 );
+  //  printf("scaling by %16.16f, vec lenght %d, vec start %d, k1 = %d \n", alpha, size, k1*size, k1 );
   cublasDscal(handle, size,
       &alpha,
       y_data + k1*size, 1);
@@ -588,7 +600,7 @@ hypre_SeqVectorScaleOneOfMult( HYPRE_Complex alpha,
   return ierr;
 }
 
- /* hypre_SeqVectorSetRandomValues
+/* hypre_SeqVectorSetRandomValues
  *
  *     returns vector of values randomly distributed between -1.0 and +1.0
  *--------------------------------------------------------------------------*/
@@ -692,20 +704,27 @@ hypre_SeqVectorCopyOneOfMult( hypre_Vector *x, HYPRE_Int k1,
 
   HYPRE_Int      size   = hypre_VectorSize(x);
   HYPRE_Int      size_y   = hypre_VectorSize(y);
-//printf("sizes %d and ^%d \n", size, size_y);
-#if 1
+  //printf("sizes %d and ^%d \n", size, size_y);
 #ifdef HYPRE_USING_GPU
   //      return hypre_SeqVectorCopyDevice(x,y);
   //COPY THE GPU DATA FIRSR
 
   HYPRE_Complex *x_dataDevice = hypre_VectorDeviceData(x);
   HYPRE_Complex *y_dataDevice = hypre_VectorDeviceData(y);
-//printf("copying gpu v data to gpu v data\n");
+  HYPRE_Complex *y_dataCPU = hypre_VectorData(y);
+//  printf("copying gpu v data to gpu v data, size_y = %d, size_x = %d\n", size_y, size);
+  cudaDeviceSynchronize();
   int stat =    cudaMemcpy (&y_dataDevice[k2*size_y],&x_dataDevice[k1*size],
       size_y*sizeof(HYPRE_Complex),
       cudaMemcpyDeviceToDevice );
-//printf("copying gpu v data to gpu v data -- done\n");
-#endif
+  //printf("copying gpu v data to gpu v data -- done\n");
+  cudaDeviceSynchronize();
+  cudaMemcpy (&y_dataCPU[k2*size_y],&y_dataDevice[k2*size_y],
+      size_y*sizeof(HYPRE_Complex),
+      cudaMemcpyDeviceToDevice);
+
+  cudaDeviceSynchronize();
+#else
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
 #endif
@@ -724,7 +743,7 @@ hypre_SeqVectorCopyOneOfMult( hypre_Vector *x, HYPRE_Int k1,
 #endif
 
 
-//printf("copying cpu v data to cpu v data\n");
+  //printf("copying cpu v data to cpu v data\n");
 #if defined(HYPRE_USING_OPENMP_OFFLOAD)
 #pragma omp target teams  distribute  parallel for private(i) num_teams(NUM_TEAMS) thread_limit(NUM_THREADS) is_device_ptr(y_data,x_data)
 #elif defined(HYPRE_USING_MAPPED_OPENMP_OFFLOAD)
@@ -741,7 +760,7 @@ hypre_SeqVectorCopyOneOfMult( hypre_Vector *x, HYPRE_Int k1,
   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] += hypre_MPI_Wtime();
 #endif
 
-//printf("copying cpu v data to cpu v data DONE\n");
+  //printf("copying cpu v data to cpu v data DONE\n");
 #ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD   
   UpdateDRC(y);
 #endif
@@ -2431,9 +2450,11 @@ hypre_SeqVectorCopyDevice( hypre_Vector *x,
   HYPRE_Complex *x_data = hypre_VectorDeviceData(x);
   HYPRE_Complex *y_data = hypre_VectorDeviceData(y);
 
+  cudaDeviceSynchronize();
   cudaMemcpy ( y_data,x_data,
       size*sizeof(HYPRE_Complex),
       cudaMemcpyDeviceToDevice );
+  cudaDeviceSynchronize();
 #else
   HYPRE_Complex *x_data = hypre_VectorData(x);
   HYPRE_Complex *y_data = hypre_VectorData(y);
@@ -2597,3 +2618,6 @@ void printRC(hypre_Vector *x,char *id){
   printf("%p At %s HRC = %d , DRC = %d \n",x,id,x->hrc,x->drc);
 }
 #endif
+
+
+
