@@ -72,6 +72,9 @@ hypre_CSRMatrixDestroy( hypre_CSRMatrix *matrix )
      hypre_CSRMatrixUnMapFromDevice(matrix);
 #endif
       hypre_TFree(hypre_CSRMatrixI(matrix), HYPRE_MEMORY_SHARED);
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+      hypre_TFree(hypre_CSRMatrixDeviceI(matrix), HYPRE_MEMORY_DEVICE);
+#endif
       hypre_CSRMatrixI(matrix)    = NULL;
       if (hypre_CSRMatrixRownnz(matrix))
          hypre_TFree(hypre_CSRMatrixRownnz(matrix), HYPRE_MEMORY_SHARED);
@@ -79,7 +82,15 @@ hypre_CSRMatrixDestroy( hypre_CSRMatrix *matrix )
       {
          hypre_TFree(hypre_CSRMatrixData(matrix), HYPRE_MEMORY_SHARED);
          hypre_TFree(hypre_CSRMatrixJ(matrix), HYPRE_MEMORY_SHARED);
-         hypre_CSRMatrixData(matrix) = NULL;
+      
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+      hypre_TFree(hypre_CSRMatrixDeviceJ(matrix), HYPRE_MEMORY_DEVICE);
+      hypre_TFree(hypre_CSRMatrixDeviceData(matrix), HYPRE_MEMORY_DEVICE);
+   hypre_CSRMatrixDeviceData(matrix) = NULL;
+         hypre_CSRMatrixDeviceJ(matrix)    = NULL;
+#endif
+
+   hypre_CSRMatrixData(matrix) = NULL;
          hypre_CSRMatrixJ(matrix)    = NULL;
       }
        hypre_TFree(matrix, HYPRE_MEMORY_HOST);
@@ -107,6 +118,7 @@ hypre_CSRMatrixCopyGPUtoCPU( hypre_CSRMatrix *matrix ){
   cudaMemcpy( hypre_CSRMatrixI(matrix),  hypre_CSRMatrixDeviceI(matrix), num_rows*sizeof(HYPRE_Int), cudaMemcpyDeviceToHost);
   cudaMemcpy( hypre_CSRMatrixJ(matrix),  hypre_CSRMatrixDeviceJ(matrix), num_nonzeros*sizeof(HYPRE_Int), cudaMemcpyDeviceToHost);
 #endif
+return 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -139,13 +151,6 @@ hypre_CSRMatrixCopyCPUtoGPU( hypre_CSRMatrix *matrix ){
   hypre_CheckErrorDevice(cudaPeekAtLastError());
   //printf("error check passed\n");
   if (!matrix->data){printf("oups no data in the matrix \n");}
-  else {
-    HYPRE_Complex *mdata = matrix->data;
-    for (int j=num_nonzeros-1; j<num_nonzeros-20; --j){
-
-      //printf("data[%d ] = %16.16f \n", j, mdata[j]);
-    }
-  }
  //printf("num non zeros %d \n", num_nonzeros);
   cudaMemcpy(matrix->d_data, matrix->data,
       num_nonzeros*sizeof(HYPRE_Complex), cudaMemcpyDeviceToDevice);
@@ -185,6 +190,7 @@ cudaMemcpy( hypre_CSRMatrixDeviceData(matrix),hypre_CSRMatrixData(matrix),   num
   cudaMemcpy(hypre_CSRMatrixDeviceJ(matrix), hypre_CSRMatrixJ(matrix),   num_nonzeros*sizeof(HYPRE_Int), cudaMemcpyHostToDevice);
   cudaMemcpy(hypre_CSRMatrixDeviceI(matrix), hypre_CSRMatrixI(matrix),  ( num_rows+1)*sizeof(HYPRE_Int), cudaMemcpyHostToDevice);
 #endif
+return 0;
 }
 
 

@@ -82,7 +82,7 @@ hypre_ParKrylovCreateMultiVector( void *vvector, HYPRE_Int num_vectors)
 void *
 hypre_ParKrylovUpdateVectorCPU( void *vvector){
 
-  hypre_ParVectorCopyDataGPUtoCPU((hypre_ParVector *) vvector);
+  return((void *) (hypre_ParVectorCopyDataGPUtoCPU((hypre_ParVector *) vvector)));
 
 
 }
@@ -306,11 +306,12 @@ hypre_ParKrylovMassInnerProdMult( void *x,HYPRE_Int k,
     void *y, HYPRE_Int k2, void  * result )
 {
 // void HYPRE_ParVectorMassInnerProdMult ( HYPRE_ParVector x , HYPRE_Int k, HYPRE_ParVector y , HYPRE_Int k2, HYPRE_Real *prod );
-   hypre_ParVectorMassInnerProdMult( (hypre_ParVector *) x,
+ ( hypre_ParVectorMassInnerProdMult( (hypre_ParVector *) x,
  k,
 (hypre_ParVector *) y,
 k2 ,
-(HYPRE_Real*)result );
+(HYPRE_Real*)result ));
+return 0;
 }
 
 /*--------------------------------------------------------------------------
@@ -431,8 +432,9 @@ hypre_ParKrylovMassAxpyMult( HYPRE_Real * alpha,
     HYPRE_Int k,
     void   *y ,
     HYPRE_Int k2){
-  hypre_ParVectorMassAxpyMult( alpha, (hypre_ParVector *) x, k,
+    hypre_ParVectorMassAxpyMult( alpha, (hypre_ParVector *) x, k,
 	(hypre_ParVector *) y ,  k2);
+return 0;
 }
 /*--------------------------------------------------------------------------
  * hypre_ParKrylovMassInnerProdWithScalingMult // written by KS //for multivectors
@@ -442,12 +444,13 @@ hypre_ParKrylovMassAxpyMult( HYPRE_Real * alpha,
 hypre_ParKrylovMassInnerProdWithScalingMult( void *x,HYPRE_Int k,
     void *y, HYPRE_Int k2, void *scaleFactors,  void  * result )
 {
-   hypre_ParVectorMassInnerProdWithScalingMult( (hypre_ParVector *) x,
+ ( hypre_ParVectorMassInnerProdWithScalingMult( (hypre_ParVector *) x,
 	k,
 	(hypre_ParVector *) y,
 	k2 ,
 	(HYPRE_Real *) scaleFactors,
-	(HYPRE_Real*)result ) ;
+	(HYPRE_Real*)result ) );
+return 0;
 }
 
 

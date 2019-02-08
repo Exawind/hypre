@@ -43,8 +43,8 @@ hypre_CSRMatrixMatvecMultOutOfPlace( HYPRE_Complex    alpha,
   return ret;
 #else
   printf("it does not work with MANAGED nor without GPU! change your parameters or write a proper function\n");
-  return ierr;
 #endif
+  return ierr;
 }
 
   HYPRE_Int
@@ -953,7 +953,6 @@ hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
     POP_RANGE;
   }
 
-  double KSres;
   //cudaMemcpy( dst, src, size, cudaMemcpyHostToDevice);
   PUSH_RANGE("PREFETCH+SPMV",2);
 

@@ -313,17 +313,17 @@ extern "C"{
 __global__
 void MassInnerProdKernel_v1(HYPRE_Real * __restrict__ u,  HYPRE_Real ** __restrict__ v, HYPRE_Real * result, HYPRE_Int k, HYPRE_Int n){
   hypre_int i = blockIdx.x * blockDim.x + threadIdx.x;
-  hypre_int tid = threadIdx.x;
+  //hypre_int tid = threadIdx.x;
 
   int j;
-HYPRE_Real r_uk[150];
+/*HYPRE_Real r_uk[150];
   volatile __shared__ HYPRE_Real s_u [BlockSize];
   // __shared__ HYPRE_Real  s_v [BlockSize][MaxSpace];
   s_u[tid] = u[i];
   for (j=0; j<k; j++){
     r_uk[j] = v[j][i];
   }
-  __syncthreads();
+  __syncthreads();*/
 
 
   if (i<n){

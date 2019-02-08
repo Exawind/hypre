@@ -725,6 +725,7 @@ HYPRE_Int hypre_IJVectorCopyDataCPUtoGPUPar(hypre_IJVector  *vector){
 
 
    hypre_ParVectorCopyDataCPUtoGPU(par_vector);
+return 0;
 }
 
 HYPRE_Int hypre_IJVectorCopyDataGPUtoCPUPar(hypre_IJVector  *vector){
@@ -749,6 +750,7 @@ HYPRE_Int hypre_IJVectorCopyDataGPUtoCPUPar(hypre_IJVector  *vector){
 
 
    hypre_ParVectorCopyDataGPUtoCPU(par_vector);
+return 0;
 }
 
 

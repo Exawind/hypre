@@ -279,12 +279,12 @@ hypre_MAlloc_core(size_t size, HYPRE_Int zeroinit, HYPRE_Int location)
          break;
       case HYPRE_MEMORY_DEVICE :
          /* ask for device memory */
-//printf("dev pure malloc \n");
+//printf("dev pure malloc size %d \n", size);
          ptr = hypre_DeviceMalloc(size, zeroinit);
          break;
       case HYPRE_MEMORY_SHARED :
          /* ask for unified memory */
-//printf("uni malloc \n");
+//printf("uni malloc size %d \n", size);
          ptr = hypre_UnifiedMalloc(size, zeroinit);
          break;
       case HYPRE_MEMORY_HOST_PINNED :

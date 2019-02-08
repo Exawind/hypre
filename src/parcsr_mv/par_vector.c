@@ -557,7 +557,7 @@ HYPRE_Int k,
 {
 //now x local is an array of vectors.
 
- HYPRE_Int i;
+ //HYPRE_Int i;
 hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
 hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
 
@@ -607,7 +607,7 @@ void  hypre_ParVectorMassInnerProdMult( hypre_ParVector *x, HYPRE_Int k,
   hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
 
   hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
-  int i;
+  //int i;
 HYPRE_Real * local_result;
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
 //printf("allocating local res \n");
@@ -637,7 +637,7 @@ void  hypre_ParVectorMassInnerProdWithScalingMult( hypre_ParVector *x, HYPRE_Int
   hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
 
   hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
-  int i;
+  //int i;
 
 HYPRE_Real * local_result;
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
