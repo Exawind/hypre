@@ -2914,7 +2914,7 @@ fi
 # Check whether --enable-unified-memory was given.
 if test "${enable_unified_memory+set}" = set; then :
   enableval=$enable_unified_memory; case "${enableval}" in
-    yes) hypre_using_um=no ;;
+    yes) hypre_using_um=yes ;;
     no)  hypre_using_um=no ;;
     *)   hypre_using_um=no ;;
  esac

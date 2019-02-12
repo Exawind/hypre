@@ -103,8 +103,9 @@ HYPRE_Int
 
 hypre_SeqVectorCopyDataCPUtoGPU( hypre_Vector *vector )
 {
-  HYPRE_Int  size = hypre_VectorSize(vector);
   HYPRE_Int  ierr = 0;
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+  HYPRE_Int  size = hypre_VectorSize(vector);
   HYPRE_Complex *data, *d_data;
 
   hypre_SeqVectorPrefetchToDevice(vector);
@@ -118,7 +119,8 @@ hypre_SeqVectorCopyDataCPUtoGPU( hypre_Vector *vector )
       cudaMemcpyDeviceToDevice );
 
   cudaDeviceSynchronize();
-  return ierr;
+#endif  
+return ierr;
 }
 
 /**** ==============================
@@ -128,8 +130,10 @@ HYPRE_Int
 
 hypre_SeqVectorCopyDataGPUtoCPU( hypre_Vector *vector )
 {
-  HYPRE_Int  size = hypre_VectorSize(vector);
   HYPRE_Int  ierr = 0;
+  
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+HYPRE_Int  size = hypre_VectorSize(vector);
   HYPRE_Complex *data, *d_data;
 
   data =                hypre_VectorData(vector);
@@ -140,6 +144,7 @@ hypre_SeqVectorCopyDataGPUtoCPU( hypre_Vector *vector )
       size*sizeof(HYPRE_Complex),
       cudaMemcpyDeviceToDevice );
   cudaDeviceSynchronize();
+#endif
   return ierr;
 }
 
@@ -465,7 +470,7 @@ hypre_SeqVectorSetConstantValues( hypre_Vector *v,
 
 #if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY) /* CUDA */
   HYPRE_Int      ierr  = 0;
-  //  VecSet(hypre_VectorData(v),hypre_VectorSize(v),value,HYPRE_STREAM(4));
+    VecSet(hypre_VectorData(v),hypre_VectorSize(v),value,HYPRE_STREAM(4));
   //printf("GPU+unified \n");
 
 #else /*GPU only,  CPU or OMP 4.5 */

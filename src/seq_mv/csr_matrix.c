@@ -73,7 +73,8 @@ hypre_CSRMatrixDestroy( hypre_CSRMatrix *matrix )
 #endif
       hypre_TFree(hypre_CSRMatrixI(matrix), HYPRE_MEMORY_SHARED);
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
-      hypre_TFree(hypre_CSRMatrixDeviceI(matrix), HYPRE_MEMORY_DEVICE);
+printf("TRYING to free non unif \n");  
+    hypre_TFree(hypre_CSRMatrixDeviceI(matrix), HYPRE_MEMORY_DEVICE);
 #endif
       hypre_CSRMatrixI(matrix)    = NULL;
       if (hypre_CSRMatrixRownnz(matrix))

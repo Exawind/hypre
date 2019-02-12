@@ -1,5 +1,5 @@
 #define solverTimers 1
-#define usePrecond 1
+#define usePrecond 0
 
 
 /******************************************************************************
@@ -1073,9 +1073,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
       preconTime += (time2-time1);
     }
 #if 0
-    (*(cogmres_functions->CopyVector))(w, 0, x, 0);
 
-    printf("end norm of x AFTER precon  %f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
     double ttt;
 
     if (solverTimers){
