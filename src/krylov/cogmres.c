@@ -1,5 +1,5 @@
 #define solverTimers 1
-#define usePrecond 0
+#define usePrecond 1
 
 
 /******************************************************************************
