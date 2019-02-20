@@ -764,7 +764,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
       }
 
       // conv criteria 
-
+//printf("a_tol = %16.16f, r_norm(%16.16f) * r_tol(%16.16f) = %16.16f \n", a_tol, r_norm, r_tol, r_tol*r_norm);
       epsilon = hypre_max(a_tol,r_tol*r_norm);
       if (solverTimers){
 	time2 = MPI_Wtime();
