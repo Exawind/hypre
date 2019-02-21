@@ -905,10 +905,12 @@ HYPRE_Int * comm_d;
   HYPRE_Int hypre_ParVectorMassInnerProd ( hypre_ParVector *x , hypre_ParVector **y , HYPRE_Int k, HYPRE_Int unroll, HYPRE_Real *prod );
   HYPRE_Int hypre_ParVectorMassDotpTwo ( hypre_ParVector *x , hypre_ParVector *y , hypre_ParVector **z, HYPRE_Int k, HYPRE_Int unroll, HYPRE_Real *prod_x , HYPRE_Real *prod_y );
   HYPRE_Int hypre_ParVectorMassAxpy ( HYPRE_Complex *alpha, hypre_ParVector **x, hypre_ParVector *y, HYPRE_Int k, HYPRE_Int unroll);  
-  void HYPRE_ParVectorMassInnerProdMult ( HYPRE_ParVector x , HYPRE_Int k, HYPRE_ParVector y , HYPRE_Int k2, HYPRE_Real *prod );
-  void HYPRE_ParVectorMassInnerProdWithScalingMult ( HYPRE_ParVector x , HYPRE_Int k, HYPRE_ParVector y , HYPRE_Int k2,HYPRE_Real *scaleFactors, HYPRE_Real *prod );
   void hypre_ParVectorMassInnerProdMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y , HYPRE_Int k2, HYPRE_Real *prod );
+  void HYPRE_ParVectorMassInnerProdMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y , HYPRE_Int k2, HYPRE_Real *prod );
+  void hypre_ParVectorMassInnerProdTwoVectorsMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y1 , HYPRE_Int k2, hypre_ParVector *y2 , HYPRE_Int k3, HYPRE_Real *prod );
+  void hypre_ParVectorMassInnerProdTwoVectorsMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y1 , HYPRE_Int k2, hypre_ParVector *y2 , HYPRE_Int k3, HYPRE_Real *prod );
   void hypre_ParVectorMassInnerProdWithScalingMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y , HYPRE_Int k2,HYPRE_Real *scaleFactors,  HYPRE_Real *prod );
+  void HYPRE_ParVectorMassInnerProdWithScalingMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y , HYPRE_Int k2,HYPRE_Real *scaleFactors,  HYPRE_Real *prod );
   void  HYPRE_ParVectorMassAxpyMult      ( HYPRE_Real *alpha, HYPRE_ParVector x, HYPRE_Int k,  HYPRE_ParVector y, HYPRE_Int k2);
   void  hypre_ParVectorMassAxpyMult      ( HYPRE_Real *alpha, hypre_ParVector *x, HYPRE_Int k, hypre_ParVector *y, HYPRE_Int k2);
 

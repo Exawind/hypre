@@ -38,6 +38,7 @@
       HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
       HYPRE_Real   (*InnerProd)     ( void *x,HYPRE_Int i1,  void *y, HYPRE_Int i2 ),
       HYPRE_Int    (*MassInnerProd) (void *x,HYPRE_Int k1, void *y, HYPRE_Int k2, void *result),
+    HYPRE_Int    (*MassInnerProdTwoVectors) ( void *x,HYPRE_Int k, void *y1, HYPRE_Int k1, void *y2, HYPRE_Int k2, void *result),
       HYPRE_Int    (*MassInnerProdWithScaling)   ( void *x, HYPRE_Int i1, void *y,HYPRE_Int i2, void *scaleFactors, void *result),
       HYPRE_Int    (*CopyVector)    ( void *x,HYPRE_Int i1, void *y, HYPRE_Int i2 ),
       HYPRE_Int    (*ClearVector)   ( void *x ),
@@ -64,6 +65,7 @@
   cogmres_functions->MatvecDestroy     = MatvecDestroy;
   cogmres_functions->InnerProd         = InnerProd;
   cogmres_functions->MassInnerProd     = MassInnerProd;	
+  cogmres_functions->MassInnerProdTwoVectors     = MassInnerProdTwoVectors;	
   cogmres_functions->MassInnerProdWithScaling       = MassInnerProdWithScaling;
   cogmres_functions->CopyVector        = CopyVector;
   cogmres_functions->ClearVector       = ClearVector;
@@ -561,6 +563,99 @@ void GramSchmidt (HYPRE_Int option,
     }//if
 
   }
+
+
+  if (option == 4){
+    //Alg 3 from paper, TRUE two synch version
+    //C version of orth_cgs2_new by ST
+    //remember: U NEED L IN THIS CODE AND NEED TO KEEP IT!! 
+    //L(1:i, i) = V(:, 1:i)'*V(:,i);
+    //
+    //printf("option = %d, i = %d \n", option, i );
+    /*		MassInnerProdGPUonly(&Vspace[(i-1)*sz],
+		Vspace,
+		rvGPU,				
+		i,
+		sz);*/
+
+    //hypre_ParKrylovMassInnerProdMult(Vspace,i, Vspace, i-1, rvGPU);
+//SPACE FIRST THEN VECTORS
+    (*(cf->MassInnerProdTwoVectors))(Vspace,i, Vspace, i-1, Vspace, i, rvGPU);
+    //copy rvGPU to L
+
+    //printf("test 2\n");
+    cudaMemcpy ( &L[(i-1)*(k_dim+1)],rvGPU,
+	i*sizeof(HYPRE_Real),
+	cudaMemcpyDeviceToHost );
+    //aux = V(:,i)'*w;
+
+    cudaMemcpy ( rv,&rvGPU[i],
+	i*sizeof(HYPRE_Real),
+	cudaMemcpyDeviceToHost );
+
+    for (int j=0; j<i; ++j){
+      //printf(" %16.16f \n ", rv[j]);
+      Hcolumn[(i-1)*(k_dim+1)+j] = 0.0f;
+    }
+
+    //printf("test 5, i = %d\n", i);
+    for (int j=0; j<i; ++j){
+      for (int k=0; k<i; ++k){
+	//we are processing H[j*(k_dim+1)+k]
+	if (j==k){Hcolumn[(i-1)*(k_dim+1)+k] += L[j*(k_dim+1)+k]*rv[j];
+	  //        printf("DIAGONAL L(%d, %d) = %16.16f , aux[%d] = %f, adding to: H(%d,%d) \n",k, j,L[j*(k_dim+1)+k], j, rv[j], k, i-1);
+
+	} 
+
+	if (j<k){
+	  Hcolumn[(i-1)*(k_dim+1)+j] -= L[k*(k_dim+1)+j]*rv[k];
+	  //printf("LpT L(%d, %d) = %16.16f , aux[%d] = %f, adding to: H(%d,%d) \n", j,k, L[k*(k_dim+1)+j], k, rv[k], j, i -1);
+	}
+	if (j>k){
+
+	  Hcolumn[(i-1)*(k_dim+1)+j] -= L[j*(k_dim+1)+k]*rv[k];
+	  //        printf("Lp L(%d, %d) = %16.16f , aux[%d] = %f adding to: H(%d,%d) \n",j, k, L[j*(k_dim+1)+k], k, rv[k], j, i-1 );
+	}
+      }//for k 
+    }//for j
+
+    cudaMemcpy ( HcolumnGPU,&Hcolumn[(i-1)*(k_dim+1)],
+	i*sizeof(HYPRE_Real),
+	cudaMemcpyHostToDevice);
+
+
+    //printf("test 7\n");
+    /*		MassAxpyGPUonly(sz,  i,
+		Vspace,				
+		w,
+		HcolumnGPU);*/
+
+    //hypre_ParKrylovMassAxpyMult( HcolumnGPU,Vspace,i, Vspace, i);
+    (*(cf->MassAxpy))( HcolumnGPU,Vspace,i, Vspace, i);
+    //normalize
+    /*		InnerProdGPUonly(w,  
+		w, 
+		&t, 
+		sz);
+		t = sqrt(t);*/
+
+    //t  = sqrt(hypre_ParKrylovInnerProdOneOfMult(Vspace,i,Vspace, i));
+    t  = sqrt((*(cf->InnerProd))(Vspace,i,Vspace, i));
+    //printf("test 8, t = %f\n", t);
+    Hcolumn[idx(i, i-1, k_dim+1)] = t;
+    if (Hcolumn[idx(i, i-1, k_dim+1)] != 0.0)
+    {
+      t = 1.0/Hcolumn[idx(i, i-1, k_dim+1)]; 
+      /*			ScaleGPUonly(w, 
+				t, 
+				sz);*/
+
+      //hypre_ParKrylovScaleVectorOneOfMult(t,Vspace, i);
+      (*(cf->ScaleVector))(t,Vspace, i);
+
+    }//if
+
+  }
 }
 
 /*--------------------------------------------------------------------------
@@ -651,9 +746,16 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
   p = (cogmres_data->p);
 
   if (GSoption != 0){
-    cudaMalloc ( &tempRV, sizeof(HYPRE_Real)*(k_dim+1)); 
+if (GSoption <4){   
+ cudaMalloc ( &tempRV, sizeof(HYPRE_Real)*(k_dim+1)); 
     cudaMalloc ( &tempH, sizeof(HYPRE_Real)*(k_dim+1)); 
   }
+else {
+
+ cudaMalloc ( &tempRV, 2*sizeof(HYPRE_Real)*(k_dim+1)); 
+    cudaMalloc ( &tempH, 2*sizeof(HYPRE_Real)*(k_dim+1)); 
+}
+}
 
 
   hh = hypre_CTAllocF(HYPRE_Real, (k_dim+1)*k_dim, cogmres_functions, HYPRE_MEMORY_HOST);

@@ -1235,6 +1235,47 @@ void  hypre_SeqVectorMassInnerProdMult( hypre_Vector *x,HYPRE_Int k,
 
 #endif
 }
+//2-vec
+//
+
+/*--------------------------------------------------------------------------
+ * hypre_SeqVectorMassInnerProdTwoVectorsMult
+ * written by KS. Mass Inner Product; first argument is a mutivector and the
+ * other two are vectors
+ *--------------------------------------------------------------------------*/
+
+
+
+
+
+void  hypre_SeqVectorMassInnerProdTwoVectorsMult( hypre_Vector *x,HYPRE_Int k,
+    hypre_Vector *y1, HYPRE_Int  k2,  hypre_Vector *y2, HYPRE_Int  k3,HYPRE_Real *result )
+{
+#ifdef HYPRE_USING_GPU
+  //      return hypre_SeqVectorMassInnerProdDevice(x,y, k, result );
+  // DONT even try
+  //
+
+  HYPRE_Real *x_data = hypre_VectorDeviceData(x);
+  HYPRE_Real *y1_data = hypre_VectorDeviceData(y1);
+  HYPRE_Real *y2_data = hypre_VectorDeviceData(y2);
+
+  HYPRE_Int      size   = hypre_VectorSize(x);
+
+  //HYPRE_Int vecstride = hypre_VectorVectorStride(x);
+  //printf("about to GPU ip! k2 = %d \n", k2);
+  MassInnerProdTwoVectorsGPUonly(y1_data+k2*size,y2_data+k3*size,
+      x_data,
+      result,
+      k,
+      size);
+#else
+printf("does not work withoug GPU, finish if youy wish\n");
+#endif
+}
+
+
+
 //version with build-in scaling
 //
 

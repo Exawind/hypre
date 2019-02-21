@@ -65,6 +65,7 @@ typedef struct
   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
   HYPRE_Real   (*InnerProd)     ( void *x, HYPRE_Int i1,  void *y, HYPRE_Int j2 );
   HYPRE_Int    (*MassInnerProd) ( void *x, HYPRE_Int k1, void *y, HYPRE_Int k2, void *result);
+    HYPRE_Int    (*MassInnerProdTwoVectors) ( void *x,HYPRE_Int k, void *y1, HYPRE_Int k1, void *y2, HYPRE_Int k2, void *result);
   HYPRE_Int    (*MassInnerProdWithScaling)   ( void *x, HYPRE_Int i1, void *y,HYPRE_Int i2, void *scaleFactors, void *result);
   HYPRE_Int    (*CopyVector)    ( void *x,HYPRE_Int i1, void *y, HYPRE_Int i2 );
   HYPRE_Int    (*ClearVector)   ( void *x );
@@ -152,6 +153,7 @@ extern "C" {
 	HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
 	HYPRE_Real   (*InnerProd)     ( void *x,HYPRE_Int k1, void *y, HYPRE_Int k2 ),
 	HYPRE_Int    (*MassInnerProd) ( void *x, HYPRE_Int k1, void *y, HYPRE_Int k2, void *result),
+    HYPRE_Int    (*MassInnerProdTwoVectors) ( void *x,HYPRE_Int k, void *y1, HYPRE_Int k1, void *y2, HYPRE_Int k2, void *result),
 	HYPRE_Int    (*MassInnerProdWithScaling)   ( void *x, HYPRE_Int i1, void *y,HYPRE_Int i2, void *scaleFactors, void *result),
 	HYPRE_Int    (*CopyVector)    ( void *x,HYPRE_Int i1, void *y, HYPRE_Int i2 ),
 	HYPRE_Int    (*ClearVector)   ( void *x ),

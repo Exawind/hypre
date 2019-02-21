@@ -280,6 +280,12 @@ void MassInnerProdGPUonly(const double * __restrict__ u,
     double * result,
     const int k,
     const int N);
+
+void MassInnerProdTwoVectorsGPUonly(const double * __restrict__ u1,const double * __restrict__ u2,
+    const double * __restrict__ v,
+    double * result1,
+    const int k,
+    const int N);
 void MassInnerProdWithScalingGPUonly(const double * __restrict__ u,
     const double * __restrict__ v,
 const double * __restrict__ scaleFactors,
@@ -448,6 +454,7 @@ HYPRE_Int hypre_SeqVectorMassAxpy4(HYPRE_Complex *alpha, hypre_Vector **x, hypre
 HYPRE_Int hypre_SeqVectorMassAxpy8(HYPRE_Complex *alpha, hypre_Vector **x, hypre_Vector *y, HYPRE_Int k);
 
   void  hypre_SeqVectorMassInnerProdMult(hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2,  HYPRE_Real * result);
+  void  hypre_SeqVectorMassInnerProdTwoVectorsMult(hypre_Vector *x, HYPRE_Int k, hypre_Vector *y1, HYPRE_Int k2,  hypre_Vector *y2, HYPRE_Int k3, HYPRE_Real * result);
   void  hypre_SeqVectorMassInnerProdWithScalingMult(hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2,HYPRE_Real * scaleFactors,  HYPRE_Real * result);
   void hypre_SeqVectorMassAxpyMult(HYPRE_Real * alpha, hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2);
 

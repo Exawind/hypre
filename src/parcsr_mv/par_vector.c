@@ -627,6 +627,37 @@ HYPRE_Real * local_result;
   hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] += hypre_MPI_Wtime();
 #endif
 }
+//two vectors at once (fast)
+
+void  hypre_ParVectorMassInnerProdTwoVectorsMult( hypre_ParVector *x, HYPRE_Int k,
+    hypre_ParVector *y1, HYPRE_Int k2,  hypre_ParVector *y2, HYPRE_Int k3, HYPRE_Real *result  ){
+
+  MPI_Comm      comm    = hypre_ParVectorComm(x);
+  hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
+
+  hypre_Vector *y1_local = hypre_ParVectorLocalVector(y1);
+  hypre_Vector *y2_local = hypre_ParVectorLocalVector(y2);
+  //int i;
+HYPRE_Real * local_result;
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+//printf("allocating local res \n");
+ local_result = hypre_TAlloc(HYPRE_Real , 2*k,       HYPRE_MEMORY_DEVICE);
+#else
+  local_result= (HYPRE_Real *)calloc(2*k, sizeof(HYPRE_Real));
+#endif
+  hypre_SeqVectorMassInnerProdTwoVectorsMult(x_local,k, y1_local,k2,y2_local, k3, local_result);
+
+#ifdef HYPRE_PROFILE
+  hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] -= hypre_MPI_Wtime();
+#endif
+ hypre_MPI_Allreduce(local_result, result, 2*k, HYPRE_MPI_REAL,
+     hypre_MPI_SUM, comm);
+//nprintf("after all reduce\n");
+#ifdef HYPRE_PROFILE
+  hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] += hypre_MPI_Wtime();
+#endif
+}
+
 
 //version with scaling 2 in 1
 

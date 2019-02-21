@@ -39,6 +39,7 @@ HYPRE_ParCSRCOGMRESCreate( MPI_Comm comm, HYPRE_Solver *solver )
          hypre_ParKrylovMatvecDestroy,
          hypre_ParKrylovInnerProdOneOfMult, 
          hypre_ParKrylovMassInnerProdMult, 
+         hypre_ParKrylovMassInnerProdTwoVectorsMult, 
          hypre_ParKrylovMassInnerProdWithScalingMult, 
          hypre_ParKrylovCopyVectorOneOfMult,
          //hypre_ParKrylovCopyVector,

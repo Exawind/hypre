@@ -315,6 +315,24 @@ return 0;
 }
 
 /*--------------------------------------------------------------------------
+ * hypre_ParKrylovMassInnerProdTwoVectorsMult // written by KS //for multivectors
+ * x is the space, y1 and y2 are  single vectors 
+ *--------------------------------------------------------------------------*/
+ HYPRE_Int
+hypre_ParKrylovMassInnerProdTwoVectorsMult( void *x,HYPRE_Int k,
+    void *y1, HYPRE_Int k2, void * y2, HYPRE_Int k3, void  * result )
+{
+// void HYPRE_ParVectorMassInnerProdMult ( HYPRE_ParVector x , HYPRE_Int k, HYPRE_ParVector y , HYPRE_Int k2, HYPRE_Real *prod );
+ ( hypre_ParVectorMassInnerProdTwoVectorsMult( (hypre_ParVector *) x,
+ k,
+(hypre_ParVector *) y1,
+k2 ,
+(hypre_ParVector *) y2,
+k3 ,
+(HYPRE_Real*)result ));
+return 0;
+}
+/*--------------------------------------------------------------------------
  * hypre_ParKrylovMassInnerProd 
  *--------------------------------------------------------------------------*/
   HYPRE_Int
