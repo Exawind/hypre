@@ -524,10 +524,10 @@ hypre_IJMatrixGetValuesParCSR( hypre_IJMatrix *matrix,
   if (assemble_flag == 0)
   {
     hypre_error_in_arg(1);
-    if (print_level)
+   /* if (print_level)
     {
       hypre_printf("Error! Matrix not assembled yet! HYPRE_IJMatrixGetValues\n");
-    }
+    }*/
   }
 
 #ifdef HYPRE_NO_GLOBAL_PARTITION
@@ -1242,8 +1242,8 @@ hypre_IJMatrixSetConstantValuesParCSR( hypre_IJMatrix       *matrix,
   }
   else
   {
-    hypre_error_w_msg(HYPRE_ERROR_GENERIC,
-	"Matrix not assembled! Required to set constant values!");
+    //hypre_error_w_msg(HYPRE_ERROR_GENERIC,
+//	"Matrix not assembled! Required to set constant values!");
   }
 
   return hypre_error_flag;

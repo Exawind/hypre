@@ -811,8 +811,9 @@ else {
 
 	//KS: if iter == 0, x has the right CPU data, no need to copy	
 	//	printf("Starting norm before precon %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
-
+PUSH_RANGE("cogmres precon", 0);
 	precond(precond_data, A, x,w );
+POP_RANGE;
 	//	printf("Starting norm after precon %f \n", sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
 	// precomd automatically updates GPU version of w
 
@@ -923,7 +924,9 @@ else {
 	  remainingTime += (time2-time1);
 	  time3 = MPI_Wtime();
 	}
+PUSH_RANGE("cogmres precon", 1);
 	precond(precond_data, A, w_2, w);
+POP_RANGE;
 	if (solverTimers){
 	  time4 = MPI_Wtime();
 
@@ -1168,7 +1171,10 @@ else {
       remainingTime += (time2-time1);
       time1 = MPI_Wtime();
     }
+
+PUSH_RANGE("cogmres precon", 2);
     precond(precond_data, A, w_2, x);
+POP_RANGE;
     if (solverTimers){
       time2 = MPI_Wtime();
       matvecPreconTime+=(time2-time1);

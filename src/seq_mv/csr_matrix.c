@@ -40,6 +40,9 @@ hypre_CSRMatrixCreate( HYPRE_Int num_rows,
    hypre_CSRMatrixData(matrix) = NULL;
    hypre_CSRMatrixI(matrix)    = NULL;
    hypre_CSRMatrixJ(matrix)    = NULL;
+   hypre_CSRMatrixDeviceData(matrix) = NULL;
+   hypre_CSRMatrixDeviceI(matrix)    = NULL;
+   hypre_CSRMatrixDeviceJ(matrix)    = NULL;
    hypre_CSRMatrixRownnz(matrix) = NULL;
    hypre_CSRMatrixNumRows(matrix) = num_rows;
    hypre_CSRMatrixNumCols(matrix) = num_cols;
@@ -207,7 +210,7 @@ hypre_CSRMatrixInitialize( hypre_CSRMatrix *matrix )
    HYPRE_Int  num_rows     = hypre_CSRMatrixNumRows(matrix);
    HYPRE_Int  num_nonzeros = hypre_CSRMatrixNumNonzeros(matrix);
 /*   HYPRE_Int  num_rownnz = hypre_CSRMatrixNumRownnz(matrix); */
-
+//printf("Hello! Inside matrix alloc! HYPRE_MEMORY SHARED is %d \n", HYPRE_MEMORY_SHARED);
    HYPRE_Int  ierr=0;
 //printf("this is matrix init, num_nonzeros = %d\n", num_nonzeros);
    if ( ! hypre_CSRMatrixData(matrix) && num_nonzeros )

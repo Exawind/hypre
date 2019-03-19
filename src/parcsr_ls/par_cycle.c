@@ -275,7 +275,7 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
            hypre_VectorSize(hypre_ParVectorLocalVector(Ptemp)) = local_size;
            Ztemp_data = hypre_VectorData(hypre_ParVectorLocalVector(Ztemp));
            Ptemp_data = hypre_VectorData(hypre_ParVectorLocalVector(Ptemp));
-           hypre_ParVectorSetConstantValues(Ztemp,0);
+    hypre_ParVectorSetConstantValues(Ztemp,0);
            alpha = -1.0;
            beta = 1.0;
            //printf("par_cycle.c 1 %d\n",level);
@@ -331,9 +331,10 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
          *-----------------------------------------------------------------*/
          for (jj = 0; jj < cg_num_sweep; jj++)
          {
-            if (smooth_num_levels > level && smooth_type > 9)
-              hypre_ParVectorSetConstantValues(Aux_U,0);
-
+            if (smooth_num_levels > level && smooth_type > 9){
+ 
+             hypre_ParVectorSetConstantValues(Aux_U,0);
+}
            for (j = 0; j < num_sweep; j++)
            {
               if (num_levels == 1 && max_levels > 1)
@@ -371,7 +372,7 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
               /*-----------------------------------------------
                 Choose Smoother
                 -----------------------------------------------*/
-
+//printf("relax_type = %d \n", relax_type);
               if (smooth_num_levels > level &&
                     (smooth_type == 7 || smooth_type == 8 ||
                      smooth_type == 9 || smooth_type == 19 ||
@@ -415,6 +416,7 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
               }
               else if (relax_type == 18)
               {   /* L1 - Jacobi*/
+//printf("relax order = %d and cycle param = %d \n", relax_order, cycle_param);
                  if (relax_order == 1 && cycle_param < 3)
                  {
                     /* need to do CF - so can't use the AMS one */
@@ -602,7 +604,6 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
 
          fine_grid = level;
          coarse_grid = level + 1;
-
          hypre_ParVectorSetConstantValues(U_array[coarse_grid], 0.0);
 
          alpha = -1.0;

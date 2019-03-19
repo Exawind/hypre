@@ -163,11 +163,11 @@ hypre_SeqVectorInitialize( hypre_Vector *vector )
 
   if ( ! hypre_VectorData(vector) ){
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
-    //printf("seq vector, init dev data\n");
+   // printf("seq vector, init dev data\n");
     hypre_VectorDeviceData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_DEVICE);
 #endif   
     hypre_VectorData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_SHARED);
-    //printf("seq vector, init cpu data\n");
+   // printf("seq vector, init cpu data\n");
 
   }
   if ( multivec_storage_method == 0 )
@@ -427,7 +427,7 @@ hypre_SeqVectorAxpyOneOfMult( HYPRE_Complex alpha,
   else SyncVectorToHost(y);
 #endif
 
-#if defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU)
+#if  defined(HYPRE_USING_GPU)
   hypre_SeqVectorPrefetchToDevice(x);
   hypre_SeqVectorPrefetchToDevice(y);
 #endif
@@ -849,7 +849,7 @@ hypre_SeqVectorAxpy( HYPRE_Complex alpha,
   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
 #endif
 
-#if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY)
+#if defined(HYPRE_USING_GPU) 
   HYPRE_Int ierr = hypre_SeqVectorAxpyDevice(alpha,x,y);
 #else
   HYPRE_Complex *x_data = hypre_VectorData(x);
@@ -1405,7 +1405,7 @@ hypre_SeqVectorInnerProd( hypre_Vector *x,
   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
 #endif
 
-#if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY)
+#if defined(HYPRE_USING_GPU)
   HYPRE_Real result = hypre_SeqVectorInnerProdDevice(x,y);
 #else
 #if defined(HYPRE_USING_MAPPED_OPENMP_OFFLOAD)

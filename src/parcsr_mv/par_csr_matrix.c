@@ -253,6 +253,12 @@ hypre_ParCSRMatrixInitialize( hypre_ParCSRMatrix *matrix )
       hypre_CTAlloc(HYPRE_Int, hypre_CSRMatrixNumCols(
                        hypre_ParCSRMatrixOffd(matrix)), HYPRE_MEMORY_HOST);
 
+
+
+#if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU) 
+matrix->x_tmp = NULL;
+matrix->x_buf = NULL;
+#endif
    return hypre_error_flag;
 }
 

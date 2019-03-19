@@ -491,7 +491,7 @@ tol only is checked  */
 	    hypre_printf("\n\n");
 	    hypre_printf("Final L2 norm of residual: %e\n\n", r_norm);
 	  }
-	  break;
+	 break;
 	}
 	else
 	  if ( print_level>0 && my_id == 0)

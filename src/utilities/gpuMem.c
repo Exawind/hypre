@@ -224,7 +224,10 @@ void MemPrefetchSized(const void *ptr,size_t size,hypre_int device,cudaStream_t 
   PUSH_RANGE_DOMAIN("MemPreFetchSized",4,0);
   /* Do a prefetch every time until a possible UM bug is fixed */
   if (size>0){
-    hypre_CheckErrorDevice(cudaMemPrefetchAsync(ptr,size,device,stream));
+    //hypre_CheckErrorDevice(
+//printf("before the orefetch, last error %d \n",  	cudaGetLastError() );
+cudaError_t aaa = cudaMemPrefetchAsync(ptr,size,device,stream);
+//printf("error code in prefetch %d string %s \n", aaa, cudaGetErrorString(aaa));
     POP_RANGE_DOMAIN(0);
     return;
   }
