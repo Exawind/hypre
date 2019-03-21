@@ -53,7 +53,9 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
     hypre_ParVector    *b,
     hypre_ParVector    *y )
 {
-  hypre_ParCSRCommHandle **comm_handle;
+
+  
+hypre_ParCSRCommHandle **comm_handle;
   hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
   hypre_CSRMatrix   *diag   = hypre_ParCSRMatrixDiag(A);
   hypre_CSRMatrix   *offd   = hypre_ParCSRMatrixOffd(A);
@@ -154,7 +156,6 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
   }
   hypre_SeqVectorInitialize(x_tmp);
   x_tmp_data = hypre_VectorData(x_tmp);
-
   num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
   if (!use_persistent_comm)
   {
@@ -163,6 +164,8 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
       x_buf_data[jv] = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
 	  (comm_pkg,  num_sends), HYPRE_MEMORY_SHARED);
   }
+
+
 
   if ( num_vectors==1 )
   {
@@ -191,8 +194,6 @@ printf("debug pack on devive 2\n");
 #endif
     POP_RANGE;
     SetAsyncMode(1);
-//printf("set asynch mode  \n");  
-    hypre_CheckErrorDevice(cudaPeekAtLastError());
     hypre_CheckErrorDevice(cudaDeviceSynchronize());
     hypre_CSRMatrixMatvecOutOfPlace( alpha, diag, x_local, beta, b_local, y_local, 0);
     //hypre_SeqVectorUpdateHost(y_local);
@@ -1044,9 +1045,12 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
 #endif
 #if 1 
 
-if ( x_local_data==NULL)
-printf("x_local_data == NULL\n");
+if ( x_local_data==NULL){
+//printf("x_local_data == NULL, x_local_size= %d \n", x_local_size);
+return 0;
+}
 #endif
+
 //workss
   if (!comm_pkg)
   {

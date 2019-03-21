@@ -92,6 +92,7 @@ void VecSetKernel(HYPRE_Complex* __restrict__ tgt, const HYPRE_Complex value,hyp
 void VecSet(HYPRE_Complex* tgt, hypre_int size, HYPRE_Complex value, cudaStream_t s){
   hypre_int tpb=64;
   //cudaDeviceSynchronize();
+//printf("this is vec set, size %d \n", size);
   MemPrefetchSized(tgt,size*sizeof(HYPRE_Complex),HYPRE_DEVICE,s);
   hypre_int num_blocks=size/tpb+1;
   VecSetKernel<<<num_blocks,tpb,0,s>>>(tgt,value,size);

@@ -163,8 +163,11 @@ hypre_SeqVectorInitialize( hypre_Vector *vector )
 
   if ( ! hypre_VectorData(vector) ){
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
-   // printf("seq vector, init dev data\n");
-    hypre_VectorDeviceData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_DEVICE);
+  // printf("seq vector, init dev data, size %d num vectors %d \n", size, num_vectors);
+if (size!=0)    
+hypre_VectorDeviceData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_DEVICE);
+else 
+hypre_VectorDeviceData(vector) = NULL;
 #endif   
     hypre_VectorData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_SHARED);
    // printf("seq vector, init cpu data\n");
@@ -477,13 +480,14 @@ hypre_SeqVectorSetConstantValues( hypre_Vector *v,
 #if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU)
  // printf("\nGPU+non unified\n");
   //HYPRE_Complex * hData = hypre_VectorData(v);
+
   //HYPRE_Int      size        = hypre_VectorSize(v);
+if (hypre_VectorSize(v)!=0){
   cudaDeviceSynchronize();
 /* for (int i = 0; i < size; i++)
   {
     hData[i] = value;
   }*/
-
   VecSet(hypre_VectorData(v),hypre_VectorSize(v),value,HYPRE_STREAM(4));
   cudaDeviceSynchronize();
 
@@ -491,6 +495,7 @@ hypre_SeqVectorSetConstantValues( hypre_Vector *v,
   cudaDeviceSynchronize();
   hypre_SeqVectorCopyDataCPUtoGPU(v);
 
+}
   return 0;
 #endif
   return 0;

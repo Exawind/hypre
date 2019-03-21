@@ -382,7 +382,8 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
                  alpha = -1.0;
                  beta = 1.0;
                  //printf("par_cycle.c 2 %d\n",level);
-                 hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
+                 
+hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                                 U_array[level], beta, Aux_F, Vtemp);
                  if (smooth_type == 8 || smooth_type == 18)
                     HYPRE_ParCSRParaSailsSolve(smoother[level],
