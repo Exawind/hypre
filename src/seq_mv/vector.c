@@ -106,6 +106,7 @@ hypre_SeqVectorCopyDataCPUtoGPU( hypre_Vector *vector )
   HYPRE_Int  ierr = 0;
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
   HYPRE_Int  size = hypre_VectorSize(vector);
+if (size != 0){ 
   HYPRE_Complex *data, *d_data;
 
   hypre_SeqVectorPrefetchToDevice(vector);
@@ -113,12 +114,13 @@ hypre_SeqVectorCopyDataCPUtoGPU( hypre_Vector *vector )
   d_data = hypre_VectorDeviceData(vector);
 //  if (!d_data) printf("vector: no gpu data\n");
 //  if (!data) printf("vector: no cpu data\n");
-  cudaDeviceSynchronize();
+ cudaDeviceSynchronize();
   cudaMemcpy ( d_data,data,
       size*sizeof(HYPRE_Complex),
       cudaMemcpyDeviceToDevice );
 
   cudaDeviceSynchronize();
+}
 #endif  
 return ierr;
 }
@@ -1092,6 +1094,52 @@ hypre_SeqVectorMassAxpy4( HYPRE_Complex *alpha,
   }
 
   return hypre_error_flag;
+}
+
+/*-----
+ * Custom blas operation that roates a block of 2 vectors (REMEBER stored as multivector)
+*/
+
+void hypre_SeqVectorGivensRotRight(
+     HYPRE_Int k1,
+    HYPRE_Int k2,
+    hypre_Vector  * q1,
+    hypre_Vector  * q2,
+    HYPRE_Real  a1, HYPRE_Real a2, HYPRE_Real a3,  HYPRE_Real a4){
+
+#ifdef  HYPRE_USING_GPU
+
+  HYPRE_Complex *q1_dataDevice = hypre_VectorDeviceData(q1);
+  HYPRE_Complex *q2_dataDevice = hypre_VectorDeviceData(q2);
+
+  HYPRE_Int      size   = hypre_VectorSize(q1);
+
+  GivensRotRight(size,  k1,k2,
+      q1_dataDevice + k1*size,
+      q2_dataDevice + k2*size,
+      a1,a2,a3,a4);
+#else
+
+  HYPRE_Real *q1_data = hypre_VectorData(q1);
+  HYPRE_Real *q2_data = hypre_VectorData(q2);
+
+
+  HYPRE_Int      size   = hypre_VectorSize(y);
+
+  HYPRE_Int      ierr = 0;
+
+
+  HYPRE_Int i;
+HYPRE_Real q1i;
+  for (i = 0; i<size; i++){
+q1i = q1_data[i];
+
+      q1_data[i] = q1i*a1+q2_data[i]*a2;
+      q1_data[i] = q1i*a3+q2_data[i]*a4;
+  }
+
+#endif
+
 }
 
 
@@ -2562,8 +2610,15 @@ void hypre_SeqVectorPrefetchToDevice(hypre_Vector *x){
 void hypre_SeqVectorPrefetchToHost(hypre_Vector *x){
   if (hypre_VectorSize(x)==0) return;
   PUSH_RANGE("hypre_SeqVectorPrefetchToHost",0);
+
+cudaError_t err = cudaPeekAtLastError();
+printf("before prefetching, error is %s \n", cudaGetErrorName(err));
   hypre_CheckErrorDevice(cudaMemPrefetchAsync(hypre_VectorData(x),hypre_VectorSize(x)*sizeof(HYPRE_Complex),cudaCpuDeviceId,HYPRE_STREAM(4)));
+ err = cudaPeekAtLastError();
+printf("after prefetching, error is %s \n", cudaGetErrorName(err));
   hypre_CheckErrorDevice(cudaStreamSynchronize(HYPRE_STREAM(4)));
+ err = cudaPeekAtLastError();
+printf("after synch, error is %s \n", cudaGetErrorName(err));
   POP_RANGE;
 }
 void hypre_SeqVectorPrefetchToDeviceInStream(hypre_Vector *x, HYPRE_Int index){

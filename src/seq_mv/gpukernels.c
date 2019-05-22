@@ -361,6 +361,9 @@ void MassInnerProd(HYPRE_Int n, HYPRE_Int k, HYPRE_Real **v, HYPRE_Real *u, HYPR
 
 }
 }
+
+
+
 extern "C"{
 __global__
 void CSRMatvecTKernel_v1(HYPRE_Int num_rows, const HYPRE_Real * __restrict__ a, const HYPRE_Int * __restrict__ ia,const __restrict__  HYPRE_Int  * ja,const  HYPRE_Real * x, HYPRE_Real * y){
@@ -757,6 +760,40 @@ void MassAxpyGPUonly(int N,
       alpha);
 
 }
+
+__global__ void  GivensRotRightKernel(int N,
+      int k1,int k2,
+      double * q_data1,
+      double * q_data2,
+      double a1, double a2,double a3, double a4){
+
+  int i = blockIdx.x * blockDim.x + threadIdx.x;
+  while (i<N){
+double q1 = q_data1[i];
+    q_data1[i] = q1*a1+q_data2[i]*a2;
+    q_data2[i] = q1*a3+q_data2[i]*a4;
+    i+= blockDim.x*gridDim.x;
+  }
+
+}
+
+/* computes q1 = a1*q1+a2*q2; q2 = a3*q3+a4*q2*/
+void GivensRotRight(int N,
+    int k1,
+    int k2,
+    double  * q_data1,
+    double  * q_data2,
+    const  double   a1, const double a2, const double a3, const double a4){
+  int  B = (N+384-1)/384;
+  //  hypre_CheckErrorDevice(cudaDeviceSynchronize());
+  GivensRotRightKernel<<<B, 384>>>( N,
+      k1,k2,
+      q_data1,
+      q_data2,
+      a1, a2, a3, a4);
+
+}
+
 
 
 }

@@ -1645,7 +1645,12 @@ HYPRE_Int  hypre_ParKrylovMassInnerProdMult ( void *x ,HYPRE_Int k, void *y, HYP
 HYPRE_Int  hypre_ParKrylovMassInnerProdTwoVectorsMult ( void *x ,HYPRE_Int k, void *y1, HYPRE_Int k2,void *y2, HYPRE_Int k3, void *result );
 HYPRE_Int  hypre_ParKrylovMassInnerProdWithScalingMult ( void *x ,HYPRE_Int k, void *y, HYPRE_Int k2,void *scaleFactors, void *result );
 HYPRE_Int  hypre_ParKrylovMassAxpyMult( HYPRE_Real *alpha, void *x, HYPRE_Int k, void *y, HYPRE_Int k2);
-
+HYPRE_Int hypre_ParKrylovGivensRotRight(
+     HYPRE_Int k1,
+    HYPRE_Int k2,
+    void * q1,
+    void  * q2,
+    HYPRE_Real  a1, HYPRE_Real a2, HYPRE_Real a3,  HYPRE_Real a4);
 
 void  hypre_ParKrylovMassInnerProdGPU ( void *x , void *y, int k, int n,  void *result );
 //void  hypre_ParKrylovMassInnerProdGPU (int k, int n,  void *result );

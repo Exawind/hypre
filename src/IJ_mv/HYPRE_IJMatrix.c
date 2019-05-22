@@ -1122,7 +1122,7 @@ HYPRE_IJMatrixRead( const char     *filename,
    hypre_MPI_Comm_rank(comm, &myid);
 
    hypre_sprintf(new_filename,"%s.%05d", filename, myid);
-
+printf("NEW FILENAME %s \n", new_filename);
    if ((file = fopen(new_filename, "r")) == NULL)
    {
       hypre_error_in_arg(1);

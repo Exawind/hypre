@@ -914,6 +914,19 @@ HYPRE_Int * comm_d;
   void  HYPRE_ParVectorMassAxpyMult      ( HYPRE_Real *alpha, HYPRE_ParVector x, HYPRE_Int k,  HYPRE_ParVector y, HYPRE_Int k2);
   void  hypre_ParVectorMassAxpyMult      ( HYPRE_Real *alpha, hypre_ParVector *x, HYPRE_Int k, hypre_ParVector *y, HYPRE_Int k2);
 
+void hypre_ParVectorGivensRotRight(
+     HYPRE_Int k1,
+    HYPRE_Int k2,
+    hypre_ParVector  * q1,
+    hypre_ParVector  * q2,
+    HYPRE_Real  a1, HYPRE_Real a2, HYPRE_Real a3, HYPRE_Real a4);
+
+void HYPRE_ParVectorGivensRotRight(
+     HYPRE_Int k1,
+    HYPRE_Int k2,
+    hypre_ParVector  * q1,
+    hypre_ParVector  * q2,
+    HYPRE_Real  a1, HYPRE_Real a2, HYPRE_Real a3, HYPRE_Real a4);
 
   void HYPRE_ParVectorMassInnerProdGPU ( HYPRE_Real * x , HYPRE_Real *y , HYPRE_Int k, HYPRE_Int n,HYPRE_Real *prod );
   void  HYPRE_ParVectorMassAxpyGPU      ( HYPRE_Real *alpha, HYPRE_Real *x, HYPRE_Real *y, HYPRE_Int k, HYPRE_Int n);

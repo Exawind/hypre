@@ -54,4 +54,10 @@ void InnerProdGPUonly(const double * __restrict__ u,
     double *result,
     const int N);
 
+void GivensRotRight(int N,
+    int k1,
+    int k2,
+    double  * q_data1,
+    double  * q_data2,
+    const  double   a1, const double a2, const double a3, const double a4);
 #endif

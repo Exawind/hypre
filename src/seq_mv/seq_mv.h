@@ -304,6 +304,12 @@ void InnerProdGPUonly(const double * __restrict__ u,
     double *result,
     const int N);
 
+void GivensRotRight(int N,
+     HYPRE_Int k1,
+    HYPRE_Int k2,
+    double  * q1,
+    double  * q2,
+    const HYPRE_Real  a1, const HYPRE_Real a2, const HYPRE_Real a3,const HYPRE_Real a4);
 #endif
 #endif
 
@@ -458,6 +464,12 @@ HYPRE_Int hypre_SeqVectorMassAxpy8(HYPRE_Complex *alpha, hypre_Vector **x, hypre
   void  hypre_SeqVectorMassInnerProdWithScalingMult(hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2,HYPRE_Real * scaleFactors,  HYPRE_Real * result);
   void hypre_SeqVectorMassAxpyMult(HYPRE_Real * alpha, hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2);
 
+void hypre_SeqVectorGivensRotRight(
+     HYPRE_Int k1,
+    HYPRE_Int k2,
+    hypre_Vector  * q1,
+    hypre_Vector  * q2,
+    HYPRE_Real  a1, HYPRE_Real a2, HYPRE_Real a3,HYPRE_Real a4);
 HYPRE_Int hypre_SeqVectorCopyDevice ( hypre_Vector *x , hypre_Vector *y );
   HYPRE_Int hypre_SeqVectorAxpyDevice( HYPRE_Complex alpha , hypre_Vector *x , hypre_Vector *y );
   HYPRE_Real hypre_SeqVectorInnerProdDevice ( hypre_Vector *x , hypre_Vector *y );

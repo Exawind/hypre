@@ -439,6 +439,22 @@ hypre_ParKrylovMassAxpy( HYPRE_Complex * alpha,
   return ( hypre_ParVectorMassAxpy( alpha, (hypre_ParVector **) x,
 	(hypre_ParVector *) y ,  k, unroll));
 }
+/*===
+ *
+ * For space rotatiuons
+ * */
+
+
+HYPRE_Int hypre_ParKrylovGivensRotRight(
+     HYPRE_Int k1,
+    HYPRE_Int k2,
+    void * q1,
+    void  * q2,
+    HYPRE_Real  a1, HYPRE_Real a2, HYPRE_Real a3, HYPRE_Real a4){
+    hypre_ParVectorGivensRotRight(k1, k2, (hypre_ParVector *)q1, (hypre_ParVector *)q2, a1,a2,a3,a4);
+return 0;
+}
+
 
 /*--------------------------------------------------------------------------
  * hypre_ParKrylovMassAxpyMult (for multivectors, x is a multivector)

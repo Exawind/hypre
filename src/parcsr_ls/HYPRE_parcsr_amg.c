@@ -67,6 +67,7 @@ HYPRE_BoomerAMGSolve( HYPRE_Solver solver,
 {
 
 
+//hypre_ParVectorCopyDataGPUtoCPU(b);
 //printf("Inner prod of the input  (inside precon)%16.16f\n", sqrt(hypre_ParVectorInnerProd(b,b)));
  HYPRE_Int ret = ( hypre_BoomerAMGSolve( (void *) solver,
                                  (hypre_ParCSRMatrix *) A,

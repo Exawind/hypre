@@ -541,8 +541,21 @@ hypre_ParVectorInnerProd( hypre_ParVector *x,
    
    return result;
 }
+/*
+ * For plane rot
+ * */
 
-
+ 
+void hypre_ParVectorGivensRotRight(
+     HYPRE_Int k1,
+    HYPRE_Int k2,
+    hypre_ParVector  * q1,
+    hypre_ParVector  * q2,
+    HYPRE_Real  a1, HYPRE_Real a2, HYPRE_Real a3, HYPRE_Real a4){
+hypre_Vector *q1_local = hypre_ParVectorLocalVector(q1);
+hypre_Vector *q2_local = hypre_ParVectorLocalVector(q2);
+return  hypre_SeqVectorGivensRotRight(k1,k2, q1_local, q2_local,a1,a2,a3,a4); 
+}
 
 /*--------------------------------------------------------------------------
  * hypre_ParVectorMassAxpyMult
