@@ -1,6 +1,4 @@
 /*BHEADER**********************************************************************
-/*BHEADER**********************************************************************
- * Copyright (c) 2008,  Lawrence Livermore National Security, LLC.
  * Produced at the Lawrence Livermore National Laboratory.
  * This file is part of HYPRE.  See file COPYRIGHT for details.
  *
@@ -1100,10 +1098,12 @@ if (A->x_buf == NULL){
   HYPRE_Int *comm_d;
   HYPRE_Int begin = hypre_ParCSRCommPkgSendMapStart(comm_pkg, 0);
   HYPRE_Int end   = hypre_ParCSRCommPkgSendMapStart(comm_pkg, num_sends);
+//printf("begin = %d end = %d \n", begin, end);
 if (A->comm_d == NULL)
 {
 if ((end-begin) != 0)
 {
+
   A->comm_d =  hypre_CTAlloc(HYPRE_Int,  (end-begin), HYPRE_MEMORY_DEVICE);;
 
   cudaMemcpy(A->comm_d,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),  (end-begin) * sizeof(HYPRE_Int),cudaMemcpyHostToDevice  );
@@ -1129,8 +1129,12 @@ comm_d = A->comm_d;
   }
 
   comm_handle = hypre_CTAlloc(hypre_ParCSRCommHandle, 1, HYPRE_MEMORY_HOST);
-  comm_handle = hypre_ParCSRCommHandleCreate
+#if 0 
+ comm_handle = hypre_ParCSRCommHandleCreate
     ( 111, comm_pkg, x_buf_data,&x_tmp_data[k1*x_local_size] );
+#endif
+ comm_handle = hypre_ParCSRCommHandleCreate
+    ( 111, comm_pkg, x_buf_data,x_tmp_data );
 //WORKS!
   if (num_cols_offd) {hypre_CSRMatrixMatvecMult( alpha, offd, x_tmp, k1, 1.0, y_local, k2); }
 

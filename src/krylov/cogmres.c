@@ -689,6 +689,8 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
   void                   *matvec_data       = (cogmres_data -> matvec_data);
   //hypre_ParVector * w, *p, *r ;
 
+  //printf("Starting VERY BEGINNING norm x %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
+  //printf("Starting VERY BEGINNING norm b %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0)));
   void         *w                 = (cogmres_data -> w);
   void         *w_2               = (cogmres_data -> w_2); 
 
@@ -799,8 +801,11 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	if (solverTimers)
 	  time1 = MPI_Wtime();
 
+	//printf("Starting norm before CLEAR VECTOR %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0)));
 	(*(cogmres_functions->ClearVector))(w);
 
+
+	//printf("Starting norm AFTER CLEAR VECTOR %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0)));
 	if (solverTimers){
 	  time2 = MPI_Wtime();
 
@@ -809,11 +814,12 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	}
 
 	//KS: if iter == 0, x has the right CPU data, no need to copy	
-	//	printf("Starting norm before precon %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
+	//printf("Starting norm before precon %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
+	//printf("Starting norm of W before precon  %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
 	PUSH_RANGE("cogmres precon", 0);
 	precond(precond_data, A, x,w );
 	POP_RANGE;
-	//	printf("Starting norm after precon %f \n", sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
+	//printf("Starting norm after precon %f \n", sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
 	// precomd automatically updates GPU version of w
 
 
@@ -827,9 +833,10 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
       if (solverTimers)
 	time1 = MPI_Wtime();
 
+	b_norm_original =  sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0));
+	b_norm = sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0));
       if ((usePrecond) && (leftPrecond)){
 
-	b_norm_original =  sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0));
 
 	(*(cogmres_functions->UpdateVectorCPU))(b);
 	(*(cogmres_functions->ClearVector))(w_2);
@@ -892,16 +899,18 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	  remainingTime += (time2-time1);
 	  time3 = MPI_Wtime();
 	}
+	(*(cogmres_functions->CopyVector))(b, 0, p, 0);
 
+#if 0
 	(*(cogmres_functions->CopyVector))(x, 0, w, 0);
 
 	(*(cogmres_functions->ClearVector))(w_2);
 	precond(precond_data, A, w, w_2);
-
+#endif
 	(*(cogmres_functions->Matvec))(matvec_data,
 	    minusone,
 	    A,
-	    w_2,
+	    w,
 	    0,
 	    minusone,
 	    p, 0);
@@ -929,8 +938,8 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
       // conv criteria 
       //printf("a_tol = %16.16f, r_norm(%16.16f) * r_tol(%16.16f) = %16.16f \n", a_tol, r_norm, r_tol, r_tol*r_norm);
       epsilon = hypre_max(a_tol,r_tol*b_norm);
-      printf("B NORM %16.16g B_NORM ORIG %16.16g,\n", b_norm, b_norm_original);
-      printf("will be solving to %16.15f, a_tol*norm_b = %16.15f \n", epsilon, r_tol*b_norm);    
+      //printf("B NORM %16.16g B_NORM ORIG %16.16g,\n", b_norm, b_norm_original);
+      //printf("will be solving to %16.15f, a_tol*norm_b = %16.15f \n", epsilon, r_tol*b_norm);    
       if (solverTimers){
 	time2 = MPI_Wtime();
 
@@ -1023,7 +1032,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
       else{
 	if ((usePrecond) && (leftPrecond)){
 
-	  // printf("norm before inner matvec %16.16f \n ", sqrt((*(cogmres_functions->InnerProd))(p,i-1,p, i-1)));
+	   //printf("norm before inner matvec %16.16f \n ", sqrt((*(cogmres_functions->InnerProd))(p,i-1,p, i-1)));
 	  if (solverTimers)
 	    time1 = MPI_Wtime();
 	  (*(cogmres_functions->Matvec))(matvec_data,
@@ -1040,7 +1049,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	    matvecPreconTime += (time2-time1);   
 	    time1 = MPI_Wtime();
 	  }
-	  //   printf("norm after inner matvec %16.16f \n ",sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)) );
+	    // printf("norm after inner matvec %16.16f \n ",sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)) );
 
 	  (*(cogmres_functions->UpdateVectorCPU))(w);
 	  (*(cogmres_functions->ClearVector))(w_2);
@@ -1057,8 +1066,8 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	    matvecPreconTime += (time2-time1);   
 	    time1 = MPI_Wtime();
 	  }
-	  //      printf("norm after inner precond %16.16f \n ",sqrt((*(cogmres_functions->InnerProd))(w_2,0,w_2, 0)) );
-	  //     printf("norm after inner precond (of w)%16.16f \n ",sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)) );
+	       // printf("norm after inner precond %16.16f \n ",sqrt((*(cogmres_functions->InnerProd))(w_2,0,w_2, 0)) );
+	       //printf("norm after inner precond (of w)%16.16f \n ",sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)) );
 	  (*(cogmres_functions->CopyVector))(w_2, 0, p, i);
 	  if (solverTimers){
 	    time2 = MPI_Wtime();

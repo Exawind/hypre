@@ -915,7 +915,7 @@ hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
   HYPRE_Int         y_size = hypre_VectorSize(y);
 HYPRE_Complex * xddata =  x->d_data;
 HYPRE_Complex * yddata =  y->d_data;
-
+//printf("TEST TEST TEST k1 = %d x_size = %d \n", k1, x_size);
   static cusparseHandle_t handle;
   static cusparseMatDescr_t descr;
   static HYPRE_Int FirstCall=1;
@@ -961,7 +961,7 @@ hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
 
 //printf("k1 = %d k2 = %d this is matvec. num rows in A %d , num cols in A %d  nnz in A %d alpha = %f beta = %f\n",k1, k2,A->num_rows, A->num_cols, A->num_nonzeros, alpha, beta );
 if ((A->d_data == NULL)) {
-//printf("d_data is NULL; updating!\n");
+printf("d_data is NULL; updating!\n");
 //hypre_SeqVectorPrefetchToDevice(A->data);
 //cudaMemPrefetchAsync(ptr,size,device,stream);
 // cudaError_t err; 
