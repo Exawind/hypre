@@ -1211,7 +1211,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
       (*(cogmres_functions->Axpy))(rs[j], p, j, x, 0);		
     }
     /* debug mode */
-#if 1
+#if 0
     //  (*(cogmres_functions->CopyVector))(x, 0, w, 0);
     //  (*(cogmres_functions->ClearVector))(w_2);
     // precond(precond_data, A, w, w_2);
@@ -1311,7 +1311,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
       matvecPreconTime+=(time2-time1);
       preconTime += (time2-time1);
     }}
-#if 1
+#if 0
   double ttt;
 
   if (solverTimers){
