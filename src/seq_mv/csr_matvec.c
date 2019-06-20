@@ -546,6 +546,7 @@ hypre_CSRMatrixMatvecT( HYPRE_Complex    alpha,
    /*-----------------------------------------------------------------------
     * Do (alpha == 0.0) computation - RDF: USE MACHINE EPS
     *-----------------------------------------------------------------------*/
+printf("deep 55: before matveciT, norm of INPUT %16.16f OUTPUT %16.16f offset %d \n", hypre_SeqVectorInnerProd(x, x), hypre_SeqVectorInnerProd(y, y), offset);
 
    if (alpha == 0.0)
    {
@@ -695,6 +696,7 @@ hypre_CSRMatrixMatvecT( HYPRE_Complex    alpha,
 
    if (x == y) hypre_SeqVectorDestroy(x_tmp);
 
+printf("deep 55: after matveciT, norm of INPUT %16.16f OUTPUT %16.16f offset %d \n", hypre_SeqVectorInnerProd(x, x), hypre_SeqVectorInnerProd(y, y), offset);
    return ierr;
 }
 
@@ -882,6 +884,7 @@ printf("status is %d \n", status);
   hypre_SeqVectorPrefetchToDevice(y);
 
   //if (offset!=0) hypre_printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: \n");
+printf("deep 5: before matvec, norm of INPUT %16.16f OUTPUT %16.16f offset %d \n", hypre_SeqVectorInnerProd(x, x), hypre_SeqVectorInnerProd(y, y), offset);
   cusparseDcsrmv(handle ,
                  CUSPARSE_OPERATION_NON_TRANSPOSE,
                  A->num_rows-offset, A->num_cols, A->num_nonzeros,
@@ -889,6 +892,7 @@ printf("status is %d \n", status);
                  A->data ,A->i+offset,A->j,
                  x->data, &beta, y->data+offset);
 
+printf("deep 5: after matvec, norm of INPUT %16.16f OUTPUT %16.16f offset %d \n", hypre_SeqVectorInnerProd(x, x), hypre_SeqVectorInnerProd(y, y), offset);
   if (!GetAsyncMode()){
   hypre_CheckErrorDevice(cudaStreamSynchronize(s[4]));
   }

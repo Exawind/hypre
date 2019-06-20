@@ -241,7 +241,8 @@ hypre_BoomerAMGSetup( void               *amg_vdata,
    add_end = hypre_min(add_last_lvl, max_levels-1);
    if (add_end == -1) add_end = max_levels-1;
    amg_logging = hypre_ParAMGDataLogging(amg_data);
-   amg_print_level = hypre_ParAMGDataPrintLevel(amg_data);
+   //amg_print_level = hypre_ParAMGDataPrintLevel(amg_data);
+   amg_print_level = 2;
    coarsen_type = hypre_ParAMGDataCoarsenType(amg_data);
    measure_type = hypre_ParAMGDataMeasureType(amg_data);
    setup_type = hypre_ParAMGDataSetupType(amg_data);
@@ -809,7 +810,7 @@ hypre_BoomerAMGSetup( void               *amg_vdata,
 
    F_array[0] = f;
    U_array[0] = u;
-
+printf("(ONE) U_array[%d] NORM IS %16.16f GPU %16.16f \n",level,  sqrt(hypre_ParVectorInnerProd(U_array[level], U_array[level])), sqrt(hypre_ParKrylovInnerProdOneOfMult(U_array[level],0,U_array[level], 0)));
    hypre_ParAMGDataFArray(amg_data) = F_array;
    hypre_ParAMGDataUArray(amg_data) = U_array;
 
@@ -900,6 +901,7 @@ hypre_BoomerAMGSetup( void               *amg_vdata,
                                      hypre_ParCSRMatrixGlobalNumRows(A_array[level]),
                                      hypre_ParCSRMatrixRowStarts(A_array[level]));
             hypre_ParVectorInitialize(U_array[level]);
+printf("(ONE) U_array[%d] NORM IS %16.16f GPU %16.16f \n",level,  sqrt(hypre_ParVectorInnerProd(U_array[level], U_array[level])), sqrt(hypre_ParKrylovInnerProdOneOfMult(U_array[level],0,U_array[level], 0)));
             hypre_ParVectorSetPartitioningOwner(U_array[level],0);
          }
 
@@ -2584,6 +2586,7 @@ hypre_BoomerAMGSetup( void               *amg_vdata,
                                   hypre_ParCSRMatrixGlobalNumRows(A_array[level]),
                                   hypre_ParCSRMatrixRowStarts(A_array[level]));
          hypre_ParVectorInitialize(U_array[level]);
+printf("(TWO) U_array[%d] NORM IS %16.16f GPU %16.16f \n",level,  sqrt(hypre_ParVectorInnerProd(U_array[level], U_array[level])), sqrt(hypre_ParKrylovInnerProdOneOfMult(U_array[level],0,U_array[level], 0)));
          hypre_ParVectorSetPartitioningOwner(U_array[level],0);
       }
    }

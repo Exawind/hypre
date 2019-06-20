@@ -813,8 +813,9 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	  time3 = MPI_Wtime();
 	}
 
+	(*(cogmres_functions->UpdateVectorCPU))(x);
 	//KS: if iter == 0, x has the right CPU data, no need to copy	
-	//printf("Starting norm before precon %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
+	printf("Starting norm of x, before precon %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
 	//printf("Starting norm of W before precon  %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
 	PUSH_RANGE("cogmres precon", 0);
 	precond(precond_data, A, x,w );
@@ -845,6 +846,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	(*(cogmres_functions->CopyVector))(w_2, 0, p, 0);
 	(*(cogmres_functions->CopyVector))(w_2, 0, b, 0);
 	b_norm = sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0));
+printf("NORM OF NEW B is %16.16f OLD B is %16.16f\n", b_norm, b_norm_original);
 	// w<-Ax
 	// w_2 <- Mw
 	// p = -w_2+p remember p = b
