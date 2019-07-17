@@ -503,7 +503,6 @@ hypre_ParCSRMatrixMatvecT( HYPRE_Complex       alpha,
   hypre_profile_times[HYPRE_TIMER_ID_PACK_UNPACK] += hypre_MPI_Wtime();
 #endif
 
-printf("par_cycle.c 5.1: the vector norm is %16.16f  \n",  hypre_SeqVectorInnerProd(x_local, x_local));
   if (num_cols_offd)
   {
     if (A->offdT)
@@ -520,7 +519,6 @@ printf("par_cycle.c 5.1: the vector norm is %16.16f  \n",  hypre_SeqVectorInnerP
     }
   }
 
-printf("par_cycle.c 5.2: the vector norm is %16.16f  \n",  hypre_SeqVectorInnerProd(y_tmp, y_tmp));
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] -= hypre_MPI_Wtime();
 #endif
@@ -545,7 +543,6 @@ printf("par_cycle.c 5.2: the vector norm is %16.16f  \n",  hypre_SeqVectorInnerP
   hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] += hypre_MPI_Wtime();
 #endif
 
-printf("par_cycle.c 5.3: the vector norm is %16.16f  \n",  hypre_SeqVectorInnerProd(x_local, x_local));
   if (A->diagT)
   {
     // diagT is optional. Used only if it's present.
@@ -559,7 +556,6 @@ printf("par_cycle.c 5.3: the vector norm is %16.16f  \n",  hypre_SeqVectorInnerP
     hypre_CSRMatrixMatvecT(alpha, diag, x_local, beta, y_local);
   }
 
-printf("par_cycle.c 5.4: the vector norm is %16.16f  \n",  hypre_SeqVectorInnerProd(y_local, y_local));
 #ifdef HYPRE_PROFILE
   hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] -= hypre_MPI_Wtime();
 #endif

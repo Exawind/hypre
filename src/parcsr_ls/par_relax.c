@@ -367,7 +367,6 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
                          Gauss-Seidel on-processor       
                          (forward loop) */
       {
-printf("hello hybrid, num_threads = %d \n", num_threads);
       
 hypre_ParVectorCopyDataCPUtoGPU(f);
    if (num_threads > 1)
@@ -386,22 +385,18 @@ hypre_ParVectorCopyDataCPUtoGPU(f);
 #ifdef HYPRE_PROFILE
             hypre_profile_times[HYPRE_TIMER_ID_PACK_UNPACK] -= hypre_MPI_Wtime();
 #endif
-printf("hello hybrid, num procs = %d \n", num_procs);
             num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
             
 #ifdef HYPRE_USING_PERSISTENT_COMM
-printf("hello hybrid - persistent comm\n");
             persistent_comm_handle = hypre_ParCSRCommPkgGetPersistentCommHandle(1, comm_pkg);
             v_buf_data = (HYPRE_Real *)persistent_comm_handle->send_data;
             Vext_data = (HYPRE_Real *)persistent_comm_handle->recv_data;
 #else
-printf("hello hybrid - normal comm\n");
             v_buf_data = hypre_CTAlloc(HYPRE_Real,  
                                        hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends), HYPRE_MEMORY_HOST);
             
             Vext_data = hypre_CTAlloc(HYPRE_Real, num_cols_offd, HYPRE_MEMORY_HOST);
 #endif
-           printf("hello hybrid, num cosls off %d \n", num_cols_offd); 
             if (num_cols_offd)
             {
                A_offd_j = hypre_CSRMatrixJ(A_offd);
@@ -410,7 +405,6 @@ printf("hello hybrid - normal comm\n");
 
             HYPRE_Int begin = hypre_ParCSRCommPkgSendMapStart(comm_pkg, 0);
             HYPRE_Int end   = hypre_ParCSRCommPkgSendMapStart(comm_pkg, num_sends);
-            printf("hello: begin = %d end = %d \n", begin, end);
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for HYPRE_SMP_SCHEDULE
 #endif
@@ -453,20 +447,15 @@ printf("hello hybrid - normal comm\n");
         hypre_profile_times[HYPRE_TIMER_ID_RELAX] -= hypre_MPI_Wtime();
 #endif
 //num_threads =1;	
-printf("hello hybrid -  num_threads %d \n", num_threads);
 
-printf("hello hybrid -  relax_points %d \n", relax_points);
 if (relax_weight == 1 && omega == 1)
         {
-printf("hello hybrid, relax weight is 1 and omega is 1 as well \n");
          if (relax_points == 0)
          {
 
-printf("hello hybrid zero relax points \n");
 	  if (num_threads > 1)
           {
 
-printf("hello hybrid, num threads is bigger than 0:  = %d \n", num_threads);
 	   tmp_data = Ztemp_data;
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
@@ -521,7 +510,6 @@ printf("hello hybrid, num threads is bigger than 0:  = %d \n", num_threads);
           }
 	  else
           {
-printf("hello hybrid, num thrads is ONE:  = %d \n", num_threads);
             for (i = 0; i < n; i++)	/* interior points first */
             {
 
@@ -532,7 +520,6 @@ printf("hello hybrid, num thrads is ONE:  = %d \n", num_threads);
                if ( A_diag_data[A_diag_i[i]] != zero)
                {
 
-printf("hello hybrid, diag %d is non zero  \n", i);
                   res = f_data[i];
                   for (jj = A_diag_i[i]+1; jj < A_diag_i[i+1]; jj++)
                   {
@@ -557,11 +544,9 @@ printf("hello hybrid, diag %d is non zero  \n", i);
          else
          {
 
-printf("hello hybrid, relax points is NON zero %d \n", relax_points);
 	  if (num_threads > 1)
 	  {
 
-printf("hello hybrid, relax_points is non zero and more than one thread! \n");
              tmp_data = Ztemp_data;
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
@@ -618,7 +603,6 @@ printf("hello hybrid, relax_points is non zero and more than one thread! \n");
 	  }
 	  else
 	  {
-printf("hello hybrid, relax points is NON Zero but ONLY ONE THREAD \n");
             for (i = 0; i < n; i++) /* relax interior points */
             {
 
@@ -652,11 +636,9 @@ u_data[i] = f_data[i];
         }
 	else
         {
-printf("hello hybrid, ELSE relax_weight  = %d \n", relax_weight);
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
-printf("hello = n = %d \n", n);
          for (i = 0; i < n; i++)
          {
             Vtemp_data[i] = u_data[i];
@@ -735,7 +717,6 @@ printf("hello = n = %d \n", n);
                /*-----------------------------------------------------------
                 * If diagonal is nonzero, relax point i; otherwise, skip it.
                 *-----------------------------------------------------------*/
-          printf("A_diag_data of %d is zero? %d\n", i,  A_diag_data[A_diag_i[i]] );   
                if ( A_diag_data[A_diag_i[i]] != zero)
                {
                   res0 = 0.0;

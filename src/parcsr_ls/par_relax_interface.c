@@ -42,7 +42,6 @@ HYPRE_Int  hypre_BoomerAMGRelaxIF( hypre_ParCSRMatrix *A,
 {
    HYPRE_Int i, Solve_err_flag = 0;
    HYPRE_Int relax_points[2];
-printf("relax_order %d cycle_type %d \n", relax_order, cycle_type);
    if (relax_order == 1 && cycle_type < 3)
    {
       if (cycle_type < 2)

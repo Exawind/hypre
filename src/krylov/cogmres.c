@@ -1,7 +1,6 @@
 #define solverTimers 1
 #define usePrecond 1
 #define leftPrecond 1
-
 /******************************************************************************
  *
  * COGMRES cogmres
@@ -18,6 +17,7 @@
 #ifdef HYPRE_USING_GPU
 #include "../seq_mv/gpukernels.h"
 #endif
+static HYPRE_Int HegedusTrick=0; 
 /*--------------------------------------------------------------------------
  * hypre_COGMRESFunctionsCreate
  *--------------------------------------------------------------------------*/
@@ -813,9 +813,8 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	  time3 = MPI_Wtime();
 	}
 
-	(*(cogmres_functions->UpdateVectorCPU))(x);
 	//KS: if iter == 0, x has the right CPU data, no need to copy	
-	printf("Starting norm of x, before precon %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
+	//printf("Starting norm before precon %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
 	//printf("Starting norm of W before precon  %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
 	PUSH_RANGE("cogmres precon", 0);
 	precond(precond_data, A, x,w );
@@ -834,8 +833,8 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
       if (solverTimers)
 	time1 = MPI_Wtime();
 
-	b_norm_original =  sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0));
-	b_norm = sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0));
+      b_norm_original =  sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0));
+      b_norm = sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0));
       if ((usePrecond) && (leftPrecond)){
 
 
@@ -846,7 +845,6 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	(*(cogmres_functions->CopyVector))(w_2, 0, p, 0);
 	(*(cogmres_functions->CopyVector))(w_2, 0, b, 0);
 	b_norm = sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0));
-printf("NORM OF NEW B is %16.16f OLD B is %16.16f\n", b_norm, b_norm_original);
 	// w<-Ax
 	// w_2 <- Mw
 	// p = -w_2+p remember p = b
@@ -909,6 +907,30 @@ printf("NORM OF NEW B is %16.16f OLD B is %16.16f\n", b_norm, b_norm_original);
 	(*(cogmres_functions->ClearVector))(w_2);
 	precond(precond_data, A, w, w_2);
 #endif
+	//Hegedus
+	if ((HegedusTrick)&&(!leftPrecond)){
+	  printf("GMRES: executing Hegedus Trick \n");
+
+
+	    (*(cogmres_functions->Matvec))(matvec_data,
+		one,
+		A,
+		w,
+		0,
+		zero,
+		w_2, 
+                0);
+
+	  HYPRE_Real part1 = (*(cogmres_functions->InnerProd))(b,0,w_2, 0);
+	  HYPRE_Real part2 = (*(cogmres_functions->InnerProd))(w_2,0,w_2, 0);
+
+	  printf("GMRES: scaling w by %16.16f  \n", part1/part2);
+	  (*(cogmres_functions->ScaleVector))(part1/part2,w, 0);
+
+
+	}//Hegedus
+
+
 	(*(cogmres_functions->Matvec))(matvec_data,
 	    minusone,
 	    A,
@@ -922,6 +944,7 @@ printf("NORM OF NEW B is %16.16f OLD B is %16.16f\n", b_norm, b_norm_original);
 	  matvecPreconTime+=(time4-time3);
 	  mvTime += (time4-time3);
 	  time1 = MPI_Wtime();
+
 	}
       }//else
 
@@ -1034,7 +1057,7 @@ printf("NORM OF NEW B is %16.16f OLD B is %16.16f\n", b_norm, b_norm_original);
       else{
 	if ((usePrecond) && (leftPrecond)){
 
-	   //printf("norm before inner matvec %16.16f \n ", sqrt((*(cogmres_functions->InnerProd))(p,i-1,p, i-1)));
+	  //printf("norm before inner matvec %16.16f \n ", sqrt((*(cogmres_functions->InnerProd))(p,i-1,p, i-1)));
 	  if (solverTimers)
 	    time1 = MPI_Wtime();
 	  (*(cogmres_functions->Matvec))(matvec_data,
@@ -1051,7 +1074,7 @@ printf("NORM OF NEW B is %16.16f OLD B is %16.16f\n", b_norm, b_norm_original);
 	    matvecPreconTime += (time2-time1);   
 	    time1 = MPI_Wtime();
 	  }
-	    // printf("norm after inner matvec %16.16f \n ",sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)) );
+	  // printf("norm after inner matvec %16.16f \n ",sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)) );
 
 	  (*(cogmres_functions->UpdateVectorCPU))(w);
 	  (*(cogmres_functions->ClearVector))(w_2);
@@ -1068,8 +1091,8 @@ printf("NORM OF NEW B is %16.16f OLD B is %16.16f\n", b_norm, b_norm_original);
 	    matvecPreconTime += (time2-time1);   
 	    time1 = MPI_Wtime();
 	  }
-	       // printf("norm after inner precond %16.16f \n ",sqrt((*(cogmres_functions->InnerProd))(w_2,0,w_2, 0)) );
-	       //printf("norm after inner precond (of w)%16.16f \n ",sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)) );
+	  // printf("norm after inner precond %16.16f \n ",sqrt((*(cogmres_functions->InnerProd))(w_2,0,w_2, 0)) );
+	  //printf("norm after inner precond (of w)%16.16f \n ",sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)) );
 	  (*(cogmres_functions->CopyVector))(w_2, 0, p, i);
 	  if (solverTimers){
 	    time2 = MPI_Wtime();
@@ -1332,7 +1355,6 @@ printf("NORM OF NEW B is %16.16f OLD B is %16.16f\n", b_norm, b_norm_original);
 
   printf("Ending, norm of true res  %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0)));
 #endif
-  // }//if use precond
 
   if (GSoption != 0){
     cudaFree(tempH);
@@ -1340,34 +1362,38 @@ printf("NORM OF NEW B is %16.16f OLD B is %16.16f\n", b_norm, b_norm_original);
     cudaFree(tempRV);
   }
 
-//	cudaFree(x_GPUonly);
-//	cudaFree(b_GPUonly);
+  //	cudaFree(x_GPUonly);
+  //	cudaFree(b_GPUonly);
 
 
 
-if ((my_id == 0)&& (solverTimers)){
-  hypre_printf("itersAll(%d,%d)                = %d \n", GSoption+1, k_dim/5, iter);
-  hypre_printf("timeGSAll(%d,%d)                = %16.16f \n",GSoption+1, k_dim/5, gsTime);
+  if ((my_id == 0)&& (solverTimers)){
+    hypre_printf("itersAll(%d,%d)                = %d \n", GSoption+1, k_dim/5, iter);
+    hypre_printf("timeGSAll(%d,%d)                = %16.16f \n",GSoption+1, k_dim/5, gsTime);
 
-  hypre_printf("TIME for CO-GMRES\n");
-  hypre_printf("init cost            = %16.16f \n", initTime);
-  hypre_printf("matvec+precon        = %16.16f \n", matvecPreconTime);
-  hypre_printf("gram-schmidt (total) = %16.16f \n", gsTime);
-  hypre_printf("linear solve         = %16.16f \n", linSolveTime);
-  hypre_printf("all other            = %16.16f \n", remainingTime);
-  hypre_printf("FINE times\n");
-  hypre_printf("mass Inner Product   = %16.16f \n", massIPTime);
-  hypre_printf("mass Axpy            = %16.16f \n", massAxpyTime);
-  hypre_printf("Gram-Schmidt: other  = %16.16f \n", gsOtherTime);
-  hypre_printf("precon multiply      = %16.16f \n", preconTime);
-  hypre_printf("mv time              = %16.16f \n", mvTime);
-  hypre_printf("MATLAB timers \n");
-  hypre_printf("gsTime(%d) = %16.16f \n", k_dim/5, gsTime);	
-  hypre_printf("timeAll(%d,%d)                =  ",GSoption+1, k_dim/5);
+    hypre_printf("TIME for CO-GMRES\n");
+    hypre_printf("init cost            = %16.16f \n", initTime);
+    hypre_printf("matvec+precon        = %16.16f \n", matvecPreconTime);
+    hypre_printf("gram-schmidt (total) = %16.16f \n", gsTime);
+    hypre_printf("linear solve         = %16.16f \n", linSolveTime);
+    hypre_printf("all other            = %16.16f \n", remainingTime);
+    hypre_printf("FINE times\n");
+    hypre_printf("mass Inner Product   = %16.16f \n", massIPTime);
+    hypre_printf("mass Axpy            = %16.16f \n", massAxpyTime);
+    hypre_printf("Gram-Schmidt: other  = %16.16f \n", gsOtherTime);
+    hypre_printf("precon multiply      = %16.16f \n", preconTime);
+    hypre_printf("mv time              = %16.16f \n", mvTime);
+    hypre_printf("MATLAB timers \n");
+    hypre_printf("gsTime(%d) = %16.16f \n", k_dim/5, gsTime);	
+    hypre_printf("timeAll(%d,%d)                =  ",GSoption+1, k_dim/5);
 
-}
+  }
 #endif
-return 0;
+  if (HegedusTrick == 0)
+    HegedusTrick=1;
+
+
+  return 0;
 }//Solve
 
 

@@ -616,7 +616,6 @@ HYPRE_Int size, size_y;
   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
 #endif
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
-
   HYPRE_Int ret =  hypre_SeqVectorCopyDevice(x,y);
   hypre_SeqVectorCopyDataGPUtoCPU(y);
   return ret;

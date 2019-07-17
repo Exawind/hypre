@@ -37,7 +37,6 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
                       hypre_ParVector  **F_array,
                       hypre_ParVector  **U_array   )
 {
-printf("AMG CYCLE INSIDE\n");
    hypre_ParAMGData *amg_data = (hypre_ParAMGData*) amg_vdata;
 
    HYPRE_Solver *smoother;
@@ -279,12 +278,9 @@ printf("AMG CYCLE INSIDE\n");
     hypre_ParVectorSetConstantValues(Ztemp,0);
            alpha = -1.0;
            beta = 1.0;
-           printf("par_cycle.c 1 level %d before matvec %16.16f, %16.16f %16.16f \n",level, hypre_ParVectorInnerProd(U_array[level],U_array[level]), hypre_ParVectorInnerProd(F_array[level],F_array[level]),hypre_ParVectorInnerProd(Rtemp,Rtemp) );
 
            hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                                 U_array[level], beta, F_array[level], Rtemp);
-           printf("par_cycle.c 1 level %d after  matvec %16.16f, %16.16f %16.16f \n",level, hypre_ParVectorInnerProd(U_array[level],U_array[level]), hypre_ParVectorInnerProd(F_array[level],F_array[level]),hypre_ParVectorInnerProd(Rtemp,Rtemp) );
-           //printf("par_cycle.c 1 Done\n");
            cg_num_sweep = hypre_ParAMGDataSmoothNumSweeps(amg_data);
            num_sweep = num_grid_sweeps[cycle_param];
            Aux_U = Ztemp;
@@ -375,7 +371,6 @@ printf("AMG CYCLE INSIDE\n");
               /*-----------------------------------------------
                 Choose Smoother
                 -----------------------------------------------*/
-printf("relax_type = %d smooth type = %d \n", relax_type, smooth_type);
               if (smooth_num_levels > level &&
                     (smooth_type == 7 || smooth_type == 8 ||
                      smooth_type == 9 || smooth_type == 19 ||
@@ -384,12 +379,9 @@ printf("relax_type = %d smooth type = %d \n", relax_type, smooth_type);
                  hypre_VectorSize(hypre_ParVectorLocalVector(Utemp)) = local_size;
                  alpha = -1.0;
                  beta = 1.0;
-                 //printf("par_cycle.c 2 %d\n",level);
                  
-           printf("par_cycle.c 2 level %d before matvec %16.16f, %16.16f %16.16f \n",level, hypre_ParVectorInnerProd(U_array[level],U_array[level]), hypre_ParVectorInnerProd(Aux_F, Aux_F),hypre_ParVectorInnerProd(Vtemp,Vtemp) );
 hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                                 U_array[level], beta, Aux_F, Vtemp);
-           printf("par_cycle.c 2 level %d after matvec %16.16f, %16.16f %16.16f \n",level, hypre_ParVectorInnerProd(U_array[level],U_array[level]), hypre_ParVectorInnerProd(Aux_F, Aux_F),hypre_ParVectorInnerProd(Vtemp,Vtemp) );
                  if (smooth_type == 8 || smooth_type == 18)
                     HYPRE_ParCSRParaSailsSolve(smoother[level],
                                  (HYPRE_ParCSRMatrix) A_array[level],
@@ -405,13 +397,11 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                                  (HYPRE_ParCSRMatrix) A_array[level],
                                  (HYPRE_ParVector) Vtemp,
                                  (HYPRE_ParVector) Utemp);
-printf("BEFORE AXPY \n");
                  hypre_ParVectorAxpy(relax_weight[level],Utemp,Aux_U);
               }
               else if (smooth_num_levels > level &&
                     (smooth_type == 6 || smooth_type == 16))
               {
-printf("BEFORE Scgwarz solve \n");
                  HYPRE_SchwarzSolve(smoother[level],
                                  (HYPRE_ParCSRMatrix) A_array[level],
                                  (HYPRE_ParVector) Aux_F,
@@ -441,7 +431,6 @@ printf("BEFORE Scgwarz solve \n");
                     }
                     for (i=0; i < 2; i++){
 
-printf("BEFORE Par Relax \n");
                        hypre_ParCSRRelax_L1_Jacobi(A_array[level],
                                                  Aux_F,
                                                  CF_marker_array[level],
@@ -455,7 +444,6 @@ printf("BEFORE Par Relax \n");
                  else /* not CF - so use through AMS */
                  {
 #if defined(HYPRE_USING_GPU)|| defined(HYPRE_USING_OPENMP_OFFLOAD) || defined(HYPRE_USING_MAPPED_OPENMP_OFFLOAD)
-                    printf("par_cycle.c !!! %d\n",level);
                     hypre_ParCSRRelax(A_array[level],
                                        Aux_F,
                                        1,
@@ -466,7 +454,6 @@ printf("BEFORE Par Relax \n");
                                        Aux_U,
                                        Vtemp,
                                        Ztemp);
-                    //printf("par_cycle.c 3 done %d\n",level);
 #else
                     if (num_threads == 1)
                        hypre_ParCSRRelax(A_array[level],
@@ -523,10 +510,6 @@ printf("BEFORE Par Relax \n");
               }
               else if (old_version)
               {
-                /*
-                 printf("cycle %d: relax_type %d, relax_points %d\n",
-                         cycle_param, relax_type, relax_points);
-                */
                  Solve_err_flag = hypre_BoomerAMGRelax(A_array[level],
                                                      Aux_F,
                                                      CF_marker_array[level],
@@ -560,7 +543,6 @@ printf("BEFORE Par Relax \n");
                  
 
 
-printf("before relax: Aux_U %16.16f Aux_F %16.16f\n",sqrt(hypre_ParVectorInnerProd(Aux_U, Aux_U)),  sqrt(hypre_ParVectorInnerProd(Aux_F, Aux_F))); 
   Solve_err_flag = hypre_BoomerAMGRelaxIF(A_array[level],
                                                           Aux_F,
                                                           CF_marker_array[level],
@@ -573,7 +555,6 @@ printf("before relax: Aux_U %16.16f Aux_F %16.16f\n",sqrt(hypre_ParVectorInnerPr
                                                           Aux_U,
                                                           Vtemp,
                                                           Ztemp);
-printf("after relax: Aux_U %16.16f Aux_F %16.16f\n",sqrt(hypre_ParVectorInnerProd(Aux_U, Aux_U)),  sqrt(hypre_ParVectorInnerProd(Aux_F, Aux_F))); 
                  }
               }
 
@@ -593,9 +574,7 @@ printf("after relax: Aux_U %16.16f Aux_F %16.16f\n",sqrt(hypre_ParVectorInnerPro
                     Ptemp_data[i] = Ztemp_data[i] + beta*Ptemp_data[i];
               }
 
-           printf("par_cycle.c 3 level %d before matvec %16.16f, %16.16f \n",level, hypre_ParVectorInnerProd(Ptemp, Ptemp),hypre_ParVectorInnerProd(Vtemp,Vtemp) );
               hypre_ParCSRMatrixMatvec(1.0,A_array[level],Ptemp,0.0,Vtemp);
-           printf("par_cycle.c 3 level %d after matvec %16.16f, %16.16f \n",level, hypre_ParVectorInnerProd(Ptemp, Ptemp),hypre_ParVectorInnerProd(Vtemp,Vtemp) );
               alfa = gamma /hypre_ParVectorInnerProd(Ptemp,Vtemp);
               hypre_ParVectorAxpy(alfa,Ptemp,U_array[level]);
               hypre_ParVectorAxpy(-alfa,Vtemp,Rtemp);
@@ -635,12 +614,8 @@ printf("after relax: Aux_U %16.16f Aux_F %16.16f\n",sqrt(hypre_ParVectorInnerPro
          else
          {
             // JSP: avoid unnecessary copy using out-of-place version of SpMV
-            //printf("par_cycle.c 4 %d\n",level);
-           printf("par_cycle.c 4 fine_grid %d before matvec %16.16f, %16.16f %16.16f \n",fine_grid, sqrt(hypre_ParVectorInnerProd(U_array[fine_grid],U_array[fine_grid])), sqrt(hypre_ParVectorInnerProd(F_array[fine_grid],F_array[fine_grid])), sqrt(hypre_ParVectorInnerProd(Vtemp,Vtemp)) );
             hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[fine_grid], U_array[fine_grid],
                                                beta, F_array[fine_grid], Vtemp);
-           printf("par_cycle.c 4 fine_grid %d after matvec %16.16f, %16.16f %16.16f \n",fine_grid, sqrt(hypre_ParVectorInnerProd(U_array[fine_grid],U_array[fine_grid])), sqrt(hypre_ParVectorInnerProd(F_array[fine_grid],F_array[fine_grid])), sqrt(hypre_ParVectorInnerProd(Vtemp,Vtemp)) );
-            //printf("par_cycle.c 4 done %d\n",level);
             //SyncVectorToHost(hypre_ParVectorLocalVector(Vtemp));
          }
 
@@ -664,15 +639,10 @@ printf("after relax: Aux_U %16.16f Aux_F %16.16f\n",sqrt(hypre_ParVectorInnerPro
             {
                //SyncVectorToHost(hypre_ParVectorLocalVector(Vtemp));
                //SyncVectorToHost(hypre_ParVectorLocalVector(F_array[coarse_grid]));
-               printf("par_cycle.c 5 %d\n",level,PrintPointerAttributes( hypre_ParCSRMatrixDiag(R_array[fine_grid])->data));
-           printf("par_cycle.c 5 coarse_grid %d before matvecT %16.16f,  %16.16f \n",coarse_grid,  hypre_ParVectorInnerProd(F_array[coarse_grid],F_array[coarse_grid]), hypre_ParVectorInnerProd(Vtemp,Vtemp) );
               
-hypre_ParVectorCopyDataCPUtoGPU(Vtemp);
+
  hypre_ParCSRMatrixMatvecT(alpha,R_array[fine_grid],Vtemp,
                                          beta,F_array[coarse_grid]);
-hypre_ParVectorCopyDataCPUtoGPU(F_array[coarse_grid]);
-           printf("par_cycle.c 5 coarse_grid %d after matvecT %16.16f, %16.16f \n",coarse_grid, hypre_ParVectorInnerProd(F_array[coarse_grid],F_array[coarse_grid]), hypre_ParVectorInnerProd(Vtemp,Vtemp) );
-               printf("par_cycle.c 5 Done %d\n",level);
                //UpdateDRC(hypre_ParVectorLocalVector(F_array[coarse_grid]));
                //SyncVectorToHost(hypre_ParVectorLocalVector(F_array[coarse_grid]));
             }
@@ -708,20 +678,10 @@ hypre_ParVectorCopyDataCPUtoGPU(F_array[coarse_grid]);
          }
          else
          {
-            //printf("par_cycle.c 6 %d\n",level);
-#if 0
-printf("(prolongation BEFORE) U_array[%d] NORM IS %16.16f GPU %16.16f and U_arrat[%d] is %16.16f and GPU %16.16f \n",coarse_grid,  sqrt(hypre_ParVectorInnerProd(U_array[coarse_grid], U_array[coarse_grid])), sqrt(hypre_ParKrylovInnerProdOneOfMult(U_array[coarse_grid],0,U_array[coarse_grid], 0)),
-fine_grid,  sqrt(hypre_ParVectorInnerProd(U_array[fine_grid], U_array[fine_grid])), sqrt(hypre_ParKrylovInnerProdOneOfMult(U_array[fine_grid],0,U_array[fine_grid], 0)));
-#endif
 
             hypre_ParCSRMatrixMatvec(alpha, P_array[fine_grid],
                                      U_array[coarse_grid],
                                      beta, U_array[fine_grid]);
-#if 0
-printf("(prolongation) U_array[%d] NORM IS %16.16f GPU %16.16f and U_arrat[%d] is %16.16f and GPU %16.16f \n",coarse_grid,  sqrt(hypre_ParVectorInnerProd(U_array[coarse_grid], U_array[coarse_grid])), sqrt(hypre_ParKrylovInnerProdOneOfMult(U_array[coarse_grid],0,U_array[coarse_grid], 0)),
-fine_grid,  sqrt(hypre_ParVectorInnerProd(U_array[fine_grid], U_array[fine_grid])), sqrt(hypre_ParKrylovInnerProdOneOfMult(U_array[fine_grid],0,U_array[fine_grid], 0)));
-           // printf("par_cycle.c 6 done %d\n",level);
-#endif
     }
 
          --level;
@@ -751,6 +711,5 @@ fine_grid,  sqrt(hypre_ParVectorInnerProd(U_array[fine_grid], U_array[fine_grid]
          smooth_type == 17 || smooth_type == 18 || smooth_type == 19 )
         hypre_ParVectorDestroy(Utemp);
    }
-   //printf("HYPRE_BoomerAMGCycle END\n");
    return(Solve_err_flag);
 }

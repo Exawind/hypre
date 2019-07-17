@@ -810,7 +810,6 @@ hypre_BoomerAMGSetup( void               *amg_vdata,
 
    F_array[0] = f;
    U_array[0] = u;
-printf("(ONE) U_array[%d] NORM IS %16.16f GPU %16.16f \n",level,  sqrt(hypre_ParVectorInnerProd(U_array[level], U_array[level])), sqrt(hypre_ParKrylovInnerProdOneOfMult(U_array[level],0,U_array[level], 0)));
    hypre_ParAMGDataFArray(amg_data) = F_array;
    hypre_ParAMGDataUArray(amg_data) = U_array;
 
@@ -901,7 +900,6 @@ printf("(ONE) U_array[%d] NORM IS %16.16f GPU %16.16f \n",level,  sqrt(hypre_Par
                                      hypre_ParCSRMatrixGlobalNumRows(A_array[level]),
                                      hypre_ParCSRMatrixRowStarts(A_array[level]));
             hypre_ParVectorInitialize(U_array[level]);
-printf("(ONE) U_array[%d] NORM IS %16.16f GPU %16.16f \n",level,  sqrt(hypre_ParVectorInnerProd(U_array[level], U_array[level])), sqrt(hypre_ParKrylovInnerProdOneOfMult(U_array[level],0,U_array[level], 0)));
             hypre_ParVectorSetPartitioningOwner(U_array[level],0);
          }
 
@@ -2586,7 +2584,6 @@ printf("(ONE) U_array[%d] NORM IS %16.16f GPU %16.16f \n",level,  sqrt(hypre_Par
                                   hypre_ParCSRMatrixGlobalNumRows(A_array[level]),
                                   hypre_ParCSRMatrixRowStarts(A_array[level]));
          hypre_ParVectorInitialize(U_array[level]);
-printf("(TWO) U_array[%d] NORM IS %16.16f GPU %16.16f \n",level,  sqrt(hypre_ParVectorInnerProd(U_array[level], U_array[level])), sqrt(hypre_ParKrylovInnerProdOneOfMult(U_array[level],0,U_array[level], 0)));
          hypre_ParVectorSetPartitioningOwner(U_array[level],0);
       }
    }
