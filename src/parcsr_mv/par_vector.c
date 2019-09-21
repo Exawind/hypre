@@ -612,6 +612,41 @@ hypre_MPI_Barrier(comm);
 }
 
 
+/*--------------------------------------------------------------------------
+ * hypre_ParVectorDoubleInnerProdOneOfMult
+ *--------------------------------------------------------------------------*/
+// remember - res is CPU data not GPU data
+  HYPRE_Real 
+hypre_ParVectorDoubleInnerProdOneOfMult( hypre_ParVector *x,HYPRE_Int k1,
+    hypre_ParVector *y, HYPRE_Int k2, HYPRE_Real *res )
+{
+  MPI_Comm      comm    = hypre_ParVectorComm(x);
+  hypre_Vector *x_local = hypre_ParVectorLocalVector(x);
+//printf("x local exists...");
+  hypre_Vector *y_local = hypre_ParVectorLocalVector(y);
+//printf("y local exists...");
+///hypre_ParVectorLocalVectori/
+//printf("Depth 1 INSIDE IP, sizes %d %d \n", x_local->size, y_local->size);
+  HYPRE_Real * local_result; 
+
+  local_result= (HYPRE_Real *)calloc(2, sizeof(HYPRE_Real));
+  local_result[0] = hypre_SeqVectorInnerProdOneOfMult(x_local,k1, x_local, k1);
+  local_result[1] = hypre_SeqVectorInnerProdOneOfMult(y_local,k2, y_local, k2);
+
+//printf("local result, after all reduce %16.16f \n", result);
+#ifdef HYPRE_PROFILE
+  hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] -= hypre_MPI_Wtime();
+#endif
+hypre_MPI_Barrier(comm);
+  hypre_MPI_Allreduce(local_result,res , 2, HYPRE_MPI_REAL,
+      hypre_MPI_SUM, comm);
+#ifdef HYPRE_PROFILE
+  hypre_profile_times[HYPRE_TIMER_ID_ALL_REDUCE] += hypre_MPI_Wtime();
+#endif
+
+//printf("global result, after all reduce %16.16f \n", result);
+}
+
 
 void  hypre_ParVectorMassInnerProdMult( hypre_ParVector *x, HYPRE_Int k,
     hypre_ParVector *y, HYPRE_Int k2, HYPRE_Real *result  ){

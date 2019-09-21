@@ -1007,7 +1007,7 @@ HYPRE_Int  hypre_ParCSRRelax_L1_Jacobi( hypre_ParCSRMatrix *A,
 
 {
 //hypre_CSRMatrixDeviceData
-printf("YES THIS IS L1 JACOBI!!!\n");
+//printf("YES THIS IS L1 JACOBI!!!\n");
     MPI_Comm	   comm = hypre_ParCSRMatrixComm(A);
     hypre_CSRMatrix *A_diag = hypre_ParCSRMatrixDiag(A);
     HYPRE_Real     *A_diag_data  = hypre_CSRMatrixData(A_diag);
@@ -1020,8 +1020,8 @@ printf("YES THIS IS L1 JACOBI!!!\n");
     hypre_ParCSRCommPkg  *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
     hypre_ParCSRCommHandle *comm_handle;
 
-if (hypre_CSRMatrixDeviceData(A_diag) ==NULL){printf("L1: no dev data \n");}
-else {printf("L1: d data exists\n");}
+//if (hypre_CSRMatrixDeviceData(A_diag) ==NULL){printf("L1: no dev data \n");}
+//else { printf("L1: d data exists\n");}
     HYPRE_Int             n       = hypre_CSRMatrixNumRows(A_diag);
     HYPRE_Int             num_cols_offd = hypre_CSRMatrixNumCols(A_offd);
 

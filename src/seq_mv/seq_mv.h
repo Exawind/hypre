@@ -448,6 +448,7 @@ HYPRE_Int hypre_SeqVectorScale ( HYPRE_Complex alpha , hypre_Vector *y );
 HYPRE_Int hypre_SeqVectorAxpy ( HYPRE_Complex alpha , hypre_Vector *x , hypre_Vector *y );
 HYPRE_Real hypre_SeqVectorInnerProd ( hypre_Vector *x , hypre_Vector *y );
 HYPRE_Real hypre_SeqVectorInnerProdOneOfMult ( hypre_Vector *x ,HYPRE_Int k1, hypre_Vector *y, HYPRE_Int k2 );
+HYPRE_Real hypre_SeqVectorDoubleInnerProdOneOfMult ( hypre_Vector *x ,HYPRE_Int k1,  hypre_Vector y, HYPRE_Int k2, HYPRE_Real *res );
   HYPRE_Int  hypre_SeqVectorAxpyOneOfMult(HYPRE_Complex alpha,  hypre_Vector* x , HYPRE_Int k1,  hypre_Vector* y , HYPRE_Int k2 );
 HYPRE_Int hypre_SeqVectorMassInnerProd(hypre_Vector *x, hypre_Vector **y, HYPRE_Int k, HYPRE_Int unroll, HYPRE_Real *result);
 HYPRE_Int hypre_SeqVectorMassInnerProd4(hypre_Vector *x, hypre_Vector **y, HYPRE_Int k,  HYPRE_Real *result);

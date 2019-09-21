@@ -71,6 +71,7 @@ HYPRE_Int HYPRE_ParVectorScaleOneOfMult( HYPRE_Complex value , HYPRE_ParVector x
 
 HYPRE_Int HYPRE_ParVectorInnerProd( HYPRE_ParVector x , HYPRE_ParVector y , HYPRE_Real *prod );
 HYPRE_Int HYPRE_ParVectorInnerProdOneOfMult( HYPRE_ParVector x , HYPRE_Int k1,  HYPRE_ParVector y , HYPRE_Int k2,  HYPRE_Real *prod );
+HYPRE_Int HYPRE_ParVectorDoubleInnerProdOneOfMult ( HYPRE_ParVector x ,HYPRE_Int k1,  HYPRE_ParVector y, HYPRE_Int k2, HYPRE_Real *res );
 HYPRE_Int HYPRE_ParVectorAxpyOneOfMult(HYPRE_Complex alpha,  HYPRE_ParVector x , HYPRE_Int k1,  HYPRE_ParVector y , HYPRE_Int k2 );
 
 HYPRE_Int HYPRE_VectorToParVector( MPI_Comm comm , HYPRE_Vector b , HYPRE_Int *partitioning , HYPRE_ParVector *vector );

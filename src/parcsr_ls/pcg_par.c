@@ -278,13 +278,26 @@ hypre_ParKrylovInnerProd( void *x,
  * hypre_ParKrylovInnerProdOneOfMult
  *--------------------------------------------------------------------------*/
 
-  HYPRE_Real
+  HYPRE_Real 
 hypre_ParKrylovInnerProdOneOfMult( void *x, HYPRE_Int k1,
     void *y, HYPRE_Int k2 )
 {
   return ( hypre_ParVectorInnerProdOneOfMult( (hypre_ParVector *) x,k1,
 	(hypre_ParVector *) y, k2 ) );
 }
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovDoubleInnerProdOneOfMult
+ *--------------------------------------------------------------------------*/
+
+  HYPRE_Int 
+hypre_ParKrylovDoubleInnerProdOneOfMult( void *x, HYPRE_Int k1,
+    void *y, HYPRE_Int k2, void *res )
+{
+  return ( hypre_ParVectorDoubleInnerProdOneOfMult( (hypre_ParVector *) x,k1,
+	(hypre_ParVector *) y, k2, (HYPRE_Real*) res ) );
+}
+
 /*--------------------------------------------------------------------------
  * hypre_ParKrylovAxpyOneOfMult
  *--------------------------------------------------------------------------*/

@@ -1,6 +1,6 @@
 #define solverTimers 1
 #define usePrecond 1
-#define leftPrecond 1
+#define leftPrecond 0
 /******************************************************************************
  *
  * COGMRES cogmres
@@ -40,6 +40,7 @@ static HYPRE_Int HegedusTrick=0;
       HYPRE_Int    (*MassInnerProd) (void *x,HYPRE_Int k1, void *y, HYPRE_Int k2, void *result),
       HYPRE_Int    (*MassInnerProdTwoVectors) ( void *x,HYPRE_Int k, void *y1, HYPRE_Int k1, void *y2, HYPRE_Int k2, void *result),
       HYPRE_Int    (*MassInnerProdWithScaling)   ( void *x, HYPRE_Int i1, void *y,HYPRE_Int i2, void *scaleFactors, void *result),
+      HYPRE_Int   (*DoubleInnerProd)     ( void *x,HYPRE_Int i1,  void *y, HYPRE_Int i2, void * res ),
       HYPRE_Int    (*CopyVector)    ( void *x,HYPRE_Int i1, void *y, HYPRE_Int i2 ),
       HYPRE_Int    (*ClearVector)   ( void *x ),
       HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x, HYPRE_Int i1 ),
@@ -67,6 +68,7 @@ static HYPRE_Int HegedusTrick=0;
   cogmres_functions->MassInnerProd     = MassInnerProd;	
   cogmres_functions->MassInnerProdTwoVectors     = MassInnerProdTwoVectors;	
   cogmres_functions->MassInnerProdWithScaling       = MassInnerProdWithScaling;
+  cogmres_functions->DoubleInnerProd       = DoubleInnerProd;
   cogmres_functions->CopyVector        = CopyVector;
   cogmres_functions->ClearVector       = ClearVector;
   cogmres_functions->ScaleVector       = ScaleVector;
@@ -247,8 +249,12 @@ HYPRE_Int idx(HYPRE_Int r, HYPRE_Int c, HYPRE_Int n){
  * ============================*/
 
 //#define GSoption 1
-// 0 is modified gram-schmidt as in "normal" GMRES straight from SAADs book
-// 1 is co-gmres, version 0 by ST and KS
+// 0 is modified gram-schmidt as in "normal" GMRES straight from Saad's book
+// 1 is CGS-1 with Ghysells norm (stabiity cannot be assured)
+// 3 is CGS-2 (reorhogonalized Classical Gram Schmidti, 3 synch version)
+// 4 is 2-synch Modified Gram Schmidt (triangular solve version but without (important) delayed norm
+// 5 is 1-synch Modifid Gram Schmidt (norm is delayed)
+// <6 is 1 synch Classical Gram Schmidt with delayed norm 
 // allocate spaces for GPU (copying does not happen inside) prior to calling
 
 void GramSchmidt (HYPRE_Int option,
@@ -264,13 +270,14 @@ void GramSchmidt (HYPRE_Int option,
 
   HYPRE_Int j;
   HYPRE_Real t;
+  // MODIFIED GRAM SCHMIDT, (i-1) synchs (textbook) version, 
   if (option == 0){
     for (j=0; j<i; ++j){ 
       Hcolumn[idx( i-1,j, k_dim+1)] =(*(cf->InnerProd))(Vspace, 
 	  j, 
 	  Vspace, 
 	  i); 
-    (*(cf->Axpy))((-1.0)*Hcolumn[idx( i-1,j, k_dim+1)], Vspace, j, Vspace, i);		
+      (*(cf->Axpy))((-1.0)*Hcolumn[idx( i-1,j, k_dim+1)], Vspace, j, Vspace, i);		
     }
 
     t = sqrt((*(cf->InnerProd))(Vspace,i,Vspace, i));
@@ -281,36 +288,40 @@ void GramSchmidt (HYPRE_Int option,
     }
 
   }
+
+  /*CGS-1 with Ghysels norm estimate */
   if (option == 1){
-    t  = sqrt((*(cf->InnerProd))(Vspace,i,Vspace, i));
+    //t = \|V_i\|
 
+    if (i>0) {
+      //first synch
+      (*(cf->DoubleInnerProd)) (Vspace,i-1, Vspace, i, &rv[i-1]);
 
+      double dd = 2.0f - rv[i-1];
+      cudaMemcpy (&rvGPU[i-1], &dd,
+	  sizeof(HYPRE_Real),
+	  cudaMemcpyHostToDevice );
+      t= sqrt(rv[i]);
+    }
+    else{
 
-    /*--------------------------------------------------------------------------
-     * hypre_ParKrylovMassInnerProdWithScalingMult // written by KS //for multivectors
-     * x is the space, y is the single vector 
-     *--------------------------------------------------------------------------*/
-    (*(cf->MassInnerProdWithScaling)) (Vspace,i, Vspace, i,rvGPU, HcolumnGPU); 
+      t  = sqrt((*(cf->InnerProd))(Vspace,i,Vspace, i));
+    }
+    // H_i = rvGPU^T*(V_{i-1}^Tv_i)
+    //second synch    
+    (*(cf->MassInnerProdWithScaling)) (Vspace,i, Vspace, i,rvGPU, HcolumnGPU);
+
     cudaMemcpy ( &Hcolumn[idx( i-1,0,k_dim+1)],
 	HcolumnGPU,
 	i*sizeof(HYPRE_Real),
 	cudaMemcpyDeviceToHost );
-    /*		MassAxpyGPUonly(sz,  i,
-		Vspace,				
-		w,
-		HcolumnGPU);	
-		*/
+    // v_i = v_i - V_{i-1}^TH_i = v_i - rvGPU^TV_{i-1}^T v_i = (I-rvGPU^T V_{i-1}^T) v_i 
 
-    /*--------------------------------------------------------------------------
-     * hypre_ParKrylovMassAxpyMult (for multivectors, x is a multivector)
-     *--------------------------------------------------------------------------*/
-
-    //hypre_ParKrylovMassAxpyMult( HcolumnGPU,Vspace,i, Vspace, i);
     (*(cf->MassAxpy))( HcolumnGPU,Vspace,i, Vspace, i);
 
 
     HYPRE_Real t2= 0.0f;
-
+    // t2 = \|H_i\|
     for (j=0; j<i; j++){
       HYPRE_Int id = idx( i-1,j,k_dim+1);
       t2          += (Hcolumn[id]*Hcolumn[id]);        
@@ -318,262 +329,89 @@ void GramSchmidt (HYPRE_Int option,
     t2 = sqrt(t2)*sqrt(rv[i-1]);
 
     Hcolumn[idx(i-1, i, k_dim+1)] = sqrt(t-t2)*sqrt(t2+t);
-    if (Hcolumn[idx(i, i-1, k_dim+1)] != 0.0)
+    if (Hcolumn[idx( i-1,i, k_dim+1)] != 0.0)
     {
       t = 1.0/Hcolumn[idx(i-1, i, k_dim+1)]; 
-      /*			ScaleGPUonly(w, 
-				t, 
-				sz);*/
-
-      //hypre_ParKrylovScaleVectorOneOfMult(t,Vspace, i);
       (*(cf->ScaleVector))(t,Vspace, i);
 
-      /*			InnerProdGPUonly(w,  
-				w, 
-				&rv[i], 
-				sz);*/
-
-      //	rv[i]  = hypre_ParKrylovInnerProdOneOfMult(Vspace,i,Vspace, i);
-      rv[i]  = (*(cf->InnerProd))(Vspace,i,Vspace, i);
-      double dd = 2.0f - rv[i];
-      cudaMemcpy (&rvGPU[i], &dd,
-	  sizeof(HYPRE_Real),
-	  cudaMemcpyHostToDevice );
+      //  rv[i]  = (*(cf->InnerProd))(Vspace,i,Vspace, i);
+      //rv[i] = 1.0/t;     
     }//if
-
   }
-  if (option == 2){
-    //CGS2 -- straight from Ruhe
-    /*		MassInnerProdGPUonly(w,
-		Vspace,
-		HcolumnGPU,				
-		i,
-		sz);*/
 
-    //hypre_ParKrylovMassInnerProdMult(Vspace,i, Vspace, i, HcolumnGPU);
+  if (option == 2){
+    //HcolumnGPU =V_{i-1}^Tv_i = V_{i-1}^Ta (first synch)
     (*(cf->MassInnerProd))(Vspace,i, Vspace, i, HcolumnGPU);
-    /*
-     *
-     cudaMemcpy ( &Hcolumn[idx(0, i-1,k_dim+1)],
-     HcolumnGPU,
-     i*sizeof(HYPRE_Real),
-     cudaMemcpyDeviceToHost );
-     * */
+
     cudaMemcpy ( &Hcolumn[idx( i-1,0,k_dim+1)],HcolumnGPU,
 	i*sizeof(HYPRE_Real),
 	cudaMemcpyDeviceToHost );
-    /*		MassAxpyGPUonly(sz,  i,
-		Vspace,				
-		w,
-		HcolumnGPU);	*/
+    //v_i = v_i - V_{i-1}HcolumnGPU = v_i - V_{i-1}V_{i-1}^Tv_i
 
-    //hypre_ParKrylovMassAxpyMult( HcolumnGPU,Vspace,i, Vspace, i);
     (*(cf->MassAxpy))( HcolumnGPU,Vspace,i, Vspace, i);
-    //k=2
-    //do it again
-    /*		MassInnerProdGPUonly(w,
-		Vspace,
-		HcolumnGPU,				
-		i,
-		sz);*/
-
-    //  hypre_ParKrylovMassInnerProdMult(Vspace,i, Vspace, i, HcolumnGPU);
+    //second orth
+    //HcolumnGPU = = V_{i-1}^Tv_i = V_{i-1}^Ta (second synch)
     (*(cf->MassInnerProd))(Vspace,i, Vspace, i, HcolumnGPU);
     cudaMemcpy ( &rv[0],HcolumnGPU,
 	i*sizeof(HYPRE_Real),
 	cudaMemcpyDeviceToHost );
-
+    //update Hcolumn a.k.a R in QR factorization
     for (j=0; j<i; j++){
       HYPRE_Int id = idx( i-1,j,k_dim+1);
       Hcolumn[id]+=rv[j];        
     }
 
-    /*		MassAxpyGPUonly(sz,  i,
-		Vspace,				
-		w,
-		HcolumnGPU);	*/
-
-    //hypre_ParKrylovMassAxpyMult( HcolumnGPU,Vspace,i, Vspace, i);
+    //v_i = v_i - V_{i-1}HcolumnGPU = v_i - V_{i-1}V_{i-1}^Tv_i
     (*(cf->MassAxpy))( HcolumnGPU,Vspace,i, Vspace, i);
 
-
-    /*		InnerProdGPUonly(w,  
-		w, 
-		&t, 
-		sz);
-		t = sqrt(t);*/
-
-    //t  = sqrt(hypre_ParKrylovInnerProdOneOfMult(Vspace,i,Vspace, i));
+    //norm (third synch)
     t  = sqrt((*(cf->InnerProd))(Vspace,i,Vspace, i));
     Hcolumn[idx(i-1,i, k_dim+1)] = t;
     if (Hcolumn[idx( i-1,i, k_dim+1)] != 0.0)
     {
       t = 1.0/Hcolumn[idx(i-1,i, k_dim+1)]; 
-      /*			ScaleGPUonly(w, 
-				t, 
-				sz);*/
-
-      //hypre_ParKrylovScaleVectorOneOfMult(t,Vspace, i);
       (*(cf->ScaleVector))(t,Vspace, i);
     }//if
 
   }
 
   if (option == 3){
-    //Alg 3 from paper
+    //Tri solve MGS WITHOUT delayed norm (so 2 synchs, not 1)
     //C version of orth_cgs2_new by ST
-    //remember: U NEED L IN THIS CODE AND NEED TO KEEP IT!! 
-    //L(1:i, i) = V(:, 1:i)'*V(:,i);
+    //remember: U NEED L IN THIS CODE AND NEED TO KEEP IT!!
     //
-    //printf("option = %d, i = %d \n", option, i );
-    /*		MassInnerProdGPUonly(&Vspace[(i-1)*sz],
-		Vspace,
-		rvGPU,				
-		i,
-		sz);*/
-
-    //hypre_ParKrylovMassInnerProdMult(Vspace,i, Vspace, i-1, rvGPU);
-    (*(cf->MassInnerProd))(Vspace,i, Vspace, i-1, rvGPU);
-    //copy rvGPU to L
-
-    //printf("test 2\n");
-    cudaMemcpy ( &L[(i-1)*(k_dim+1)],rvGPU,
-	i*sizeof(HYPRE_Real),
-	cudaMemcpyDeviceToHost );
-    //aux = V(:,i)'*w;
-
-    //printf("test 3\n");
-    /*		MassInnerProdGPUonly(w,
-		Vspace,
-		rvGPU,				
-		i,
-		sz);*/
-
-    //hypre_ParKrylovMassInnerProdMult(Vspace,i, Vspace, i, rvGPU);
-    (*(cf->MassInnerProd))(Vspace,i, Vspace, i, rvGPU);
-
-    //printf("test 4\n");
-    cudaMemcpy ( rv,rvGPU,
-	i*sizeof(HYPRE_Real),
-	cudaMemcpyDeviceToHost );
-    //H(1:i, i) = D*aux - Lp*aux - Lp'*aux
-    //printf("rv as is \n");
-
-    for (int j=0; j<i; ++j){
-      //printf(" %16.16f \n ", rv[j]);
-      Hcolumn[(i-1)*(k_dim+1)+j] = 0.0f;
-    }
-
-    //printf("test 5, i = %d\n", i);
-    for (int j=0; j<i; ++j){
-      for (int k=0; k<i; ++k){
-	//we are processing H[j*(k_dim+1)+k]
-	if (j==k){Hcolumn[(i-1)*(k_dim+1)+k] += L[j*(k_dim+1)+k]*rv[j];
-	  //        printf("DIAGONAL L(%d, %d) = %16.16f , aux[%d] = %f, adding to: H(%d,%d) \n",k, j,L[j*(k_dim+1)+k], j, rv[j], k, i-1);
-
-	} 
-
-	if (j<k){
-	  Hcolumn[(i-1)*(k_dim+1)+j] -= L[k*(k_dim+1)+j]*rv[k];
-	  //printf("LpT L(%d, %d) = %16.16f , aux[%d] = %f, adding to: H(%d,%d) \n", j,k, L[k*(k_dim+1)+j], k, rv[k], j, i -1);
-	}
-	if (j>k){
-
-	  Hcolumn[(i-1)*(k_dim+1)+j] -= L[j*(k_dim+1)+k]*rv[k];
-	  //        printf("Lp L(%d, %d) = %16.16f , aux[%d] = %f adding to: H(%d,%d) \n",j, k, L[j*(k_dim+1)+k], k, rv[k], j, i-1 );
-	}
-      }//for k 
-    }//for j
-
-    cudaMemcpy ( HcolumnGPU,&Hcolumn[(i-1)*(k_dim+1)],
-	i*sizeof(HYPRE_Real),
-	cudaMemcpyHostToDevice);
-
-
-    //printf("test 7\n");
-    /*		MassAxpyGPUonly(sz,  i,
-		Vspace,				
-		w,
-		HcolumnGPU);*/
-
-    //hypre_ParKrylovMassAxpyMult( HcolumnGPU,Vspace,i, Vspace, i);
-    (*(cf->MassAxpy))( HcolumnGPU,Vspace,i, Vspace, i);
-    //normalize
-    /*		InnerProdGPUonly(w,  
-		w, 
-		&t, 
-		sz);
-		t = sqrt(t);*/
-
-    //t  = sqrt(hypre_ParKrylovInnerProdOneOfMult(Vspace,i,Vspace, i));
-    t  = sqrt((*(cf->InnerProd))(Vspace,i,Vspace, i));
-    //printf("test 8, t = %f\n", t);
-    Hcolumn[idx(i, i-1, k_dim+1)] = t;
-    if (Hcolumn[idx(i, i-1, k_dim+1)] != 0.0)
-    {
-      t = 1.0/Hcolumn[idx(i, i-1, k_dim+1)]; 
-      /*			ScaleGPUonly(w, 
-				t, 
-				sz);*/
-
-      //hypre_ParKrylovScaleVectorOneOfMult(t,Vspace, i);
-      (*(cf->ScaleVector))(t,Vspace, i);
-
-    }//if
-
-  }
-
-
-  if (option == 4){
-    //Alg 3 from paper, TRUE two synch version
-    //C version of orth_cgs2_new by ST
-    //remember: U NEED L IN THIS CODE AND NEED TO KEEP IT!! 
-    //L(1:i, i) = V(:, 1:i)'*V(:,i);
-    //
-    //printf("option = %d, i = %d \n", option, i );
-    /*		MassInnerProdGPUonly(&Vspace[(i-1)*sz],
-		Vspace,
-		rvGPU,				
-		i,
-		sz);*/
-
-    //hypre_ParKrylovMassInnerProdMult(Vspace,i, Vspace, i-1, rvGPU);
-    //SPACE FIRST THEN VECTORS
+    //L(1:i, i) = V(:, 1:i)'*V(:,i); (first synch)
+    // [rvGPU] = [V_{i-1} a]^T [v_{i-1} a]
     (*(cf->MassInnerProdTwoVectors))(Vspace,i, Vspace, i-1, Vspace, i, rvGPU);
+
     //copy rvGPU to L
 
-    //printf("test 2\n");
     cudaMemcpy ( &L[(i-1)*(k_dim+1)],rvGPU,
 	i*sizeof(HYPRE_Real),
 	cudaMemcpyDeviceToHost );
-    //aux = V(:,i)'*w;
 
     cudaMemcpy ( rv,&rvGPU[i],
 	i*sizeof(HYPRE_Real),
 	cudaMemcpyDeviceToHost );
 
     for (int j=0; j<i; ++j){
-      //printf(" %16.16f \n ", rv[j]);
+      printf("TWO SYNCH L[%d, %d] =%f \n", j, i-1,  L[(i-1)*(k_dim+1)+j]);
+    }
+    for (int j=0; j<i; ++j){
       Hcolumn[(i-1)*(k_dim+1)+j] = 0.0f;
     }
-
-    //printf("test 5, i = %d\n", i);
+    //triangular solve
     for (int j=0; j<i; ++j){
       for (int k=0; k<i; ++k){
 	//we are processing H[j*(k_dim+1)+k]
 	if (j==k){Hcolumn[(i-1)*(k_dim+1)+k] += L[j*(k_dim+1)+k]*rv[j];
-	  //        printf("DIAGONAL L(%d, %d) = %16.16f , aux[%d] = %f, adding to: H(%d,%d) \n",k, j,L[j*(k_dim+1)+k], j, rv[j], k, i-1);
-
 	} 
 
 	if (j<k){
 	  Hcolumn[(i-1)*(k_dim+1)+j] -= L[k*(k_dim+1)+j]*rv[k];
-	  //printf("LpT L(%d, %d) = %16.16f , aux[%d] = %f, adding to: H(%d,%d) \n", j,k, L[k*(k_dim+1)+j], k, rv[k], j, i -1);
 	}
 	if (j>k){
-
 	  Hcolumn[(i-1)*(k_dim+1)+j] -= L[j*(k_dim+1)+k]*rv[k];
-	  //        printf("Lp L(%d, %d) = %16.16f , aux[%d] = %f adding to: H(%d,%d) \n",j, k, L[j*(k_dim+1)+k], k, rv[k], j, i-1 );
 	}
       }//for k 
     }//for j
@@ -582,40 +420,100 @@ void GramSchmidt (HYPRE_Int option,
 	i*sizeof(HYPRE_Real),
 	cudaMemcpyHostToDevice);
 
-
-    //printf("test 7\n");
-    /*		MassAxpyGPUonly(sz,  i,
-		Vspace,				
-		w,
-		HcolumnGPU);*/
-
-    //hypre_ParKrylovMassAxpyMult( HcolumnGPU,Vspace,i, Vspace, i);
     (*(cf->MassAxpy))( HcolumnGPU,Vspace,i, Vspace, i);
-    //normalize
-    /*		InnerProdGPUonly(w,  
-		w, 
-		&t, 
-		sz);
-		t = sqrt(t);*/
-
-    //t  = sqrt(hypre_ParKrylovInnerProdOneOfMult(Vspace,i,Vspace, i));
+    //normalize (second synch)
     t  = sqrt((*(cf->InnerProd))(Vspace,i,Vspace, i));
     //printf("test 8, t = %f\n", t);
-    Hcolumn[idx(i, i-1, k_dim+1)] = t;
-    if (Hcolumn[idx(i, i-1, k_dim+1)] != 0.0)
+    Hcolumn[idx(i-1,i, k_dim+1)] = t;
+    if (Hcolumn[idx( i-1,i, k_dim+1)] != 0.0)
     {
-      t = 1.0/Hcolumn[idx(i, i-1, k_dim+1)]; 
-      /*			ScaleGPUonly(w, 
-				t, 
-				sz);*/
-
-      //hypre_ParKrylovScaleVectorOneOfMult(t,Vspace, i);
+      t = 1.0/Hcolumn[idx( i-1,i, k_dim+1)]; 
       (*(cf->ScaleVector))(t,Vspace, i);
-
     }//if
 
   }
+
+
+  if (option == 4){
+    //one synch triang solve MGS version
+
+    //the ONLY synch
+
+    (*(cf->MassInnerProdTwoVectors))(Vspace,i, Vspace, i-1, Vspace, i, rvGPU);
+
+    //FIRST COLUMN OF rvGPU, i.e., Q(:,1:j-1)'*Q(:,j-1), goes to COLUMN of L  in original code 
+    cudaMemcpy ( &L[(i-1)*(k_dim+1)],rvGPU,
+	i*sizeof(HYPRE_Real),
+	cudaMemcpyDeviceToHost );
+    
+    //SECOND COLUMN OF rvGPU, i.e., Q(:,1:j-1)'*Q(:,j), goes to r_i in original code
+    //while r is a matrix and R=L^T, we need only to operate on one column at a time. 
+    cudaMemcpy ( rv,&rvGPU[i],
+	i*sizeof(HYPRE_Real),
+	cudaMemcpyDeviceToHost );
+
+    double t = sqrt(L[(i-1)*(k_dim+1)+(i-1)]);
+    L[(i-1)*(k_dim+1)+(i-1)] = t;
+    printf("t = %f \n", t);
+    //scale 
+    for (int j=0; j<i; ++j){
+      printf("L[%d, %d] =%f \n", j, i-1,  L[(i-1)*(k_dim+1)+j]);
+      printf("rv[%d] = %f \n", j, rv[j]);   
+     }
+    if ((i-2)>=0){Hcolumn[(i-2)*(k_dim+1) +i-1] = t ;printf("putting %f in HH[%d] \n",t,(i-2)*(k_dim+1) +i-1 );}    
+    for (int j=0; j<i; ++j){
+      printf("(before division) rv[%d] = %f and L[%d, %d] =%f \n",j, rv[j], j, i-1,  L[(i-1)*(k_dim+1)+j]);
+      rv[j] = rv[j]/t;
+      if (j<i-1)
+	L[(i-1)*(k_dim+1)+j] /= t;
+
+      printf("(after division) rv[%d] = %f and L[%d, %d] =%f \n",j, rv[j], j, i-1,  L[(i-1)*(k_dim+1)+j]);
+
+    }
+    rv[i-1]=rv[i-1]/t;
+    L[(i-1)*(k_dim+1)+i-1] =1.0f;
+
+    for (int j=0; j<i; ++j){
+      Hcolumn[(i-1)*(k_dim+1)+j] = 0.0f;
+      printf("init: Hcolumn[%d] = %f \n", (i-1)*(k_dim+1)+j, Hcolumn[(i-1)*(k_dim+1)+j]);
+    }
+   t=1.0/t;
+    if(i-1>0){
+(*(cf->ScaleVector))(t,Vspace, i-1);
+
 }
+    (*(cf->ScaleVector))(t,Vspace, i);
+    //triangular solve
+    for (int j=0; j<i; ++j){
+      for (int k=0; k<i; ++k){
+	//we are processing H[j*(k_dim+1)+k]
+	if (j==k){Hcolumn[(i-1)*(k_dim+1)+k] += L[j*(k_dim+1)+k]*rv[j];
+	} 
+
+	if (j<k){
+	  Hcolumn[(i-1)*(k_dim+1)+j] -= L[k*(k_dim+1)+j]*rv[k];
+	}
+	if (j>k){
+	  Hcolumn[(i-1)*(k_dim+1)+j] -= L[j*(k_dim+1)+k]*rv[k];
+	}
+      }//for k 
+    }//for j
+    printf("HEY I am here. About to print column. i=%d, i-1 = %d \n", i, i-1);
+    for (int j=0; j<i; ++j)
+    {printf("Hcolumn[%d] = %f\n", j, Hcolumn[(i-1)*(k_dim+1)+j] );}
+    cudaMemcpy ( HcolumnGPU,&Hcolumn[(i-1)*(k_dim+1)],
+	i*sizeof(HYPRE_Real),
+	cudaMemcpyHostToDevice);
+
+    (*(cf->MassAxpy))( HcolumnGPU,Vspace,i, Vspace, i);
+
+  }//if
+
+  if (option == 5){
+    //one synch CGS-2 version
+  }//if
+}
+
 
 /*--------------------------------------------------------------------------
  * hypre_COGMRESSolve
@@ -671,7 +569,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
   HYPRE_Real epsilon, gamma, t, r_norm, b_norm, b_norm_original;
 
   HYPRE_Real epsmac = 1.e-16; 
-
+  HYPRE_Int doNotSolve=0;
   // TIMERS/
 
 
@@ -683,10 +581,10 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
     norms          = (cogmres_data -> norms);
   }
 
-//  if (usePrecond){
-    (cogmres_data -> w_2) = (*(cogmres_functions->CreateVector))(b);
-    w_2 = cogmres_data -> w_2;
- // }
+  //  if (usePrecond){
+  (cogmres_data -> w_2) = (*(cogmres_functions->CreateVector))(b);
+  w_2 = cogmres_data -> w_2;
+  // }
 
   (cogmres_data -> w) = (*(cogmres_functions->CreateVector))(b);
   w = cogmres_data -> w;
@@ -706,7 +604,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
   p = (cogmres_data->p);
 
   if (GSoption != 0){
-    if (GSoption <4){   
+    if (GSoption <3){   
       cudaMalloc ( &tempRV, sizeof(HYPRE_Real)*(k_dim+1)); 
       cudaMalloc ( &tempH, sizeof(HYPRE_Real)*(k_dim+1)); 
     }
@@ -749,18 +647,45 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
   {
 
     if (iter == 0){
+      if (solverTimers){
+	time1 = MPI_Wtime();
+      }
       b_norm_original =  sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0));
       b_norm = b_norm_original;
+
+      if (solverTimers){
+	time2 = MPI_Wtime();
+	remainingTime += (time2-time1);
+      }
       if ((usePrecond) && (leftPrecond)){
+	if (solverTimers){
+	  time1 = MPI_Wtime();
+	}
 	(*(cogmres_functions->UpdateVectorCPU))(b);
 	(*(cogmres_functions->ClearVector))(w_2);
+	if (solverTimers){
+	  time2 = MPI_Wtime();
+	  remainingTime += (time2-time1); 
+	  time1 = MPI_Wtime();
+	}
 	precond(precond_data, A, b,w_2 );
 
+	if (solverTimers){
+	  time2 = MPI_Wtime();
+	  matvecPreconTime+=(time2-time1);
+	  preconTime += (time2-time1);
+	  time1 = MPI_Wtime();
+	}
 	(*(cogmres_functions->UpdateVectorCPU))(w_2);
 	(*(cogmres_functions->CopyVector))(w_2, 0, b, 0);
 	(*(cogmres_functions->UpdateVectorCPU))(b);
 	b_norm =  sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0));
+	if (solverTimers){
+	  time2 = MPI_Wtime();
+	  remainingTime += (time2-time1);
+	}
       }
+
     }
     /*******************************************************************
      * RESTART, PRECON IS RIGHT
@@ -778,6 +703,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	(*(cogmres_functions->UpdateVectorCPU))(x);
       }	
       //w = Mx
+      (*(cogmres_functions->CopyVector))(x, 0, w_2, 0);
       if (solverTimers){
 	time2 = MPI_Wtime();
 	remainingTime += (time2-time1);
@@ -785,14 +711,16 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
       }
 
       PUSH_RANGE("cogmres precon", 0);
-      precond(precond_data, A, x,w );
+      precond(precond_data, A, w_2,w );
       POP_RANGE;
 
 
-  if (solverTimers){
+      if (solverTimers){
 	time4 = MPI_Wtime();
 	preconTime +=(time4-time3);
 	matvecPreconTime += (time4-time3);
+
+	time1 = MPI_Wtime();
       }
       //w_2 = AMx = Aw   
 
@@ -804,25 +732,59 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	  zero,
 	  w_2, 0);
 
+      if (solverTimers){
+	time2 = MPI_Wtime();
+	mvTime +=(time2-time1);
+	matvecPreconTime += (time2-time1);
+	time1 = MPI_Wtime();      
+      }
       //use Hegedus, if indicated AND first cycle
 
+      HYPRE_Real part2 = (*(cogmres_functions->InnerProd))(w_2,0,w_2, 0);
+      if (solverTimers){
+	time2 = MPI_Wtime();
+	remainingTime +=(time2-time1);
+      }
+      if (part2 == 0.0f){
+	//safety check - cant divide by 0
+	HegedusTrick = 0;
+      }      
       if ((HegedusTrick)&&(iter==0)){
 
+	if (solverTimers){
+	  time1 = MPI_Wtime();
+	  remainingTime +=(time2-time1);
+	}
 	HYPRE_Real part1 = (*(cogmres_functions->InnerProd))(w_2,0,b, 0);
-	HYPRE_Real part2 = (*(cogmres_functions->InnerProd))(w_2,0,w_2, 0);
 
 
 
 	(*(cogmres_functions->ScaleVector))(part1/part2,x, 0);
 	(*(cogmres_functions->UpdateVectorCPU))(x);
-	
-//w = Mx_0
+
+	//w = Mx_0
 
 	(*(cogmres_functions->ClearVector))(w);
 
+	if (solverTimers){
+	  time2 = MPI_Wtime();
+	  remainingTime +=(time2-time1);
+	  time1 = MPI_Wtime();     
+	}
 	precond(precond_data, A, x,w );
 
+	if (solverTimers){
+	  time2 = MPI_Wtime();
+	  preconTime +=(time2-time1);
+	  matvecPreconTime += (time2-time1);
+	  time1 = MPI_Wtime();      
+	}
 	(*(cogmres_functions->CopyVector))(b, 0, p, 0);
+	if (solverTimers){
+	  time2 = MPI_Wtime();
+	  remainingTime +=(time2-time1);
+	  time1 = MPI_Wtime();     
+	}
 	(*(cogmres_functions->Matvec))(matvec_data,
 	    minusone,
 	    A,
@@ -830,16 +792,29 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	    0,
 	    one,
 	    p, 0);
+	if (solverTimers){
+	  time2 = MPI_Wtime();
+	  mvTime +=(time2-time1);
+	  matvecPreconTime += (time2-time1);
+	}
       }//if Hegedus
-else {
-//not using Hegedus, compute the right residual
+      else {
+	//not using Hegedus, compute the right residual
+
+	if (solverTimers){
+	  time1 = MPI_Wtime();
+	}
 	(*(cogmres_functions->CopyVector))(b, 0, p, 0);
-      (*(cogmres_functions->Axpy))(-1.0f, w_2, 0, p, 0);
+	(*(cogmres_functions->Axpy))(-1.0f, w_2, 0, p, 0);
+	if (solverTimers){
+	  time2 = MPI_Wtime();
+	  remainingTime +=(time2-time1);
+	}
 
-		
-}    
 
-}// if RIGHT Precond
+      }    
+
+    }// if RIGHT Precond
 
     /*******************************************************************
      * RESTART, PRECON IS LEFT
@@ -880,12 +855,20 @@ else {
 	time2 = MPI_Wtime();
 	preconTime +=(time2-time1);
 	matvecPreconTime += (time2-time1);
+	time1 = MPI_Wtime();
       }
-	HYPRE_Real part2 = (*(cogmres_functions->InnerProd))(w_2,0,w_2, 0);
-if (part2 == 0.0f){HegedusTrick = 0;}     
- if ((HegedusTrick)&&(iter==0)){
+      HYPRE_Real part2 = (*(cogmres_functions->InnerProd))(w_2,0,w_2, 0);
+      if (part2 == 0.0f){HegedusTrick = 0;}     
+      if (solverTimers){
+	time2 = MPI_Wtime();
+	remainingTime +=(time2-time1);
+      }
+      if ((HegedusTrick)&&(iter==0)){
 	//(Mb)'*(MAx)/\|MAx\|^2 = b'w_2/[(w_2)'*(w_2)] <-- scaling factor
 
+	if (solverTimers){
+	  time2 = MPI_Wtime();
+	}
 	HYPRE_Real part1 = (*(cogmres_functions->InnerProd))(b,0,w_2, 0);
 
 
@@ -895,6 +878,8 @@ if (part2 == 0.0f){HegedusTrick = 0;}
 	//update w_2 = MAx_0
 
 	if (solverTimers){
+	  time2 = MPI_Wtime();
+	  remainingTime +=(time2-time1);
 	  time1 = MPI_Wtime();
 	}
 	(*(cogmres_functions->Matvec))(matvec_data,
@@ -943,12 +928,6 @@ if (part2 == 0.0f){HegedusTrick = 0;}
 
 
 
-/*debug mode */
-hypre_ParVectorSetConstantValues((hypre_ParVector*) w_2, 1.0f);
-HYPRE_Real t1 = (*(cogmres_functions->InnerProd))(w_2,0,p, 0);
-
-      if ( print_level>1 && my_id == 0 ){
-}
       if (solverTimers){
 	time2 = MPI_Wtime();
 	remainingTime +=(time2-time1);
@@ -963,12 +942,14 @@ HYPRE_Real t1 = (*(cogmres_functions->InnerProd))(w_2,0,p, 0);
      * *****************************************************************/    
     if (!usePrecond){
       if (solverTimers){
-	time2 = MPI_Wtime();
-
-	remainingTime += (time2-time1);
-	time3 = MPI_Wtime();
+	time1 = MPI_Wtime();
       }
       (*(cogmres_functions->CopyVector))(b, 0, p, 0);
+      if (solverTimers){
+	time2 = MPI_Wtime();
+	remainingTime +=(time2-time1);
+	time1 = MPI_Wtime();
+      }
 
       (*(cogmres_functions->Matvec))(matvec_data,
 	  minusone,
@@ -977,17 +958,27 @@ HYPRE_Real t1 = (*(cogmres_functions->InnerProd))(w_2,0,p, 0);
 	  0,
 	  one,
 	  p, 0);
+      if (solverTimers){
+	time2 = MPI_Wtime();
+	mvTime +=(time2-time1);
+	matvecPreconTime += (time2-time1);
+      }
     }//no precon
 
+    if (solverTimers){
+      time1 = MPI_Wtime();
+    }
     r_norm = sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0));
     if (iter == 0){      
-      epsilon = hypre_max(a_tol,r_tol*r_norm);
+      epsilon = r_tol*b_norm;
+      //hypre_max(a_tol,r_tol*r_norm);
     }   
     if ( logging>0 || print_level > 0)
     {
       norms[iter] = r_norm;
       if ( print_level>1 && my_id == 0  ){
-if (iter == 0)
+	if (iter == 0)
+	  hypre_printf("Orthogonalization variant: %d \n", GSoption);
 	hypre_printf("L2 norm of b: %16.16f\n", b_norm);
 	hypre_printf("Initial L2 norm of (current) residual: %16.16f\n", r_norm);
 
@@ -1032,13 +1023,13 @@ if (iter == 0)
       remainingTime += (time2-time1);
     }
 
-//inner loop 
+    //inner loop 
     i = -1; 
     while (i+1 < k_dim && iter < max_iter)
     {
       i++;
       iter++;
-  if ((usePrecond) && !(leftPrecond)){
+      if ((usePrecond) && !(leftPrecond)){
 	//x = M * p[i-1]
 	//p[i] = A*x
 
@@ -1084,10 +1075,15 @@ if (iter == 0)
 
 	  if (solverTimers)
 	    time1 = MPI_Wtime();
-	  
-(*(cogmres_functions->ClearVector))(w);
+
+	  (*(cogmres_functions->ClearVector))(w);
 
 	  (*(cogmres_functions->CopyVector))(p, i, w_2, 0);
+	  if (solverTimers){
+	    time2 = MPI_Wtime();
+	    remainingTime += (time2-time1);
+	    time1 = MPI_Wtime();
+	  }
 	  (*(cogmres_functions->Matvec))(matvec_data,
 	      one,
 	      A,
@@ -1103,6 +1099,8 @@ if (iter == 0)
 	    time1 = MPI_Wtime();
 	  }
 
+	  if (solverTimers)
+	    time1 = MPI_Wtime();
 	  (*(cogmres_functions->UpdateVectorCPU))(w);
 
 	  (*(cogmres_functions->ClearVector))(w_2);
@@ -1134,6 +1132,7 @@ if (iter == 0)
 	  // not using preconddd
 	  if (solverTimers)
 	    time1 = MPI_Wtime();
+
 	  (*(cogmres_functions->CopyVector))(p, i, w, 0);
 	  if (solverTimers){
 	    time2 = MPI_Wtime();
@@ -1148,13 +1147,16 @@ if (iter == 0)
 	      0,
 	      zero,
 	      p, i+1);
+	  if (solverTimers){
+	    time2 = MPI_Wtime();
+	    mvTime += (time2-time1);
+	    matvecPreconTime += (time2-time1);   
+	  }
 
 	}
       }
       if (solverTimers){
-	time2 = MPI_Wtime();
-	mvTime += (time2-time1);
-	matvecPreconTime += (time2-time1);   
+
 	time1=MPI_Wtime();
       }
 
@@ -1170,7 +1172,7 @@ if (iter == 0)
 	    NULL,  
 	    rv, 
 	    NULL, NULL, cogmres_functions );
- }
+      }
 
       if ((GSoption >0) &&(GSoption <3)){
 	GramSchmidt (GSoption, 
@@ -1186,7 +1188,9 @@ if (iter == 0)
 
 
       if ((GSoption >=3)){
-	GramSchmidt (GSoption, 
+
+	printf("calling calling test i+1 = %d doNotSolve = %d \n", i+1, doNotSolve);	
+	GramSchmidt (4, 
 	    i+1, 
 	    k_dim,
 	    p, 
@@ -1194,6 +1198,16 @@ if (iter == 0)
 	    tempH,  
 	    rv, 
 	    tempRV, L, cogmres_functions );
+	for (int kk=0; kk<i+1;++kk){
+	  printf("Column %d Norm of V(:,%d) = %f \n",kk, kk, sqrt((*(cogmres_functions->InnerProd))(p,kk,p, kk)));
+	  for (int ii=0; ii<i+1; ++ii){
+	    printf(" %f ", hh[kk*(k_dim+1)+ii]);
+	  }
+	  printf("\n");
+	} 
+	if(i==0) {doNotSolve=1;}
+	else doNotSolve = 0;
+
       }
 
       // CALL IT HERE
@@ -1203,54 +1217,68 @@ if (iter == 0)
 	gsTime += (time2-time1);
 	time1 = MPI_Wtime();
       }
-      for (j = 1; j <= i; j++)
-      {
-HYPRE_Int j1=j-1;
-	t = hh[idx(i,j1,k_dim+1)];
-	hh[idx(i,j1,k_dim+1)] = s[j1]*hh[idx(i,j,k_dim+1)] + c[j1]*t;
-	hh[idx(i,j, k_dim+1)]  = -s[j1]*t + c[j1]*hh[idx(i,j,k_dim+1)];
-      }
-
-      t     = hh[idx(i, i+1, k_dim+1)]*hh[idx(i,i+1, k_dim+1)];//Hii1
-      t    += hh[idx(i,i, k_dim+1)]*hh[idx(i,i, k_dim+1)];//Hii
-      gamma = sqrt(t);
-      if (gamma == 0.0) gamma = epsmac;
-
-
-      c[i]  = hh[idx(i,i, k_dim+1)]/gamma;
-      s[i]  = hh[idx(i,i+1, k_dim+1)]/gamma;
-      rs[i+1]   = -s[i]*rs[i];
-      rs[i] = c[i]*rs[i];  
-      
-// determine residual norm 
-      hh[idx(i,i, k_dim+1)] = s[i]*hh[idx(i,i+1, k_dim+1)] + c[i]*hh[idx(i,i, k_dim+1)];
-      r_norm = fabs(rs[i+1]);
-      if (solverTimers){
-	time4 = MPI_Wtime();
-	linSolveTime += (time4-time1);
-      }
-
-      if ( print_level>0 )
-      {
-	norms[iter] = r_norm;
-	if ( print_level>1 && my_id == 0  )
+      if (!doNotSolve){
+	if (GSoption >3) i--;
+	for (j = 1; j <= i; j++)
 	{
-HYPRE_Real sc;
-
-if (i == 0) {sc = 1.0;}
-else {sc = norms[iter-1];}
-	  hypre_printf("ITER: % 5d    %e    %f\n", iter, norms[iter],
-	      norms[iter]/sc);
+	  HYPRE_Int j1=j-1;
+	  t = hh[idx(i,j1,k_dim+1)];
+	  hh[idx(i,j1,k_dim+1)] = s[j1]*hh[idx(i,j,k_dim+1)] + c[j1]*t;
+	  hh[idx(i,j, k_dim+1)]  = -s[j1]*t + c[j1]*hh[idx(i,j,k_dim+1)];
+	  printf("hh(%d, %d) = %f\n", i, j1,  hh[idx(i,j1,k_dim+1)]);     
+	  printf("hh(%d, %d) = %f\n", i, j,  hh[idx(i,j,k_dim+1)]);     
 	}
-      }// if (printing)
-      //printf("r_norm = %16.16e epsilon = %16.16e\n", r_norm, epsilon);
-      if (r_norm <epsilon){
 
-	(cogmres_data -> converged) = 1;
-	break;
-      }//conv check
+	t     = hh[idx(i, i+1, k_dim+1)]*hh[idx(i,i+1, k_dim+1)];//Hii1
+	t    += hh[idx(i,i, k_dim+1)]*hh[idx(i,i, k_dim+1)];//Hii
+	gamma = sqrt(t);
+	printf("t = %f gamma = %f \n", t, gamma);
+	if (gamma == 0.0) gamma = epsmac;
+
+
+	c[i]  = hh[idx(i,i, k_dim+1)]/gamma;
+	s[i]  = hh[idx(i,i+1, k_dim+1)]/gamma;
+	printf("hh[%d, %d] = %f, c[%d] = %f s[%d] = %f \n",i, i+1,  hh[idx(i,i+1, k_dim+1)], i, c[i], i, s[i]);
+	rs[i+1]   = -s[i]*rs[i];
+	rs[i] = c[i]*rs[i];  
+
+	// determine residual norm 
+	hh[idx(i,i, k_dim+1)] = s[i]*hh[idx(i,i+1, k_dim+1)] + c[i]*hh[idx(i,i, k_dim+1)];
+	printf("hh[%d, %d] = %f \n", i, i,  hh[idx(i,i, k_dim+1)] );
+	r_norm = fabs(rs[i+1]);
+	if (solverTimers){
+	  time4 = MPI_Wtime();
+	  linSolveTime += (time4-time1);
+	}
+
+	if ( print_level>0 )
+	{
+	  norms[iter] = r_norm;
+	  if ( print_level>1 && my_id == 0  )
+	  {
+	    HYPRE_Real sc;
+
+	    if (i == 0) {sc = 1.0;}
+	    else {sc = norms[iter-1];}
+	    hypre_printf("ITER: % 5d    %e    %f\n", iter, norms[iter],
+		norms[iter]/sc);
+	  }
+	}// if (printing)
+	//printf("r_norm = %16.16e epsilon = %16.16e\n", r_norm, epsilon);
+	if (r_norm <epsilon){
+
+	  (cogmres_data -> converged) = 1;
+	  break;
+
+	}//conv check
+
+	if (GSoption >3) i++;
+      }//doNotSolve
     }//while (inner)
 
+    if (solverTimers){
+      time1 = MPI_Wtime();
+    }
     int k1, ii;
     rs[i] = rs[i]/hh[idx(i,i,k_dim+1)];
     for (ii=2; ii<=i+1; ii++)
@@ -1267,9 +1295,13 @@ else {sc = norms[iter-1];}
     for (j = 0; j <=i; j++){
       (*(cogmres_functions->Axpy))(rs[j], p, j, x, 0);		
     }	
-(*(cogmres_functions->UpdateVectorCPU))(x);
+    (*(cogmres_functions->UpdateVectorCPU))(x);
 
- /* debug mode */
+    if (solverTimers){
+      time2 = MPI_Wtime();
+      remainingTime += (time2-time1);
+    }
+    /* debug mode */
 #if 0
     //  (*(cogmres_functions->CopyVector))(x, 0, w, 0);
     //    (*(cogmres_functions->ClearVector))(w_2);
@@ -1286,25 +1318,25 @@ else {sc = norms[iter-1];}
     printf("Norm of w_2  %16.16f \n",  sqrt((*(cogmres_functions->InnerProd))(w_2,0,w_2, 0)));
     (*(cogmres_functions->UpdateVectorCPU))(w_2);
     (*(cogmres_functions->ClearVector))(w);
-if (usePrecond)    
-precond(precond_data, A, w_2, w);
-else{ 
+    if (usePrecond)    
+      precond(precond_data, A, w_2, w);
+    else{ 
 
-    (*(cogmres_functions->CopyVector))(w_2, 0, w, 0);
-    printf("Norm of w  %16.16f \n",  sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
-    printf("Norm of b  %16.16f \n",  sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0)));
-}
+      (*(cogmres_functions->CopyVector))(w_2, 0, w, 0);
+      printf("Norm of w  %16.16f \n",  sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
+      printf("Norm of b  %16.16f \n",  sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0)));
+    }
     (*(cogmres_functions->Axpy))(1.0,b , 0, w_2, 0);		
     (*(cogmres_functions->Axpy))(-1.0,b , 0, w, 0);		
     printf("End of cycle!  norm of true res  %16.16f other way %16.16f norm of x %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(w_2,0,w_2, 0)),sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)),  sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
 
-/*debug mode */
-hypre_ParVectorSetConstantValues((hypre_ParVector*) w_2, 1.0f);
-HYPRE_Real t1 = (*(cogmres_functions->InnerProd))(w_2,0,x, 0);
+    /*debug mode */
+    hypre_ParVectorSetConstantValues((hypre_ParVector*) w_2, 1.0f);
+    HYPRE_Real t1 = (*(cogmres_functions->InnerProd))(w_2,0,x, 0);
 
-      if ( print_level>1 && my_id == 0 ){
-printf("END: IP of x and 1s is %16.16f \n", t1); 
-}
+    if ( print_level>1 && my_id == 0 ){
+      printf("END: IP of x and 1s is %16.16f \n", t1); 
+    }
 
 #endif
     /*end of debug mode */
@@ -1338,21 +1370,32 @@ printf("END: IP of x and 1s is %16.16f \n", t1);
     }
 
     PUSH_RANGE("cogmres precon", 2);
-    precond(precond_data, A, w_2, x);
+    precond(precond_data, A, w_2, w);
     POP_RANGE;
     if (solverTimers){
       time2 = MPI_Wtime();
       matvecPreconTime+=(time2-time1);
       preconTime += (time2-time1);
     }
+    //debug code
+
+    (*(cogmres_functions->CopyVector))(w, 0, x, 0);
+    (*(cogmres_functions->CopyVector))(b, 0, p, 0);
+    (*(cogmres_functions->Matvec))(matvec_data,
+	minusone,
+	A,
+	x,
+	0,
+	one,
+	p, 0);
+    printf("END: norm of residual: %16.16f \n",sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0)));
+    //end of debug code
   }//done only for right precond
-#if 1
+#if 0
   double ttt;
 
   if (solverTimers){
     time4 = MPI_Wtime();
-    preconTime+=(time4-time3);
-    matvecPreconTime += (time4-time3);
   }
 
   (*(cogmres_functions->Matvec))(matvec_data,
@@ -1367,7 +1410,7 @@ printf("END: IP of x and 1s is %16.16f \n", t1);
 
   (*(cogmres_functions->UpdateVectorCPU))(w_2);
   if (usePrecond) precond(precond_data, A, w_2, w);
-else 
+  else 
     (*(cogmres_functions->CopyVector))(w_2, 0, w, 0);
   (*(cogmres_functions->Axpy))(-1.0f, b, 0, w, 0);		
   (*(cogmres_functions->Axpy))(1.0f, b, 0, w_2, 0);		
