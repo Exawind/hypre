@@ -395,9 +395,6 @@ void GramSchmidt (HYPRE_Int option,
 	cudaMemcpyDeviceToHost );
 
     for (int j=0; j<i; ++j){
-      printf("TWO SYNCH L[%d, %d] =%f \n", j, i-1,  L[(i-1)*(k_dim+1)+j]);
-    }
-    for (int j=0; j<i; ++j){
       Hcolumn[(i-1)*(k_dim+1)+j] = 0.0f;
     }
     //triangular solve
@@ -423,7 +420,6 @@ void GramSchmidt (HYPRE_Int option,
     (*(cf->MassAxpy))( HcolumnGPU,Vspace,i, Vspace, i);
     //normalize (second synch)
     t  = sqrt((*(cf->InnerProd))(Vspace,i,Vspace, i));
-    //printf("test 8, t = %f\n", t);
     Hcolumn[idx(i-1,i, k_dim+1)] = t;
     if (Hcolumn[idx( i-1,i, k_dim+1)] != 0.0)
     {
@@ -454,20 +450,15 @@ void GramSchmidt (HYPRE_Int option,
 
     double t = sqrt(L[(i-1)*(k_dim+1)+(i-1)]);
     L[(i-1)*(k_dim+1)+(i-1)] = t;
-    printf("t = %f \n", t);
     //scale 
+    if ((i-2)>=0){
+Hcolumn[(i-2)*(k_dim+1) +i-1] = t ;
+}    
     for (int j=0; j<i; ++j){
-      printf("L[%d, %d] =%f \n", j, i-1,  L[(i-1)*(k_dim+1)+j]);
-      printf("rv[%d] = %f \n", j, rv[j]);   
-     }
-    if ((i-2)>=0){Hcolumn[(i-2)*(k_dim+1) +i-1] = t ;printf("putting %f in HH[%d] \n",t,(i-2)*(k_dim+1) +i-1 );}    
-    for (int j=0; j<i; ++j){
-      printf("(before division) rv[%d] = %f and L[%d, %d] =%f \n",j, rv[j], j, i-1,  L[(i-1)*(k_dim+1)+j]);
       rv[j] = rv[j]/t;
       if (j<i-1)
 	L[(i-1)*(k_dim+1)+j] /= t;
 
-      printf("(after division) rv[%d] = %f and L[%d, %d] =%f \n",j, rv[j], j, i-1,  L[(i-1)*(k_dim+1)+j]);
 
     }
     rv[i-1]=rv[i-1]/t;
@@ -475,7 +466,6 @@ void GramSchmidt (HYPRE_Int option,
 
     for (int j=0; j<i; ++j){
       Hcolumn[(i-1)*(k_dim+1)+j] = 0.0f;
-      printf("init: Hcolumn[%d] = %f \n", (i-1)*(k_dim+1)+j, Hcolumn[(i-1)*(k_dim+1)+j]);
     }
    t=1.0/t;
     if(i-1>0){
@@ -498,9 +488,7 @@ void GramSchmidt (HYPRE_Int option,
 	}
       }//for k 
     }//for j
-    printf("HEY I am here. About to print column. i=%d, i-1 = %d \n", i, i-1);
     for (int j=0; j<i; ++j)
-    {printf("Hcolumn[%d] = %f\n", j, Hcolumn[(i-1)*(k_dim+1)+j] );}
     cudaMemcpy ( HcolumnGPU,&Hcolumn[(i-1)*(k_dim+1)],
 	i*sizeof(HYPRE_Real),
 	cudaMemcpyHostToDevice);
@@ -1189,7 +1177,6 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 
       if ((GSoption >=3)){
 
-	printf("calling calling test i+1 = %d doNotSolve = %d \n", i+1, doNotSolve);	
 	GramSchmidt (4, 
 	    i+1, 
 	    k_dim,
@@ -1198,14 +1185,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	    tempH,  
 	    rv, 
 	    tempRV, L, cogmres_functions );
-	for (int kk=0; kk<i+1;++kk){
-	  printf("Column %d Norm of V(:,%d) = %f \n",kk, kk, sqrt((*(cogmres_functions->InnerProd))(p,kk,p, kk)));
-	  for (int ii=0; ii<i+1; ++ii){
-	    printf(" %f ", hh[kk*(k_dim+1)+ii]);
-	  }
-	  printf("\n");
-	} 
-	if(i==0) {doNotSolve=1;}
+	if(i==0) {doNotSolve=1;iter--;}
 	else doNotSolve = 0;
 
       }
@@ -1225,26 +1205,21 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	  t = hh[idx(i,j1,k_dim+1)];
 	  hh[idx(i,j1,k_dim+1)] = s[j1]*hh[idx(i,j,k_dim+1)] + c[j1]*t;
 	  hh[idx(i,j, k_dim+1)]  = -s[j1]*t + c[j1]*hh[idx(i,j,k_dim+1)];
-	  printf("hh(%d, %d) = %f\n", i, j1,  hh[idx(i,j1,k_dim+1)]);     
-	  printf("hh(%d, %d) = %f\n", i, j,  hh[idx(i,j,k_dim+1)]);     
 	}
 
 	t     = hh[idx(i, i+1, k_dim+1)]*hh[idx(i,i+1, k_dim+1)];//Hii1
 	t    += hh[idx(i,i, k_dim+1)]*hh[idx(i,i, k_dim+1)];//Hii
 	gamma = sqrt(t);
-	printf("t = %f gamma = %f \n", t, gamma);
 	if (gamma == 0.0) gamma = epsmac;
 
 
 	c[i]  = hh[idx(i,i, k_dim+1)]/gamma;
 	s[i]  = hh[idx(i,i+1, k_dim+1)]/gamma;
-	printf("hh[%d, %d] = %f, c[%d] = %f s[%d] = %f \n",i, i+1,  hh[idx(i,i+1, k_dim+1)], i, c[i], i, s[i]);
 	rs[i+1]   = -s[i]*rs[i];
 	rs[i] = c[i]*rs[i];  
 
 	// determine residual norm 
 	hh[idx(i,i, k_dim+1)] = s[i]*hh[idx(i,i+1, k_dim+1)] + c[i]*hh[idx(i,i, k_dim+1)];
-	printf("hh[%d, %d] = %f \n", i, i,  hh[idx(i,i, k_dim+1)] );
 	r_norm = fabs(rs[i+1]);
 	if (solverTimers){
 	  time4 = MPI_Wtime();
