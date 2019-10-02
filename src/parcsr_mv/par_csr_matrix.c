@@ -210,7 +210,12 @@ hypre_ParCSRMatrixInitialize( hypre_ParCSRMatrix *matrix )
    hypre_ParCSRMatrixColMapOffd(matrix) = 
       hypre_CTAlloc(HYPRE_Int, hypre_CSRMatrixNumCols(
                        hypre_ParCSRMatrixOffd(matrix)), HYPRE_MEMORY_HOST);
-
+#ifdef HYPRE_NREL_CUDA
+#if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU) 
+matrix->x_tmp = NULL;
+matrix->x_buf = NULL;
+#endif
+#endif
    return hypre_error_flag;
 }
 
@@ -2285,5 +2290,43 @@ hypre_int hypre_ParCSRMatrixIsManaged(hypre_ParCSRMatrix *a){
     return ((hypre_CSRMatrixIsManaged(hypre_ParCSRMatrixDiag(a))) && (hypre_CSRMatrixIsManaged(hypre_ParCSRMatrixOffd(a))));
   else
     return hypre_CSRMatrixIsManaged(hypre_ParCSRMatrixDiag(a)); 
+}
+#endif
+
+#ifdef HYPRE_NREL_CUDA
+/*--------------------------------------------------------------------------
+ * hypre_ParCSRMatrixCopyGPUtoCPU
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+hypre_ParCSRMatrixCopyGPUtoCPU( hypre_ParCSRMatrix *matrix )
+{
+   if (!matrix)
+   {
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+   hypre_CSRMatrixCopyGPUtoCPU(hypre_ParCSRMatrixDiag(matrix));
+   hypre_CSRMatrixCopyGPUtoCPU(hypre_ParCSRMatrixOffd(matrix));
+   return hypre_error_flag;
+}
+
+/*--------------------------------------------------------------------------
+ * hypre_ParCSRMatrixCopyCPUtoGPU
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+hypre_ParCSRMatrixCopyCPUtoGPU( hypre_ParCSRMatrix *matrix )
+{
+   if (!matrix)
+   {
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+//printf("COPYING DIAG PART ...............................................\n");
+   hypre_CSRMatrixCopyCPUtoGPU(hypre_ParCSRMatrixDiag(matrix));
+//printf("COPYING OFF DIAG PART ...............................................\n");
+   hypre_CSRMatrixCopyCPUtoGPU(hypre_ParCSRMatrixOffd(matrix));
+   return hypre_error_flag;
 }
 #endif
