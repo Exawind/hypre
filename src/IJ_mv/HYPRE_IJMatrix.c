@@ -282,6 +282,59 @@ HYPRE_IJMatrixDestroy( HYPRE_IJMatrix matrix )
    return hypre_error_flag;
 }
 
+#ifdef HYPRE_NREL_CUDA
+/*--------------------------------------------------------------------------
+ * HYPRE_IJMatrixCopyCPUtoGPU
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+HYPRE_IJMatrixCopyCPUtoGPU( HYPRE_IJMatrix matrix ){
+
+   hypre_IJMatrix *ijmatrix = (hypre_IJMatrix *) matrix;
+
+   if (!ijmatrix)
+   {
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+
+   if ( hypre_IJMatrixObjectType(ijmatrix) == HYPRE_PARCSR )
+      hypre_IJMatrixCopyCPUtoGPUParCSR( ijmatrix ) ;
+   else
+   {
+      hypre_error_in_arg(1);
+   }
+
+   return hypre_error_flag;
+
+}
+
+/*--------------------------------------------------------------------------
+ * HYPRE_IJMatrixCopyGPUtoCPU
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+HYPRE_IJMatrixCopyGPUtoCPU( HYPRE_IJMatrix matrix ){
+
+   hypre_IJMatrix *ijmatrix = (hypre_IJMatrix *) matrix;
+
+   if (!ijmatrix)
+   {
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+
+   if ( hypre_IJMatrixObjectType(ijmatrix) == HYPRE_PARCSR )
+      hypre_IJMatrixCopyGPUtoCPUParCSR( ijmatrix ) ;
+   else
+   {
+      hypre_error_in_arg(1);
+   }
+
+   return hypre_error_flag;
+}
+#endif
+
 /*--------------------------------------------------------------------------
  *--------------------------------------------------------------------------*/
 
