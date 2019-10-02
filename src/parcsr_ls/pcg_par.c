@@ -112,6 +112,41 @@ hypre_ParKrylovMatvecCreate( void   *A,
    void *matvec_data;
 
    matvec_data = NULL;
+#ifdef HYPRE_NREL_CUDA
+#if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU) 
+  hypre_ParCSRMatrix * AA = (hypre_ParCSRMatrix *) A;
+
+  hypre_CSRMatrix   *offd   = hypre_ParCSRMatrixOffd(AA);
+
+  HYPRE_Int          num_cols_offd = hypre_CSRMatrixNumCols(offd);
+
+  hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(AA);
+
+  if (!comm_pkg)
+  {
+    hypre_MatvecCommPkgCreate(AA);
+    comm_pkg = hypre_ParCSRMatrixCommPkg(AA);
+  }
+
+  HYPRE_Int num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
+  AA->x_tmp = hypre_SeqVectorCreate( num_cols_offd );
+
+  hypre_SeqVectorInitialize(AA->x_tmp);
+
+  AA->x_buf = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
+      (comm_pkg,  num_sends), HYPRE_MEMORY_DEVICE);
+//round 2 of new code
+//
+
+ HYPRE_Int begin = hypre_ParCSRCommPkgSendMapStart(comm_pkg, 0);
+ HYPRE_Int end   = hypre_ParCSRCommPkgSendMapStart(comm_pkg, num_sends);
+  AA->comm_d =  hypre_CTAlloc(HYPRE_Int,  (end-begin), HYPRE_MEMORY_DEVICE);;
+if ((end-begin) != 0)
+{
+  cudaMemcpy(AA->comm_d,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),  (end-begin) * sizeof(HYPRE_Int),cudaMemcpyHostToDevice  );
+}
+#endif
+#endif
 
    return ( matvec_data );
 }
@@ -302,3 +337,201 @@ hypre_ParKrylovIdentity( void *vdata,
    return( hypre_ParKrylovCopyVector( b, x ) );
 }
 
+#ifdef HYPRE_NREL_CUDA
+//for multivectors AKA Krylov space (stored as one cont chunk of memory)
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovCreateMultiVector
+ *--------------------------------------------------------------------------*/
+
+  void *
+hypre_ParKrylovCreateMultiVector( void *vvector, HYPRE_Int num_vectors)
+{
+  hypre_ParVector *vector = (hypre_ParVector *) vvector;
+  hypre_ParVector *new_vector;
+
+  new_vector = hypre_ParMultiVectorCreate( hypre_ParVectorComm(vector),
+      hypre_ParVectorGlobalSize(vector),	
+      hypre_ParVectorPartitioning(vector), num_vectors );
+  hypre_ParVectorSetPartitioningOwner(new_vector,0);
+  hypre_ParVectorInitialize(new_vector);
+
+  return ( (void *) new_vector );
+}
+//update CPU if needed (important if the result lives on the CPU)
+
+void *
+hypre_ParKrylovUpdateVectorCPU( void *vvector){
+
+  return((void *) (hypre_ParVectorCopyDataGPUtoCPU((hypre_ParVector *) vvector)));
+
+
+}
+
+/*Matvec for multivectors i.e. y(:, k2) = A*x(:, k1) */
+        
+      
+  HYPRE_Int
+hypre_ParKrylovMatvecMult( void   *matvec_data,
+    HYPRE_Complex  alpha,
+    void   *A,
+    void   *x,
+    HYPRE_Int k1,
+    HYPRE_Complex  beta,
+    void   *y, HYPRE_Int k2           )
+{
+
+    hypre_CheckErrorDevice(cudaPeekAtLastError());
+  return ( hypre_ParCSRMatrixMatvecMult ( alpha,
+        (hypre_ParCSRMatrix *) A,
+        (hypre_ParVector *) x,k1,
+        beta,
+        (hypre_ParVector *) y, k2 ) );
+}
+
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovCopyVectorOneOfMult
+ *--------------------------------------------------------------------------*/
+
+  HYPRE_Int
+hypre_ParKrylovCopyVectorOneOfMult( void *x, HYPRE_Int k1,
+    void *y, HYPRE_Int k2 )
+{
+   return ( hypre_ParVectorCopyOneOfMult( (hypre_ParVector *) x,k1,
+                                 (hypre_ParVector *) y, k2 ) );
+}
+
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovInnerProdOneOfMult
+ *--------------------------------------------------------------------------*/
+
+  HYPRE_Real 
+hypre_ParKrylovInnerProdOneOfMult( void *x, HYPRE_Int k1,
+    void *y, HYPRE_Int k2 )
+{
+  return ( hypre_ParVectorInnerProdOneOfMult( (hypre_ParVector *) x,k1,
+	(hypre_ParVector *) y, k2 ) );
+}
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovDoubleInnerProdOneOfMult
+ *--------------------------------------------------------------------------*/
+
+  HYPRE_Int 
+hypre_ParKrylovDoubleInnerProdOneOfMult( void *x, HYPRE_Int k1,
+    void *y, HYPRE_Int k2, void *res )
+{
+  return ( hypre_ParVectorDoubleInnerProdOneOfMult( (hypre_ParVector *) x,k1,
+	(hypre_ParVector *) y, k2, (HYPRE_Real*) res ) );
+}
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovAxpyOneOfMult
+ *--------------------------------------------------------------------------*/
+
+  HYPRE_Int
+hypre_ParKrylovAxpyOneOfMult( HYPRE_Complex alpha,void *x, HYPRE_Int k1,
+    void *y, HYPRE_Int k2 )
+{
+  return ( hypre_ParVectorAxpyOneOfMult( alpha, (hypre_ParVector *) x,k1,
+	(hypre_ParVector *) y, k2 ) );
+}
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovMassInnerProdMult // written by KS //for multivectors
+ * x is the space, y is the single vector 
+ *--------------------------------------------------------------------------*/
+ HYPRE_Int
+hypre_ParKrylovMassInnerProdMult( void *x,HYPRE_Int k,
+    void *y, HYPRE_Int k2, void  * result )
+{
+// void HYPRE_ParVectorMassInnerProdMult ( HYPRE_ParVector x , HYPRE_Int k, HYPRE_ParVector y , HYPRE_Int k2, HYPRE_Real *prod );
+ ( hypre_ParVectorMassInnerProdMult( (hypre_ParVector *) x,
+ k,
+(hypre_ParVector *) y,
+k2 ,
+(HYPRE_Real*)result ));
+return 0;
+}
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovMassInnerProdTwoVectorsMult // written by KS //for multivectors
+ * x is the space, y1 and y2 are  single vectors 
+ *--------------------------------------------------------------------------*/
+ HYPRE_Int
+hypre_ParKrylovMassInnerProdTwoVectorsMult( void *x,HYPRE_Int k,
+    void *y1, HYPRE_Int k2, void * y2, HYPRE_Int k3, void  * result )
+{
+// void HYPRE_ParVectorMassInnerProdMult ( HYPRE_ParVector x , HYPRE_Int k, HYPRE_ParVector y , HYPRE_Int k2, HYPRE_Real *prod );
+ ( hypre_ParVectorMassInnerProdTwoVectorsMult( (hypre_ParVector *) x,
+ k,
+(hypre_ParVector *) y1,
+k2 ,
+(hypre_ParVector *) y2,
+k3 ,
+(HYPRE_Real*)result ));
+return 0;
+}
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovScaleVectorOneOfMult
+ *--------------------------------------------------------------------------*/
+
+  HYPRE_Int
+hypre_ParKrylovScaleVectorOneOfMult( HYPRE_Complex  alpha,
+    void   *x, HYPRE_Int k1     )
+{
+  //printf("scale \n");
+  return ( hypre_ParVectorScaleOneOfMult( alpha, (hypre_ParVector *) x, k1 ) );
+}
+
+/*===
+ *
+ * For space rotatiuons
+ * */
+
+
+HYPRE_Int hypre_ParKrylovGivensRotRight(
+     HYPRE_Int k1,
+    HYPRE_Int k2,
+    void * q1,
+    void  * q2,
+    HYPRE_Real  a1, HYPRE_Real a2, HYPRE_Real a3, HYPRE_Real a4){
+    hypre_ParVectorGivensRotRight(k1, k2, (hypre_ParVector *)q1, (hypre_ParVector *)q2, a1,a2,a3,a4);
+return 0;
+}
+
+
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovMassAxpyMult (for multivectors, x is a multivector)
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+hypre_ParKrylovMassAxpyMult( HYPRE_Real * alpha,
+    void   *x,
+    HYPRE_Int k,
+    void   *y ,
+    HYPRE_Int k2){
+    hypre_ParVectorMassAxpyMult( alpha, (hypre_ParVector *) x, k,
+	(hypre_ParVector *) y ,  k2);
+return 0;
+}
+/*--------------------------------------------------------------------------
+ * hypre_ParKrylovMassInnerProdWithScalingMult // written by KS //for multivectors
+ * x is the space, y is the single vector 
+ *--------------------------------------------------------------------------*/
+  HYPRE_Int
+hypre_ParKrylovMassInnerProdWithScalingMult( void *x,HYPRE_Int k,
+    void *y, HYPRE_Int k2, void *scaleFactors,  void  * result )
+{
+ ( hypre_ParVectorMassInnerProdWithScalingMult( (hypre_ParVector *) x,
+	k,
+	(hypre_ParVector *) y,
+	k2 ,
+	(HYPRE_Real *) scaleFactors,
+	(HYPRE_Real*)result ) );
+return 0;
+}
+#endif
