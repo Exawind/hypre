@@ -614,12 +614,32 @@ extern "C" {
     HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
         HYPRE_Int   *num_procs );
     void *       (*CreateVector)  ( void *vector );
+#ifdef HYPRE_NREL_CUDA
+    void *       (*CreateMultiVector)  (void *vectors, HYPRE_Int num_vectors );    
+    void *       (*UpdateVectorCPU)  ( void *vector );
+#else
     void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors );
+#endif
     HYPRE_Int    (*DestroyVector) ( void *vector );
     void *       (*MatvecCreate)  ( void *A, void *x );
     HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
+#ifdef HYPRE_NREL_CUDA
+        void *x, HYPRE_Int k1, HYPRE_Complex beta, void *y, HYPRE_Int k2 );
+#else
         void *x, HYPRE_Complex beta, void *y );
+#endif
     HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
+#ifdef HYPRE_NREL_CUDA
+    HYPRE_Real   (*InnerProd)     ( void *x, HYPRE_Int i1, void *y, HYPRE_Int i2 );
+    HYPRE_Int    (*MassInnerProd) ( void *x, HYPRE_Int k1, void *y, HYPRE_Int k2, void *result);
+    HYPRE_Int    (*MassInnerProdTwoVectors) ( void *x,HYPRE_Int k, void *y1, HYPRE_Int k1, void *y2, HYPRE_Int k2, void *result);
+    HYPRE_Int    (*MassInnerProdWithScaling)   ( void *x,HYPRE_Int k1, void *y, HYPRE_Int k2, void * scaleFactors, void *result);
+    HYPRE_Int    (*DoubleInnerProd)     ( void *x,HYPRE_Int k1, void *y, HYPRE_Int k2, void * res );
+    HYPRE_Int    (*CopyVector)    ( void *x, HYPRE_Int i1, void *y, HYPRE_Int i2 );
+    HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x, HYPRE_Int i1 );
+    HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, HYPRE_Int i1, void *y, HYPRE_Int i2 );
+    HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex * alpha, void *x, HYPRE_Int k1, void *y, HYPRE_Int k2);
+#else
     HYPRE_Real   (*InnerProd)     ( void *x, void *y );
     HYPRE_Int    (*MassInnerProd) ( void *x, void **p, HYPRE_Int k, HYPRE_Int unroll, void *result);
     HYPRE_Int    (*MassDotpTwo)   ( void *x, void *y, void **p, HYPRE_Int k, HYPRE_Int unroll, void *result_x, void *result_y);
@@ -628,6 +648,7 @@ extern "C" {
     HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );
     HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );
     HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex * alpha, void **x, void *y, HYPRE_Int k, HYPRE_Int unroll);
+#endif
     HYPRE_Int    (*precond)       (void *vdata , void *A , void *b , void *x);
     HYPRE_Int    (*precond_setup) (void *vdata , void *A , void *b , void *x);
 
@@ -660,7 +681,11 @@ extern "C" {
     void  *r;
     void  *w;
     void  *w_2;
+#ifdef HYPRE_NREL_CUDA
+    void  *p;
+#else
     void  **p;
+#endif
 
     void    *matvec_data;
     void    *precond_data;
@@ -669,7 +694,9 @@ extern "C" {
 
     /* log info (always logged) */
     HYPRE_Int      num_iterations;
-
+#ifdef HYPRE_NREL_CUDA
+    HYPRE_Int     GSoption;
+#endif
     HYPRE_Int     print_level; /* printing when print_level>0 */
     HYPRE_Int     logging;  /* extra computations for logging when logging>0 */
     HYPRE_Real  *norms;
@@ -701,19 +728,35 @@ extern "C" {
           HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
             HYPRE_Int   *num_procs ),
           void *       (*CreateVector)  ( void *vector ),
+#ifdef HYPRE_NREL_CUDA
+          void *       (*CreateMultiVector)  (void *vectors, HYPRE_Int num_vectors ),	  
+          void *       (*UpdateVectorCPU)  ( void *vector ),
+          HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
+                                   void *x,HYPRE_Int k1, HYPRE_Complex beta, void *y, HYPRE_Int k2 ),
+          HYPRE_Real   (*InnerProd)     ( void *x,HYPRE_Int k1, void *y, HYPRE_Int k2 ),
+          HYPRE_Int    (*MassInnerProd) ( void *x, HYPRE_Int k1, void *y, HYPRE_Int k2, void *result),
+          HYPRE_Int    (*MassInnerProdTwoVectors) ( void *x,HYPRE_Int k, void *y1, HYPRE_Int k1, void *y2, HYPRE_Int k2, void *result),
+          HYPRE_Int    (*MassInnerProdWithScaling)   ( void *x, HYPRE_Int i1, void *y,HYPRE_Int i2, void *scaleFactors, void *result),
+          HYPRE_Int    (*DoubleInnerProd)     ( void *x,HYPRE_Int k1, void *y, HYPRE_Int k2, void * res ),
+          HYPRE_Int    (*CopyVector)    ( void *x,HYPRE_Int i1,  void *y, HYPRE_Int i2 ),
+          HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x, HYPRE_Int k1 ),
+          HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x,HYPRE_Int k1, void *y, HYPRE_Int k2 ),
+          HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex *alpha, void *x,HYPRE_Int i1, void *y, HYPRE_Int i2),
+#else
           void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors ),
-          HYPRE_Int    (*DestroyVector) ( void *vector ),
-          void *       (*MatvecCreate)  ( void *A, void *x ),
           HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A, void *x, HYPRE_Complex beta, void *y ),
-          HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
           HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
           HYPRE_Int    (*MassInnerProd) ( void *x, void **p, HYPRE_Int k, HYPRE_Int unroll, void *result),
           HYPRE_Int    (*MassDotpTwo)   ( void *x, void *y, void **p, HYPRE_Int k, HYPRE_Int unroll, void *result_x, void *result_y),
           HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
-          HYPRE_Int    (*ClearVector)   ( void *x ),
           HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
           HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
           HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex *alpha, void **x, void *y, HYPRE_Int k, HYPRE_Int unroll),
+#endif
+          HYPRE_Int    (*DestroyVector) ( void *vector ),
+          void *       (*MatvecCreate)  ( void *A, void *x ),
+          HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
+          HYPRE_Int    (*ClearVector)   ( void *x ),
           HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
           HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
           );
@@ -1372,6 +1415,9 @@ extern "C" {
   HYPRE_Int hypre_COGMRESSetSkipRealResidualCheck ( void *gmres_vdata , HYPRE_Int skip_real_r_check );
   HYPRE_Int hypre_COGMRESGetSkipRealResidualCheck ( void *gmres_vdata , HYPRE_Int *skip_real_r_check );
   HYPRE_Int hypre_COGMRESSetPrecond ( void *gmres_vdata , HYPRE_Int (*precond )(void*,void*,void*,void*), HYPRE_Int (*precond_setup )(void*,void*,void*,void*), void *precond_data );
+#ifdef HYPRE_NREL_CUDA
+  HYPRE_Int hypre_COGMRESSetGSoption ( void *gmres_vdata , HYPRE_Int GSoption);
+#endif
   HYPRE_Int hypre_COGMRESGetPrecond ( void *gmres_vdata , HYPRE_Solver *precond_data_ptr );
   HYPRE_Int hypre_COGMRESSetPrintLevel ( void *gmres_vdata , HYPRE_Int level );
   HYPRE_Int hypre_COGMRESGetPrintLevel ( void *gmres_vdata , HYPRE_Int *level );
