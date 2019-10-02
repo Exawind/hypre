@@ -367,8 +367,9 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
                          Gauss-Seidel on-processor       
                          (forward loop) */
       {
-
-         if (num_threads > 1)
+      
+hypre_ParVectorCopyDataCPUtoGPU(f);
+   if (num_threads > 1)
          {
             Ztemp_local = hypre_ParVectorLocalVector(Ztemp);
             Ztemp_data = hypre_VectorData(Ztemp_local);
@@ -384,7 +385,6 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 #ifdef HYPRE_PROFILE
             hypre_profile_times[HYPRE_TIMER_ID_PACK_UNPACK] -= hypre_MPI_Wtime();
 #endif
-
             num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
             
 #ifdef HYPRE_USING_PERSISTENT_COMM
@@ -397,7 +397,6 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
             
             Vext_data = hypre_CTAlloc(HYPRE_Real, num_cols_offd, HYPRE_MEMORY_HOST);
 #endif
-            
             if (num_cols_offd)
             {
                A_offd_j = hypre_CSRMatrixJ(A_offd);
@@ -414,7 +413,6 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
                v_buf_data[i - begin]
                   = u_data[hypre_ParCSRCommPkgSendMapElmt(comm_pkg,i)];
             }
-            
 #ifdef HYPRE_PROFILE
             hypre_profile_times[HYPRE_TIMER_ID_PACK_UNPACK] += hypre_MPI_Wtime();
             hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] -= hypre_MPI_Wtime();
@@ -448,13 +446,16 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 #ifdef HYPRE_PROFILE
         hypre_profile_times[HYPRE_TIMER_ID_RELAX] -= hypre_MPI_Wtime();
 #endif
+//num_threads =1;	
 
-	if (relax_weight == 1 && omega == 1)
+if (relax_weight == 1 && omega == 1)
         {
          if (relax_points == 0)
          {
+
 	  if (num_threads > 1)
           {
+
 	   tmp_data = Ztemp_data;
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
@@ -504,7 +505,7 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
                   u_data[i] = res / A_diag_data[A_diag_i[i]];
                }
             }
-           }
+           }//for
 
           }
 	  else
@@ -518,6 +519,7 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
              
                if ( A_diag_data[A_diag_i[i]] != zero)
                {
+
                   res = f_data[i];
                   for (jj = A_diag_i[i]+1; jj < A_diag_i[i+1]; jj++)
                   {
@@ -533,7 +535,7 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
                }
             }
           }
-         }
+         }//if relax_points = 0
 
          /*-----------------------------------------------------------------
           * Relax only C or F points as determined by relax_points.
@@ -541,8 +543,10 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 
          else
          {
+
 	  if (num_threads > 1)
 	  {
+
              tmp_data = Ztemp_data;
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
@@ -615,15 +619,17 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
                   for (jj = A_diag_i[i]+1; jj < A_diag_i[i+1]; jj++)
                   {
                      ii = A_diag_j[jj];
-                     res -= A_diag_data[jj] * u_data[ii];
+                     res -= A_diag_data[jj]*u_data[ii];
                   }
                   for (jj = A_offd_i[i]; jj < A_offd_i[i+1]; jj++)
                   {
                      ii = A_offd_j[jj];
-                     res -= A_offd_data[jj] * Vext_data[ii];
+                     res -= A_offd_data[jj]* Vext_data[ii];
                   }
-                  u_data[i] = res / A_diag_data[A_diag_i[i]];
-               }
+ // res += f_data[i];
+             //   u_data[i] = res / A_diag_data[A_diag_i[i]];
+u_data[i] = f_data[i];              
+ }
             }     
 	  }
          }
@@ -636,7 +642,7 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
          for (i = 0; i < n; i++)
          {
             Vtemp_data[i] = u_data[i];
-         }
+ }
          prod = (1.0-relax_weight*omega);
          if (relax_points == 0)
          {
@@ -711,7 +717,6 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
                /*-----------------------------------------------------------
                 * If diagonal is nonzero, relax point i; otherwise, skip it.
                 *-----------------------------------------------------------*/
-             
                if ( A_diag_data[A_diag_i[i]] != zero)
                {
                   res0 = 0.0;
@@ -860,6 +865,7 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
         hypre_profile_times[HYPRE_TIMER_ID_RELAX] += hypre_MPI_Wtime();
 #endif
       }
+//hypre_ParVectorCopyDataCPUtoGPU(u);
       break;
 
       case 1: /* Gauss-Seidel VERY SLOW */

@@ -282,6 +282,58 @@ HYPRE_IJMatrixDestroy( HYPRE_IJMatrix matrix )
    return hypre_error_flag;
 }
 
+
+/*--------------------------------------------------------------------------
+ *  * HYPRE_IJMatrixCopyCPUtoGPU
+ *   *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+HYPRE_IJMatrixCopyCPUtoGPU( HYPRE_IJMatrix matrix ){
+
+   hypre_IJMatrix *ijmatrix = (hypre_IJMatrix *) matrix;
+
+   if (!ijmatrix)
+   {
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+
+   if ( hypre_IJMatrixObjectType(ijmatrix) == HYPRE_PARCSR )
+      hypre_IJMatrixCopyCPUtoGPUParCSR( ijmatrix ) ;
+   else
+   {
+      hypre_error_in_arg(1);
+   }
+
+   return hypre_error_flag;
+
+}
+
+/*--------------------------------------------------------------------------
+ *  * HYPRE_IJMatrixCopyGPUtoCPU
+ *   *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+HYPRE_IJMatrixCopyGPUtoCPU( HYPRE_IJMatrix matrix ){
+
+   hypre_IJMatrix *ijmatrix = (hypre_IJMatrix *) matrix;
+
+   if (!ijmatrix)
+   {
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+
+   if ( hypre_IJMatrixObjectType(ijmatrix) == HYPRE_PARCSR )
+      hypre_IJMatrixCopyGPUtoCPUParCSR( ijmatrix ) ;
+   else
+   {
+      hypre_error_in_arg(1);
+   }
+
+   return hypre_error_flag;
+}
+
 /*--------------------------------------------------------------------------
  *--------------------------------------------------------------------------*/
 
@@ -1070,7 +1122,7 @@ HYPRE_IJMatrixRead( const char     *filename,
    hypre_MPI_Comm_rank(comm, &myid);
 
    hypre_sprintf(new_filename,"%s.%05d", filename, myid);
-
+printf("NEW FILENAME %s \n", new_filename);
    if ((file = fopen(new_filename, "r")) == NULL)
    {
       hypre_error_in_arg(1);

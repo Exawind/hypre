@@ -528,7 +528,6 @@ hypre_IJVectorAddToValuesPar(hypre_IJVector       *vector,
       hypre_error_in_arg(1);
       return hypre_error_flag;
    }
-
    data = hypre_VectorData(local_vector);
 
    if (indices)
@@ -598,7 +597,6 @@ hypre_IJVectorAddToValuesPar(hypre_IJVector       *vector,
       for (j = 0; j < num_values; j++)
          data[j] += values[j];
    } 
-  
    return hypre_error_flag;
 }
 
@@ -695,6 +693,70 @@ hypre_IJVectorAssemblePar(hypre_IJVector *vector)
 
    return hypre_error_flag;
 }
+
+
+
+/* ======================
+ * hypre_IJVectorCopyDataCPUtoGPUPar
+ *
+ * copy data to d_data using cuda mem cpy
+ * */
+
+HYPRE_Int hypre_IJVectorCopyDataCPUtoGPUPar(hypre_IJVector  *vector){
+
+   hypre_ParVector *par_vector = (hypre_ParVector*) hypre_IJVectorObject(vector);
+
+   hypre_Vector *local_vector;
+   local_vector = hypre_ParVectorLocalVector(par_vector);
+
+
+ HYPRE_Int print_level = hypre_IJVectorPrintLevel(vector);
+   if (!local_vector)
+   {
+      if (print_level)
+      {
+         hypre_printf("local_vector == NULL -- ");
+         hypre_printf("hypre_IJVectorGetValuesPar\n");
+         hypre_printf("**** Vector local data is either unallocated or orphaned ****\n");
+      }
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+
+
+   hypre_ParVectorCopyDataCPUtoGPU(par_vector);
+return 0;
+}
+
+HYPRE_Int hypre_IJVectorCopyDataGPUtoCPUPar(hypre_IJVector  *vector){
+
+   hypre_ParVector *par_vector = (hypre_ParVector*) hypre_IJVectorObject(vector);
+
+   hypre_Vector *local_vector;
+   local_vector = hypre_ParVectorLocalVector(par_vector);
+
+   HYPRE_Int print_level = hypre_IJVectorPrintLevel(vector);
+   if (!local_vector)
+   {
+      if (print_level)
+      {
+         hypre_printf("local_vector == NULL -- ");
+         hypre_printf("hypre_IJVectorGetValuesPar\n");
+         hypre_printf("**** Vector local data is either unallocated or orphaned ****\n");
+      }
+      hypre_error_in_arg(1);
+      return hypre_error_flag;
+   }
+
+
+   hypre_ParVectorCopyDataGPUtoCPU(par_vector);
+return 0;
+}
+
+
+
+
+
                                  
 /******************************************************************************
  *

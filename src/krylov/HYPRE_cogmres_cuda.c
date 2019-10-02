@@ -256,6 +256,13 @@ HYPRE_COGMRESGetPrintLevel( HYPRE_Solver solver,
    return( hypre_COGMRESGetPrintLevel( (void *) solver, level ) );
 }
 
+
+HYPRE_Int
+HYPRE_COGMRESSetGSoption( HYPRE_Solver solver,
+                        HYPRE_Int          level )
+{
+   return( hypre_COGMRESSetGSoption( (void *) solver, level ) );
+}
 /*--------------------------------------------------------------------------
  * HYPRE_COGMRESSetLogging, HYPRE_COGMRESGetLogging
  *--------------------------------------------------------------------------*/
