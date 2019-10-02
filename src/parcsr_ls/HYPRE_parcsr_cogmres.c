@@ -28,17 +28,39 @@ HYPRE_ParCSRCOGMRESCreate( MPI_Comm comm, HYPRE_Solver *solver )
    }
    cogmres_functions =
       hypre_COGMRESFunctionsCreate(
-         hypre_CAlloc, hypre_ParKrylovFree, hypre_ParKrylovCommInfo,
+         hypre_CAlloc,
+         hypre_ParKrylovFree,
+         hypre_ParKrylovCommInfo,
          hypre_ParKrylovCreateVector,
-         hypre_ParKrylovCreateVectorArray,
-         hypre_ParKrylovDestroyVector, hypre_ParKrylovMatvecCreate,
-         hypre_ParKrylovMatvec, hypre_ParKrylovMatvecDestroy,
-         hypre_ParKrylovInnerProd, hypre_ParKrylovMassInnerProd, 
-         hypre_ParKrylovMassDotpTwo, hypre_ParKrylovCopyVector,
-         //hypre_ParKrylovCopyVector,
+         hypre_ParKrylovDestroyVector,
+         hypre_ParKrylovMatvecCreate,
+         hypre_ParKrylovMatvecDestroy,
          hypre_ParKrylovClearVector,
-         hypre_ParKrylovScaleVector, hypre_ParKrylovAxpy,hypre_ParKrylovMassAxpy,
-         hypre_ParKrylovIdentitySetup, hypre_ParKrylovIdentity );
+#ifdef HYPRE_NREL_CUDA
+         hypre_ParKrylovCreateMultiVector,
+         hypre_ParKrylovUpdateVectorCPU,
+         hypre_ParKrylovMatvecMult,
+         hypre_ParKrylovInnerProdOneOfMult, 
+         hypre_ParKrylovMassInnerProdMult, 
+         hypre_ParKrylovMassInnerProdTwoVectorsMult, 
+         hypre_ParKrylovMassInnerProdWithScalingMult,    
+         hypre_ParKrylovDoubleInnerProdOneOfMult, 
+         hypre_ParKrylovCopyVectorOneOfMult,
+         hypre_ParKrylovScaleVectorOneOfMult, 
+         hypre_ParKrylovAxpyOneOfMult,
+         hypre_ParKrylovMassAxpyMult,
+#else 
+         hypre_ParKrylovCreateVectorArray,
+         hypre_ParKrylovMatvec,
+         hypre_ParKrylovInnerProd,
+         hypre_ParKrylovMassInnerProd, 
+         hypre_ParKrylovMassDotpTwo,
+         hypre_ParKrylovCopyVector,
+         hypre_ParKrylovScaleVector,
+         hypre_ParKrylovAxpy,hypre_ParKrylovMassAxpy,
+#endif
+         hypre_ParKrylovIdentitySetup,
+         hypre_ParKrylovIdentity );
    *solver = ( (HYPRE_Solver) hypre_COGMRESCreate( cogmres_functions ) );
 
    return hypre_error_flag;
@@ -210,6 +232,14 @@ HYPRE_ParCSRCOGMRESSetPrintLevel( HYPRE_Solver solver,
 {
    return( HYPRE_COGMRESSetPrintLevel( solver, print_level ) );
 }
+
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int HYPRE_ParCSRCOGMRESSetGSoption( HYPRE_Solver solver,
+    HYPRE_Int GSoption)
+{
+  return( HYPRE_COGMRESSetGSoption( solver, GSoption ) );
+}
+#endif
 
 /*--------------------------------------------------------------------------
  * HYPRE_ParCSRCOGMRESGetNumIterations
