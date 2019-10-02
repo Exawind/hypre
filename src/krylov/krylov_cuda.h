@@ -111,7 +111,7 @@ extern "C" {
     HYPRE_Int  (*DestroyVector) ( void *vvector );
     void *     (*MatvecCreate)  ( void *A , void *x );
     HYPRE_Int  (*Matvec)        ( void *matvec_data , HYPRE_Complex alpha , void *A ,
-        void *x , HYPRE_Complex beta , void *y );
+	void *x , HYPRE_Complex beta , void *y );
     HYPRE_Int  (*MatvecDestroy) ( void *matvec_data );
     HYPRE_Real (*InnerProd)     ( void *x , void *y );
     HYPRE_Int  (*CopyVector)    ( void *x , void *y );
@@ -186,22 +186,22 @@ extern "C" {
 
     hypre_BiCGSTABFunctions *
       hypre_BiCGSTABFunctionsCreate(
-          void *     (*CreateVector)  ( void *vvector ),
-          HYPRE_Int  (*DestroyVector) ( void *vvector ),
-          void *     (*MatvecCreate)  ( void *A , void *x ),
-          HYPRE_Int  (*Matvec)        ( void *matvec_data , HYPRE_Complex alpha , void *A ,
-            void *x , HYPRE_Complex beta , void *y ),
-          HYPRE_Int  (*MatvecDestroy) ( void *matvec_data ),
-          HYPRE_Real (*InnerProd)     ( void *x , void *y ),
-          HYPRE_Int  (*CopyVector)    ( void *x , void *y ),
-          HYPRE_Int  (*ClearVector)   ( void *x ),
-          HYPRE_Int  (*ScaleVector)   ( HYPRE_Complex alpha , void *x ),
-          HYPRE_Int  (*Axpy)          ( HYPRE_Complex alpha , void *x , void *y ),
-          HYPRE_Int  (*CommInfo)      ( void *A , HYPRE_Int *my_id ,
-            HYPRE_Int *num_procs ),
-          HYPRE_Int  (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
-          HYPRE_Int  (*Precond)       ( void *vdata, void *A, void *b, void *x )
-          );
+	  void *     (*CreateVector)  ( void *vvector ),
+	  HYPRE_Int  (*DestroyVector) ( void *vvector ),
+	  void *     (*MatvecCreate)  ( void *A , void *x ),
+	  HYPRE_Int  (*Matvec)        ( void *matvec_data , HYPRE_Complex alpha , void *A ,
+	    void *x , HYPRE_Complex beta , void *y ),
+	  HYPRE_Int  (*MatvecDestroy) ( void *matvec_data ),
+	  HYPRE_Real (*InnerProd)     ( void *x , void *y ),
+	  HYPRE_Int  (*CopyVector)    ( void *x , void *y ),
+	  HYPRE_Int  (*ClearVector)   ( void *x ),
+	  HYPRE_Int  (*ScaleVector)   ( HYPRE_Complex alpha , void *x ),
+	  HYPRE_Int  (*Axpy)          ( HYPRE_Complex alpha , void *x , void *y ),
+	  HYPRE_Int  (*CommInfo)      ( void *A , HYPRE_Int *my_id ,
+	    HYPRE_Int *num_procs ),
+	  HYPRE_Int  (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
+	  HYPRE_Int  (*Precond)       ( void *vdata, void *A, void *b, void *x )
+	  );
 
     /**
      * Description...
@@ -274,14 +274,14 @@ extern "C" {
   typedef struct
   {
     HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-        HYPRE_Int   *num_procs );
+	HYPRE_Int   *num_procs );
     void *       (*CreateVector)  ( void *vector );
     HYPRE_Int    (*DestroyVector) ( void *vector );
     void *       (*MatvecCreate)  ( void *A, void *x );
     HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-        void *x, HYPRE_Complex beta, void *y );
+	void *x, HYPRE_Complex beta, void *y );
     HYPRE_Int    (*MatvecT)       ( void *matvec_data, HYPRE_Complex alpha, void *A,
-        void *x, HYPRE_Complex beta, void *y );
+	void *x, HYPRE_Complex beta, void *y );
     HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
     HYPRE_Real   (*InnerProd)     ( void *x, void *y );
     HYPRE_Int    (*CopyVector)    ( void *x, void *y );
@@ -346,25 +346,25 @@ extern "C" {
      **/
     hypre_CGNRFunctions *
       hypre_CGNRFunctionsCreate(
-          HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-            HYPRE_Int   *num_procs ),
-          void *       (*CreateVector)  ( void *vector ),
-          HYPRE_Int    (*DestroyVector) ( void *vector ),
-          void *       (*MatvecCreate)  ( void *A, void *x ),
-          HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-            void *x, HYPRE_Complex beta, void *y ),
-          HYPRE_Int    (*MatvecT)       ( void *matvec_data, HYPRE_Complex alpha, void *A,
-            void *x, HYPRE_Complex beta, void *y ),
-          HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
-          HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
-          HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
-          HYPRE_Int    (*ClearVector)   ( void *x ),
-          HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
-          HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
-          HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
-          HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x ),
-          HYPRE_Int    (*PrecondT)      ( void *vdata, void *A, void *b, void *x )
-          );
+	  HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
+	    HYPRE_Int   *num_procs ),
+	  void *       (*CreateVector)  ( void *vector ),
+	  HYPRE_Int    (*DestroyVector) ( void *vector ),
+	  void *       (*MatvecCreate)  ( void *A, void *x ),
+	  HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
+	    void *x, HYPRE_Complex beta, void *y ),
+	  HYPRE_Int    (*MatvecT)       ( void *matvec_data, HYPRE_Complex alpha, void *A,
+	    void *x, HYPRE_Complex beta, void *y ),
+	  HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
+	  HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
+	  HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
+	  HYPRE_Int    (*ClearVector)   ( void *x ),
+	  HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
+	  HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
+	  HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
+	  HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x ),
+	  HYPRE_Int    (*PrecondT)      ( void *vdata, void *A, void *b, void *x )
+	  );
 
     /**
      * Description...
@@ -439,13 +439,13 @@ extern "C" {
     void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location );
     HYPRE_Int    (*Free)          ( void *ptr );
     HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-        HYPRE_Int   *num_procs );
+	HYPRE_Int   *num_procs );
     void *       (*CreateVector)  ( void *vector );
     void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors );
     HYPRE_Int    (*DestroyVector) ( void *vector );
     void *       (*MatvecCreate)  ( void *A, void *x );
     HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-        void *x, HYPRE_Complex beta, void *y );
+	void *x, HYPRE_Complex beta, void *y );
     HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
     HYPRE_Real   (*InnerProd)     ( void *x, void *y );
     HYPRE_Int    (*CopyVector)    ( void *x, void *y );
@@ -519,25 +519,25 @@ extern "C" {
 
     hypre_GMRESFunctions *
       hypre_GMRESFunctionsCreate(
-          void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location ),
-          HYPRE_Int    (*Free)          ( void *ptr ),
-          HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-            HYPRE_Int   *num_procs ),
-          void *       (*CreateVector)  ( void *vector ),
-          void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors ),
-          HYPRE_Int    (*DestroyVector) ( void *vector ),
-          void *       (*MatvecCreate)  ( void *A, void *x ),
-          HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-            void *x, HYPRE_Complex beta, void *y ),
-          HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
-          HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
-          HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
-          HYPRE_Int    (*ClearVector)   ( void *x ),
-          HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
-          HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
-          HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
-          HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
-          );
+	  void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location ),
+	  HYPRE_Int    (*Free)          ( void *ptr ),
+	  HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
+	    HYPRE_Int   *num_procs ),
+	  void *       (*CreateVector)  ( void *vector ),
+	  void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors ),
+	  HYPRE_Int    (*DestroyVector) ( void *vector ),
+	  void *       (*MatvecCreate)  ( void *A, void *x ),
+	  HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
+	    void *x, HYPRE_Complex beta, void *y ),
+	  HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
+	  HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
+	  HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
+	  HYPRE_Int    (*ClearVector)   ( void *x ),
+	  HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
+	  HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
+	  HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
+	  HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
+	  );
 
     /**
      * Description...
@@ -612,22 +612,25 @@ extern "C" {
     void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location );
     HYPRE_Int    (*Free)          ( void *ptr );
     HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-        HYPRE_Int   *num_procs );
+	HYPRE_Int   *num_procs );
     void *       (*CreateVector)  ( void *vector );
-    void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors );
-    HYPRE_Int    (*DestroyVector) ( void *vector );
+void *       (*CreateMultiVector)  (void *vectors, HYPRE_Int num_vectors );    
+   void *       (*UpdateVectorCPU)  ( void *vector );
+HYPRE_Int    (*DestroyVector) ( void *vector );
     void *       (*MatvecCreate)  ( void *A, void *x );
-    HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-        void *x, HYPRE_Complex beta, void *y );
+   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
+                                   void *x,HYPRE_Int k1, HYPRE_Complex beta, void *y, HYPRE_Int k2 );
     HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
-    HYPRE_Real   (*InnerProd)     ( void *x, void *y );
-    HYPRE_Int    (*MassInnerProd) ( void *x, void **p, HYPRE_Int k, HYPRE_Int unroll, void *result);
-    HYPRE_Int    (*MassDotpTwo)   ( void *x, void *y, void **p, HYPRE_Int k, HYPRE_Int unroll, void *result_x, void *result_y);
-    HYPRE_Int    (*CopyVector)    ( void *x, void *y );
+    HYPRE_Real   (*InnerProd)     ( void *x, HYPRE_Int i1,void *y, HYPRE_Int i2 );
+    HYPRE_Int    (*MassInnerProd) ( void *x, HYPRE_Int k1, void *y, HYPRE_Int k2, void *result);
+    HYPRE_Int    (*MassInnerProdTwoVectors) ( void *x,HYPRE_Int k, void *y1, HYPRE_Int k1, void *y2, HYPRE_Int k2, void *result);
+    HYPRE_Int    (*MassInnerProdWithScaling)   ( void *x,HYPRE_Int k1, void *y, HYPRE_Int k2, void * scaleFactors, void *result);
+   HYPRE_Int   (*DoubleInnerProd)     ( void *x,HYPRE_Int k1, void *y, HYPRE_Int k2, void * res );
+    HYPRE_Int    (*CopyVector)    ( void *x, HYPRE_Int i1, void *y, HYPRE_Int i2 );
     HYPRE_Int    (*ClearVector)   ( void *x );
-    HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );
-    HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );
-    HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex * alpha, void **x, void *y, HYPRE_Int k, HYPRE_Int unroll);
+    HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x, HYPRE_Int i1 );
+    HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, HYPRE_Int i1, void *y, HYPRE_Int i2 );
+    HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex * alpha, void *x, HYPRE_Int k1, void *y, HYPRE_Int k2);
     HYPRE_Int    (*precond)       (void *vdata , void *A , void *b , void *x);
     HYPRE_Int    (*precond_setup) (void *vdata , void *A , void *b , void *x);
 
@@ -660,7 +663,7 @@ extern "C" {
     void  *r;
     void  *w;
     void  *w_2;
-    void  **p;
+    void  *p;
 
     void    *matvec_data;
     void    *precond_data;
@@ -669,7 +672,7 @@ extern "C" {
 
     /* log info (always logged) */
     HYPRE_Int      num_iterations;
-
+    HYPRE_Int GSoption;
     HYPRE_Int     print_level; /* printing when print_level>0 */
     HYPRE_Int     logging;  /* extra computations for logging when logging>0 */
     HYPRE_Real  *norms;
@@ -696,27 +699,31 @@ extern "C" {
 
     hypre_COGMRESFunctions *
       hypre_COGMRESFunctionsCreate(
-          void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location ),
-          HYPRE_Int    (*Free)          ( void *ptr ),
-          HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-            HYPRE_Int   *num_procs ),
-          void *       (*CreateVector)  ( void *vector ),
-          void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors ),
-          HYPRE_Int    (*DestroyVector) ( void *vector ),
-          void *       (*MatvecCreate)  ( void *A, void *x ),
-          HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A, void *x, HYPRE_Complex beta, void *y ),
-          HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
-          HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
-          HYPRE_Int    (*MassInnerProd) ( void *x, void **p, HYPRE_Int k, HYPRE_Int unroll, void *result),
-          HYPRE_Int    (*MassDotpTwo)   ( void *x, void *y, void **p, HYPRE_Int k, HYPRE_Int unroll, void *result_x, void *result_y),
-          HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
-          HYPRE_Int    (*ClearVector)   ( void *x ),
-          HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
-          HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
-          HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex *alpha, void **x, void *y, HYPRE_Int k, HYPRE_Int unroll),
-          HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
-          HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
-          );
+	  void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location ),
+	  HYPRE_Int    (*Free)          ( void *ptr ),
+	  HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
+	    HYPRE_Int   *num_procs ),
+	  void *       (*CreateVector)  ( void *vector ),
+void *       (*CreateMultiVector)  (void *vectors, HYPRE_Int num_vectors ),	  
+   void *       (*UpdateVectorCPU)  ( void *vector ),
+HYPRE_Int    (*DestroyVector) ( void *vector ),
+	  void *       (*MatvecCreate)  ( void *A, void *x ),
+   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
+                                   void *x,HYPRE_Int k1, HYPRE_Complex beta, void *y, HYPRE_Int k2 ),
+	  HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
+	  HYPRE_Real   (*InnerProd)     ( void *x,HYPRE_Int k1, void *y, HYPRE_Int k2 ),
+	  HYPRE_Int    (*MassInnerProd) ( void *x, HYPRE_Int k1, void *y, HYPRE_Int k2, void *result),
+    HYPRE_Int    (*MassInnerProdTwoVectors) ( void *x,HYPRE_Int k, void *y1, HYPRE_Int k1, void *y2, HYPRE_Int k2, void *result),
+	  HYPRE_Int    (*MassInnerProdWithScaling)   ( void *x, HYPRE_Int i1, void *y,HYPRE_Int i2, void *scaleFactors, void *result),
+	  HYPRE_Int   (*DoubleInnerProd)     ( void *x,HYPRE_Int k1, void *y, HYPRE_Int k2, void * res ),
+	  HYPRE_Int    (*CopyVector)    ( void *x,HYPRE_Int i1,  void *y, HYPRE_Int i2 ),
+	  HYPRE_Int    (*ClearVector)   ( void *x ),
+	  HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x, HYPRE_Int k1 ),
+	  HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x,HYPRE_Int k1, void *y, HYPRE_Int k2 ),
+	  HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex *alpha, void *x,HYPRE_Int i1, void *y, HYPRE_Int i2),
+	  HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
+	  HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
+	    );
 
     /**
      * Description...
@@ -781,13 +788,13 @@ extern "C" {
     void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location );
     HYPRE_Int    (*Free)          ( void *ptr );
     HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-        HYPRE_Int   *num_procs );
+	HYPRE_Int   *num_procs );
     void *       (*CreateVector)  ( void *vector );
     void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors );
     HYPRE_Int    (*DestroyVector) ( void *vector );
     void *       (*MatvecCreate)  ( void *A, void *x );
     HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-        void *x, HYPRE_Complex beta, void *y );
+	void *x, HYPRE_Complex beta, void *y );
     HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
     HYPRE_Real   (*InnerProd)     ( void *x, void *y );
     HYPRE_Int    (*CopyVector)    ( void *x, void *y );
@@ -865,25 +872,25 @@ extern "C" {
 
     hypre_LGMRESFunctions *
       hypre_LGMRESFunctionsCreate(
-          void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location),
-          HYPRE_Int    (*Free)          ( void *ptr ),
-          HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-            HYPRE_Int   *num_procs ),
-          void *       (*CreateVector)  ( void *vector ),
-          void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors ),
-          HYPRE_Int    (*DestroyVector) ( void *vector ),
-          void *       (*MatvecCreate)  ( void *A, void *x ),
-          HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-            void *x, HYPRE_Complex beta, void *y ),
-          HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
-          HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
-          HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
-          HYPRE_Int    (*ClearVector)   ( void *x ),
-          HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
-          HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
-          HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
-          HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
-          );
+	  void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location),
+	  HYPRE_Int    (*Free)          ( void *ptr ),
+	  HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
+	    HYPRE_Int   *num_procs ),
+	  void *       (*CreateVector)  ( void *vector ),
+	  void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors ),
+	  HYPRE_Int    (*DestroyVector) ( void *vector ),
+	  void *       (*MatvecCreate)  ( void *A, void *x ),
+	  HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
+	    void *x, HYPRE_Complex beta, void *y ),
+	  HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
+	  HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
+	  HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
+	  HYPRE_Int    (*ClearVector)   ( void *x ),
+	  HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
+	  HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
+	  HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
+	  HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
+	  );
 
     /**
      * Description...
@@ -954,13 +961,13 @@ extern "C" {
     void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location );
     HYPRE_Int    (*Free)          ( void *ptr );
     HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-        HYPRE_Int   *num_procs );
+	HYPRE_Int   *num_procs );
     void *       (*CreateVector)  ( void *vector );
     void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors );
     HYPRE_Int    (*DestroyVector) ( void *vector );
     void *       (*MatvecCreate)  ( void *A, void *x );
     HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-        void *x, HYPRE_Complex beta, void *y );
+	void *x, HYPRE_Complex beta, void *y );
     HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
     HYPRE_Real   (*InnerProd)     ( void *x, void *y );
     HYPRE_Int    (*CopyVector)    ( void *x, void *y );
@@ -1034,25 +1041,25 @@ extern "C" {
 
     hypre_FlexGMRESFunctions *
       hypre_FlexGMRESFunctionsCreate(
-          void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location ),
-          HYPRE_Int    (*Free)          ( void *ptr ),
-          HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-            HYPRE_Int   *num_procs ),
-          void *       (*CreateVector)  ( void *vector ),
-          void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors ),
-          HYPRE_Int    (*DestroyVector) ( void *vector ),
-          void *       (*MatvecCreate)  ( void *A, void *x ),
-          HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-            void *x, HYPRE_Complex beta, void *y ),
-          HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
-          HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
-          HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
-          HYPRE_Int    (*ClearVector)   ( void *x ),
-          HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
-          HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
-          HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
-          HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
-          );
+	  void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location ),
+	  HYPRE_Int    (*Free)          ( void *ptr ),
+	  HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
+	    HYPRE_Int   *num_procs ),
+	  void *       (*CreateVector)  ( void *vector ),
+	  void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors ),
+	  HYPRE_Int    (*DestroyVector) ( void *vector ),
+	  void *       (*MatvecCreate)  ( void *A, void *x ),
+	  HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
+	    void *x, HYPRE_Complex beta, void *y ),
+	  HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
+	  HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
+	  HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
+	  HYPRE_Int    (*ClearVector)   ( void *x ),
+	  HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
+	  HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
+	  HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
+	  HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
+	  );
 
     /**
      * Description...
@@ -1126,12 +1133,12 @@ extern "C" {
     void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location );
     HYPRE_Int    (*Free)          ( void *ptr );
     HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-        HYPRE_Int   *num_procs );
+	HYPRE_Int   *num_procs );
     void *       (*CreateVector)  ( void *vector );
     HYPRE_Int    (*DestroyVector) ( void *vector );
     void *       (*MatvecCreate)  ( void *A, void *x );
     HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-        void *x, HYPRE_Complex beta, void *y );
+	void *x, HYPRE_Complex beta, void *y );
     HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
     HYPRE_Real   (*InnerProd)     ( void *x, void *y );
     HYPRE_Int    (*CopyVector)    ( void *x, void *y );
@@ -1199,7 +1206,7 @@ extern "C" {
     void    *p;
     void    *s;
     void    *r; /* ...contains the residual.  This is currently kept permanently.
-                   If that is ever changed, it still must be kept if logging>1 */
+		   If that is ever changed, it still must be kept if logging>1 */
 
     HYPRE_Int      owns_matvec_data;  /* normally 1; if 0, don't delete it */
     void    *matvec_data;
@@ -1240,24 +1247,24 @@ extern "C" {
 
     hypre_PCGFunctions *
       hypre_PCGFunctionsCreate(
-          void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location ),
-          HYPRE_Int    (*Free)          ( void *ptr ),
-          HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-            HYPRE_Int   *num_procs ),
-          void *       (*CreateVector)  ( void *vector ),
-          HYPRE_Int    (*DestroyVector) ( void *vector ),
-          void *       (*MatvecCreate)  ( void *A, void *x ),
-          HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-            void *x, HYPRE_Complex beta, void *y ),
-          HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
-          HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
-          HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
-          HYPRE_Int    (*ClearVector)   ( void *x ),
-          HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
-          HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
-          HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
-          HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
-          );
+	  void *       (*CAlloc)        ( size_t count, size_t elt_size, HYPRE_Int location ),
+	  HYPRE_Int    (*Free)          ( void *ptr ),
+	  HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
+	    HYPRE_Int   *num_procs ),
+	  void *       (*CreateVector)  ( void *vector ),
+	  HYPRE_Int    (*DestroyVector) ( void *vector ),
+	  void *       (*MatvecCreate)  ( void *A, void *x ),
+	  HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
+	    void *x, HYPRE_Complex beta, void *y ),
+	  HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
+	  HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
+	  HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
+	  HYPRE_Int    (*ClearVector)   ( void *x ),
+	  HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
+	  HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
+	  HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
+	  HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
+	  );
 
     /**
      * Description...
@@ -1372,6 +1379,7 @@ extern "C" {
   HYPRE_Int hypre_COGMRESSetSkipRealResidualCheck ( void *gmres_vdata , HYPRE_Int skip_real_r_check );
   HYPRE_Int hypre_COGMRESGetSkipRealResidualCheck ( void *gmres_vdata , HYPRE_Int *skip_real_r_check );
   HYPRE_Int hypre_COGMRESSetPrecond ( void *gmres_vdata , HYPRE_Int (*precond )(void*,void*,void*,void*), HYPRE_Int (*precond_setup )(void*,void*,void*,void*), void *precond_data );
+  HYPRE_Int hypre_COGMRESSetGSoption ( void *gmres_vdata , HYPRE_Int GSoption);
   HYPRE_Int hypre_COGMRESGetPrecond ( void *gmres_vdata , HYPRE_Solver *precond_data_ptr );
   HYPRE_Int hypre_COGMRESSetPrintLevel ( void *gmres_vdata , HYPRE_Int level );
   HYPRE_Int hypre_COGMRESGetPrintLevel ( void *gmres_vdata , HYPRE_Int *level );

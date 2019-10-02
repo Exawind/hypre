@@ -46,8 +46,8 @@ HYPRE_Init( hypre_int argc, char *argv[] )
       cuda_reduce_buffer = hypre_TAlloc(HYPRE_double6, 1024, HYPRE_MEMORY_DEVICE);
    }
 #endif
-printf("this is hypre init, using gpu? %d \n", HYPRE_USING_GPU);
 #if defined(HYPRE_USING_GPU)
+   printf("this is hypre init, using gpu? %d \n", HYPRE_USING_GPU);
    hypre_GPUInit(-1);
 #endif
 

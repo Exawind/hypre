@@ -51,32 +51,29 @@
 
 typedef struct
 {
-  void *       (*CAlloc)        ( size_t count, size_t elt_size );
-  HYPRE_Int    (*Free)          ( void *ptr );
-  HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-      HYPRE_Int   *num_procs );
-  void *       (*CreateVector)  ( void *vector );
-  void *       (*CreateMultiVector)  (void *vectors, HYPRE_Int num_vectors );   
-  void *       (*UpdateVectorCPU)  ( void *vector );
-  HYPRE_Int    (*DestroyVector) ( void *vector );
-  void *       (*MatvecCreate)  ( void *A, void *x );
-  HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-      void *x,HYPRE_Int k1, HYPRE_Complex beta, void *y, HYPRE_Int k2 );
-  HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
-  HYPRE_Real   (*InnerProd)     ( void *x, HYPRE_Int i1,  void *y, HYPRE_Int j2 );
-  HYPRE_Int    (*MassInnerProd) ( void *x, HYPRE_Int k1, void *y, HYPRE_Int k2, void *result);
-    HYPRE_Int    (*MassInnerProdTwoVectors) ( void *x,HYPRE_Int k, void *y1, HYPRE_Int k1, void *y2, HYPRE_Int k2, void *result);
-  HYPRE_Int    (*MassInnerProdWithScaling)   ( void *x, HYPRE_Int i1, void *y,HYPRE_Int i2, void *scaleFactors, void *result);
-  HYPRE_Int   (*DoubleInnerProd)     ( void *x,HYPRE_Int k1, void *y, HYPRE_Int k2, void * res );
-  HYPRE_Int    (*CopyVector)    ( void *x,HYPRE_Int i1, void *y, HYPRE_Int i2 );
-  HYPRE_Int    (*ClearVector)   ( void *x );
-  HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x, HYPRE_Int i1 );
-  HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, HYPRE_Int i1, void *y, HYPRE_Int i2 );
-  HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex *alpha, void *x, HYPRE_Int k1, void *y, HYPRE_Int k2);
-  HYPRE_Int    (*precond)       ();
-  HYPRE_Int    (*precond_setup) ();
+   void *       (*CAlloc)        ( size_t count, size_t elt_size );
+   HYPRE_Int    (*Free)          ( void *ptr );
+   HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
+                                   HYPRE_Int   *num_procs );
+   void *       (*CreateVector)  ( void *vector );
+   void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors );
+   HYPRE_Int    (*DestroyVector) ( void *vector );
+   void *       (*MatvecCreate)  ( void *A, void *x );
+   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
+                                   void *x, HYPRE_Complex beta, void *y );
+   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
+   HYPRE_Real   (*InnerProd)     ( void *x, void *y );
+   HYPRE_Int    (*MassInnerProd) ( void *x, void **p, HYPRE_Int k, HYPRE_int unroll, void *result);
+   HYPRE_Int    (*MassDotpTwo)( void *x, void *y, void **p, HYPRE_Int k, void *result_x, HYPRE_int unroll, void *result_y);
+   HYPRE_Int    (*CopyVector)    ( void *x, void *y );
+   HYPRE_Int    (*ClearVector)   ( void *x );
+   HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );
+   HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );
+   HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex *alpha, void **x, void *y, HYPRE_Int k, HYPRE_Int unroll);
+   HYPRE_Int    (*precond)       ();
+   HYPRE_Int    (*precond_setup) ();
 
-  HYPRE_Int    (*modify_pc)(void *precond_data, HYPRE_Int iteration, HYPRE_Real rel_residual_norm );
+    HYPRE_Int    (*modify_pc)(void *precond_data, HYPRE_Int iteration, HYPRE_Real rel_residual_norm );
 
 } hypre_COGMRESFunctions;
 
@@ -86,94 +83,90 @@ typedef struct
 
 typedef struct
 {
-  HYPRE_Int      k_dim;
-  HYPRE_Int      unroll;
-  HYPRE_Int      cgs;
-  HYPRE_Int      min_iter;
-  HYPRE_Int      max_iter;
-  HYPRE_Int      rel_change;
-  HYPRE_Int      skip_real_r_check;
-  HYPRE_Int      converged;
-  HYPRE_Real   tol;
-  HYPRE_Real   cf_tol;
-  HYPRE_Real   a_tol;
-  HYPRE_Real   rel_residual_norm;
+   HYPRE_Int      k_dim;
+   HYPRE_Int      unroll;
+   HYPRE_Int      cgs;
+   HYPRE_Int      min_iter;
+   HYPRE_Int      max_iter;
+   HYPRE_Int      rel_change;
+   HYPRE_Int      skip_real_r_check;
+   HYPRE_Int      converged;
+   HYPRE_Real   tol;
+   HYPRE_Real   cf_tol;
+   HYPRE_Real   a_tol;
+   HYPRE_Real   rel_residual_norm;
 
-  void  *A;
-  void  *r;
-  void  *w;
-  void  *w_2;
-  void  *p;
+   void  *A;
+   void  *r;
+   void  *w;
+   void  *w_2;
+   void  **p;
 
-  void    *matvec_data;
-  void    *precond_data;
+   void    *matvec_data;
+   void    *precond_data;
 
-  hypre_COGMRESFunctions * functions;
+   hypre_COGMRESFunctions * functions;
 
-  /* log info (always logged) */
-  HYPRE_Int      num_iterations;
+   /* log info (always logged) */
+   HYPRE_Int      num_iterations;
+ 
+   HYPRE_Int     print_level; /* printing when print_level>0 */
+   HYPRE_Int     logging;  /* extra computations for logging when logging>0 */
+   HYPRE_Real  *norms;
+   char    *log_file_name;
 
-  HYPRE_Int     print_level; /* printing when print_level>0 */
-  HYPRE_Int     logging;  /* extra computations for logging when logging>0 */
-  HYPRE_Real  *norms;
-  HYPRE_Int GSoption;
-  char    *log_file_name;
-  HYPRE_Int GSoption;
 } hypre_COGMRESData;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-  /**
-   * @name generic COGMRES Solver
-   *
-   * Description...
-   **/
-  /*@{*/
+/**
+ * @name generic COGMRES Solver
+ *
+ * Description...
+ **/
+/*@{*/
 
-  /**
-   * Description...
-   *
-   * @param param [IN] ...
-   **/
+/**
+ * Description...
+ *
+ * @param param [IN] ...
+ **/
 
-  hypre_COGMRESFunctions *
-    hypre_COGMRESFunctionsCreate(
-	void *       (*CAlloc)        ( size_t count, size_t elt_size ),
-	HYPRE_Int    (*Free)          ( void *ptr ),
-	HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
-	  HYPRE_Int   *num_procs ),
-	void *       (*CreateVector)  ( void *vector ),
-	void *       (*CreateMultiVector)  (void *vectors, HYPRE_Int num_vectors ),
-	void *       (*UpdateVectorCPU)  ( void *vector ),
-	HYPRE_Int    (*DestroyVector) ( void *vector ),
-	void *       (*MatvecCreate)  ( void *A, void *x ),
-	HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
-	  void *x,HYPRE_Int k1, HYPRE_Complex beta, void *y, HYPRE_Int k2 ),
-	HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
-	HYPRE_Real   (*InnerProd)     ( void *x,HYPRE_Int k1, void *y, HYPRE_Int k2 ),
-	HYPRE_Int    (*MassInnerProd) ( void *x, HYPRE_Int k1, void *y, HYPRE_Int k2, void *result),
-    HYPRE_Int    (*MassInnerProdTwoVectors) ( void *x,HYPRE_Int k, void *y1, HYPRE_Int k1, void *y2, HYPRE_Int k2, void *result),
-	HYPRE_Int    (*MassInnerProdWithScaling)   ( void *x, HYPRE_Int i1, void *y,HYPRE_Int i2, void *scaleFactors, void *result),
-	  HYPRE_Int   (*DoubleInnerProd)     ( void *x,HYPRE_Int k1, void *y, HYPRE_Int k2, void * res ),
-	HYPRE_Int    (*CopyVector)    ( void *x,HYPRE_Int i1, void *y, HYPRE_Int i2 ),
-	HYPRE_Int    (*ClearVector)   ( void *x ),
-	HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x, HYPRE_Int k1 ),
-	HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x,HYPRE_Int k1, void *y, HYPRE_Int k2 ),
-	HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex *alpha, void *x, HYPRE_Int k1, void *y, HYPRE_Int k2),   
-	HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
-	HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
-	  );
+hypre_COGMRESFunctions *
+hypre_COGMRESFunctionsCreate(
+   void *       (*CAlloc)        ( size_t count, size_t elt_size ),
+   HYPRE_Int    (*Free)          ( void *ptr ),
+   HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
+                                   HYPRE_Int   *num_procs ),
+   void *       (*CreateVector)  ( void *vector ),
+   void *       (*CreateVectorArray)  ( HYPRE_Int size, void *vectors ),
+   HYPRE_Int    (*DestroyVector) ( void *vector ),
+   void *       (*MatvecCreate)  ( void *A, void *x ),
+   HYPRE_Int    (*Matvec)        ( void *matvec_data, HYPRE_Complex alpha, void *A,
+                                   void *x, HYPRE_Complex beta, void *y ),
+   HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
+   HYPRE_Real   (*InnerProd)     ( void *x, void *y ),
+   HYPRE_Int    (*MassInnerProd) ( void *x, void **p, HYPRE_Int k, HYPRE_Int unroll, void *result),
+   HYPRE_Int    (*MassDotpTwo)   ( void *x, void *y, void **p, HYPRE_Int k, HYPRE_Int unroll, void *result_x, void *result_y),
+   HYPRE_Int    (*CopyVector)    ( void *x, void *y ),
+   HYPRE_Int    (*ClearVector)   ( void *x ),
+   HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x ),
+   HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
+   HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex *alpha, void **x, void *y, HYPRE_Int k, HYPRE_Int unroll),   
+   HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
+   HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
+   );
 
-  /**
-   * Description...
-   *
-   * @param param [IN] ...
-   **/
+/**
+ * Description...
+ *
+ * @param param [IN] ...
+ **/
 
-  void *
-    hypre_COGMRESCreate( hypre_COGMRESFunctions *gmres_functions );
+void *
+hypre_COGMRESCreate( hypre_COGMRESFunctions *gmres_functions );
 
 #ifdef __cplusplus
 }

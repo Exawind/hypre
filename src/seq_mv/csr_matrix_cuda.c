@@ -40,6 +40,9 @@ hypre_CSRMatrixCreate( HYPRE_Int num_rows,
    hypre_CSRMatrixData(matrix) = NULL;
    hypre_CSRMatrixI(matrix)    = NULL;
    hypre_CSRMatrixJ(matrix)    = NULL;
+   hypre_CSRMatrixDeviceData(matrix) = NULL;
+   hypre_CSRMatrixDeviceI(matrix)    = NULL;
+   hypre_CSRMatrixDeviceJ(matrix)    = NULL;
    hypre_CSRMatrixRownnz(matrix) = NULL;
    hypre_CSRMatrixNumRows(matrix) = num_rows;
    hypre_CSRMatrixNumCols(matrix) = num_cols;
@@ -49,7 +52,7 @@ hypre_CSRMatrixCreate( HYPRE_Int num_rows,
    hypre_CSRMatrixOwnsData(matrix) = 1;
    hypre_CSRMatrixNumRownnz(matrix) = num_rows;
 
-#ifdef HYPRE_USING_UNIFIED_MEMORY
+#ifdef HYPRE_USING_GPU
    matrix->on_device=0;
 #endif
 #ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD
@@ -72,6 +75,10 @@ hypre_CSRMatrixDestroy( hypre_CSRMatrix *matrix )
      hypre_CSRMatrixUnMapFromDevice(matrix);
 #endif
       hypre_TFree(hypre_CSRMatrixI(matrix), HYPRE_MEMORY_SHARED);
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+//printf("TRYING to free non unif \n");  
+    hypre_TFree(hypre_CSRMatrixDeviceI(matrix), HYPRE_MEMORY_DEVICE);
+#endif
       hypre_CSRMatrixI(matrix)    = NULL;
       if (hypre_CSRMatrixRownnz(matrix))
          hypre_TFree(hypre_CSRMatrixRownnz(matrix), HYPRE_MEMORY_SHARED);
@@ -79,7 +86,15 @@ hypre_CSRMatrixDestroy( hypre_CSRMatrix *matrix )
       {
          hypre_TFree(hypre_CSRMatrixData(matrix), HYPRE_MEMORY_SHARED);
          hypre_TFree(hypre_CSRMatrixJ(matrix), HYPRE_MEMORY_SHARED);
-         hypre_CSRMatrixData(matrix) = NULL;
+      
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+      hypre_TFree(hypre_CSRMatrixDeviceJ(matrix), HYPRE_MEMORY_DEVICE);
+      hypre_TFree(hypre_CSRMatrixDeviceData(matrix), HYPRE_MEMORY_DEVICE);
+   hypre_CSRMatrixDeviceData(matrix) = NULL;
+         hypre_CSRMatrixDeviceJ(matrix)    = NULL;
+#endif
+
+   hypre_CSRMatrixData(matrix) = NULL;
          hypre_CSRMatrixJ(matrix)    = NULL;
       }
        hypre_TFree(matrix, HYPRE_MEMORY_HOST);
@@ -88,6 +103,102 @@ hypre_CSRMatrixDestroy( hypre_CSRMatrix *matrix )
 
    return ierr;
 }
+
+/*--------------------------------------------------------------------------
+ * hypre_CSRMatrixCopyGPUtoCPU
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+hypre_CSRMatrixCopyGPUtoCPU( hypre_CSRMatrix *matrix ){
+
+  HYPRE_Int  num_rows     = hypre_CSRMatrixNumRows(matrix);
+  HYPRE_Int  num_nonzeros = hypre_CSRMatrixNumNonzeros(matrix);
+#if (HYPRE_USING_GPU)
+  cudaMemcpy( hypre_CSRMatrixData(matrix),  hypre_CSRMatrixDeviceData(matrix), num_nonzeros*sizeof(HYPRE_Complex), cudaMemcpyDeviceToDevice);
+  cudaMemcpy( hypre_CSRMatrixI(matrix),  hypre_CSRMatrixDeviceI(matrix), num_rows*sizeof(HYPRE_Int), cudaMemcpyDeviceToDevice);
+  cudaMemcpy( hypre_CSRMatrixJ(matrix),  hypre_CSRMatrixDeviceJ(matrix), num_nonzeros*sizeof(HYPRE_Int), cudaMemcpyDeviceToDevice);
+#else
+  cudaMemcpy( hypre_CSRMatrixData(matrix),  hypre_CSRMatrixDeviceData(matrix), num_nonzeros*sizeof(HYPRE_Complex), cudaMemcpyDeviceToHost);
+  cudaMemcpy( hypre_CSRMatrixI(matrix),  hypre_CSRMatrixDeviceI(matrix), num_rows*sizeof(HYPRE_Int), cudaMemcpyDeviceToHost);
+  cudaMemcpy( hypre_CSRMatrixJ(matrix),  hypre_CSRMatrixDeviceJ(matrix), num_nonzeros*sizeof(HYPRE_Int), cudaMemcpyDeviceToHost);
+#endif
+return 0;
+}
+
+/*--------------------------------------------------------------------------
+ * hypre_CSRMatrixCopyCPUtoGPU
+ *--------------------------------------------------------------------------*/
+
+HYPRE_Int
+hypre_CSRMatrixCopyCPUtoGPU( hypre_CSRMatrix *matrix ){
+
+  HYPRE_Int  num_rows     = hypre_CSRMatrixNumRows(matrix);
+  HYPRE_Int  num_nonzeros = hypre_CSRMatrixNumNonzeros(matrix);
+
+  //printf("\nabout to copy matrix data to the gpu, numnon zeros %d\n", num_nonzeros);
+  hypre_CheckErrorDevice(cudaPeekAtLastError());
+#if (HYPRE_USING_GPU)
+  /*
+   *
+   cudaMemcpy (A_dataGPUonly,AA->data, 
+   num_nonzeros*sizeof(HYPRE_Real),
+   cudaMemcpyDeviceToDevice );
+   * */
+  if (!matrix->d_data){
+    //printf("no matrix d data, num non-zeros %d \n", num_nonzeros);
+    if (num_nonzeros){
+      hypre_CSRMatrixDeviceData(matrix)    = hypre_CTAlloc(HYPRE_Complex,  num_nonzeros, HYPRE_MEMORY_DEVICE);
+    }
+
+  }
+  //printf("data alloced\n");
+  hypre_CheckErrorDevice(cudaPeekAtLastError());
+  //printf("error check passed\n");
+  if (!matrix->data){printf("oups no data in the matrix \n");}
+ //printf("num non zeros %d \n", num_nonzeros);
+  cudaMemcpy(matrix->d_data, matrix->data,
+      num_nonzeros*sizeof(HYPRE_Complex), cudaMemcpyDeviceToDevice);
+  hypre_CheckErrorDevice(cudaPeekAtLastError());
+
+  //  printf("\ncopied matrix data to the GPU\n");
+  if (!matrix->d_i){
+
+    if (num_rows){
+
+      hypre_CSRMatrixDeviceI(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_rows + 1, HYPRE_MEMORY_DEVICE);
+    }
+  }
+
+
+  if (!matrix->d_j){
+
+    if (num_nonzeros){
+
+      hypre_CSRMatrixDeviceJ(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_nonzeros, HYPRE_MEMORY_DEVICE);
+    }
+  }
+
+  //printf("num non zeros %d \n", num_nonzeros);
+  cudaMemcpy(hypre_CSRMatrixDeviceJ(matrix), hypre_CSRMatrixJ(matrix),   num_nonzeros*sizeof(HYPRE_Int), cudaMemcpyDeviceToDevice);
+
+  hypre_CheckErrorDevice(cudaPeekAtLastError());
+  //printf("\ncopied matrixJ to the GPU\n");
+  //printf("num rows %d \n", num_rows);
+  cudaMemcpy(hypre_CSRMatrixDeviceI(matrix), hypre_CSRMatrixI(matrix),   (num_rows+1)*sizeof(HYPRE_Int), cudaMemcpyDeviceToDevice);
+
+  hypre_CheckErrorDevice(cudaPeekAtLastError());
+  //printf("\ncopied matrix to the GPU\n");
+
+#else
+cudaMemcpy( hypre_CSRMatrixDeviceData(matrix),hypre_CSRMatrixData(matrix),   num_nonzeros*sizeof(HYPRE_Complex), cudaMemcpyHostToDevice);
+  cudaMemcpy(hypre_CSRMatrixDeviceJ(matrix), hypre_CSRMatrixJ(matrix),   num_nonzeros*sizeof(HYPRE_Int), cudaMemcpyHostToDevice);
+  cudaMemcpy(hypre_CSRMatrixDeviceI(matrix), hypre_CSRMatrixI(matrix),  ( num_rows+1)*sizeof(HYPRE_Int), cudaMemcpyHostToDevice);
+#endif
+return 0;
+}
+
+
+
 
 /*--------------------------------------------------------------------------
  * hypre_CSRMatrixInitialize
@@ -99,9 +210,9 @@ hypre_CSRMatrixInitialize( hypre_CSRMatrix *matrix )
    HYPRE_Int  num_rows     = hypre_CSRMatrixNumRows(matrix);
    HYPRE_Int  num_nonzeros = hypre_CSRMatrixNumNonzeros(matrix);
 /*   HYPRE_Int  num_rownnz = hypre_CSRMatrixNumRownnz(matrix); */
-
+//printf("Hello! Inside matrix alloc! HYPRE_MEMORY SHARED is %d \n", HYPRE_MEMORY_SHARED);
    HYPRE_Int  ierr=0;
-
+//printf("this is matrix init, num_nonzeros = %d\n", num_nonzeros);
    if ( ! hypre_CSRMatrixData(matrix) && num_nonzeros )
       hypre_CSRMatrixData(matrix) = hypre_CTAlloc(HYPRE_Complex,  num_nonzeros, HYPRE_MEMORY_SHARED);
    else {
@@ -113,6 +224,30 @@ hypre_CSRMatrixInitialize( hypre_CSRMatrix *matrix )
      hypre_CSRMatrixRownnz(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_rownnz, HYPRE_MEMORY_SHARED);*/
    if ( ! hypre_CSRMatrixJ(matrix) && num_nonzeros )
       hypre_CSRMatrixJ(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_nonzeros, HYPRE_MEMORY_SHARED);
+
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+  //printf("num rows %d num non zeros %d \n", num_rows, num_nonzeros);  
+  if (!hypre_CSRMatrixDeviceJ(matrix)){
+  //  printf("\nthere is NO J - initializing \n");
+    hypre_CSRMatrixDeviceJ(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_nonzeros, HYPRE_MEMORY_DEVICE);
+    //printf("\n Initializing J: exists? %d \n",hypre_CSRMatrixDeviceJ(matrix));  
+  }
+
+  if (!hypre_CSRMatrixDeviceI(matrix)){
+  //  printf("\nthere is NO I - initializing \n");
+    hypre_CSRMatrixDeviceI(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_rows + 1, HYPRE_MEMORY_DEVICE);
+    //printf("device I (diag)\n");
+  }
+
+  if (!hypre_CSRMatrixDeviceData(matrix)){
+
+  //  printf("\nthere is NO DATA - initializing \n");
+    hypre_CSRMatrixDeviceData(matrix)    = hypre_CTAlloc(HYPRE_Complex,  num_nonzeros, HYPRE_MEMORY_DEVICE);
+    //printf("device A data (diag)\n");
+  }
+#endif
+
+
 
    return ierr;
 }
@@ -683,7 +818,7 @@ HYPRE_Int hypre_CSRMatrixGetLoadBalancedPartitionEnd(hypre_CSRMatrix *A)
 {
    return hypre_CSRMatrixGetLoadBalancedPartitionBoundary(A, hypre_GetThreadNum() + 1);
 }
-#ifdef HYPRE_USING_UNIFIED_MEMORY
+#ifdef HYPRE_USING_GPU
 void hypre_CSRMatrixPrefetchToDevice(hypre_CSRMatrix *A){
   if (hypre_CSRMatrixNumNonzeros(A)==0) return;
 
