@@ -65,12 +65,19 @@ HYPRE_BoomerAMGSolve( HYPRE_Solver solver,
                       HYPRE_ParVector b,
                       HYPRE_ParVector x      )
 {
-
-
+#ifdef HYPRE_NREL_CUDA
+   HYPRE_Int ret = ( hypre_BoomerAMGSolve( (void *) solver,
+                                           (hypre_ParCSRMatrix *) A,
+                                           (hypre_ParVector *) b,
+                                           (hypre_ParVector *) x ) );
+   hypre_ParVectorCopyDataCPUtoGPU(x);
+   return ret;
+#else
    return( hypre_BoomerAMGSolve( (void *) solver,
                                  (hypre_ParCSRMatrix *) A,
                                  (hypre_ParVector *) b,
                                  (hypre_ParVector *) x ) );
+#endif
 }
 
 /*--------------------------------------------------------------------------
