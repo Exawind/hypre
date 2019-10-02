@@ -367,7 +367,9 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
                          Gauss-Seidel on-processor       
                          (forward loop) */
       {
-
+#ifdef HYPRE_NREL_CUDA
+         hypre_ParVectorCopyDataCPUtoGPU(f);
+#endif
          if (num_threads > 1)
          {
             Ztemp_local = hypre_ParVectorLocalVector(Ztemp);
@@ -622,7 +624,11 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
                      ii = A_offd_j[jj];
                      res -= A_offd_data[jj] * Vext_data[ii];
                   }
+#ifdef HYPRE_NREL_CUDA
+                  u_data[i] = f_data[i];              
+#else
                   u_data[i] = res / A_diag_data[A_diag_i[i]];
+#endif
                }
             }     
 	  }
