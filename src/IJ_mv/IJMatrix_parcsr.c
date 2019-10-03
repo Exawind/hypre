@@ -475,10 +475,10 @@ hypre_IJMatrixGetValuesParCSR( hypre_IJMatrix *matrix,
    if (assemble_flag == 0)
    {
       hypre_error_in_arg(1);
-      if (print_level)
+     /* if (print_level)
       {
          hypre_printf("Error! Matrix not assembled yet! HYPRE_IJMatrixGetValues\n");
-      }
+      }*/
    }
 
 #ifdef HYPRE_NO_GLOBAL_PARTITION
@@ -1193,8 +1193,8 @@ hypre_IJMatrixSetConstantValuesParCSR( hypre_IJMatrix       *matrix,
    }
    else
    {
-      hypre_error_w_msg(HYPRE_ERROR_GENERIC,
-                        "Matrix not assembled! Required to set constant values!");
+      //hypre_error_w_msg(HYPRE_ERROR_GENERIC,
+                        //"Matrix not assembled! Required to set constant values!");
    }
 
    return hypre_error_flag;
@@ -4385,4 +4385,52 @@ hypre_IJMatrixAddToValuesOMPParCSR( hypre_IJMatrix       *matrix,
 
    return hypre_error_flag;
 }
+
+#ifdef HYPRE_NREL_CUDA
+/******************************************************************************
+ *
+ * hypre_IJMatrixCopyGPUtoCPUParCSR
+ *
+ * copy GPU data to CPU in  ParCSRMatrix as necessary
+ *
+ *****************************************************************************/
+
+HYPRE_Int
+hypre_IJMatrixCopyGPUtoCPUParCSR(hypre_IJMatrix *matrix){
+  hypre_ParCSRMatrix *par_matrix = (hypre_ParCSRMatrix *) hypre_IJMatrixObject(matrix);
+
+  if (!par_matrix){
+
+    hypre_error_in_arg(1);
+    hypre_printf("error!i cant copy Gpu to Cpu data because the matrix is not initilized!!!\n");
+  }
+
+  hypre_ParCSRMatrixCopyGPUtoCPU(par_matrix);
+  return hypre_error_flag;
+}
+
+/******************************************************************************
+ *
+ * hypre_IJMatrixCopyCPUtoGPUParCSR
+ *
+ * copy CPU data to GPU in  ParCSRMatrix as necessary
+ *
+ *****************************************************************************/
+
+HYPRE_Int
+hypre_IJMatrixCopyCPUtoGPUParCSR(hypre_IJMatrix *matrix){
+  hypre_ParCSRMatrix *par_matrix = (hypre_ParCSRMatrix *) hypre_IJMatrixObject(matrix);
+
+  if (!par_matrix){
+
+    hypre_error_in_arg(1);
+    hypre_printf("error!i cant copy cpu to gpu data because the matrix is not initilized!!!\n");
+  }
+
+  hypre_ParCSRMatrixCopyCPUtoGPU(par_matrix);
+
+  return hypre_error_flag;
+}
+#endif
+
 
