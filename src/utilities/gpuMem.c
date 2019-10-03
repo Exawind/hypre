@@ -42,7 +42,6 @@ void hypre_GPUInit(hypre_int use_device)
       HYPRE_GPU_HANDLE=1;
       HYPRE_DEVICE=0;
       hypre_CheckErrorDevice(cudaGetDeviceCount(&nDevices));
-printf("I see %d devices!! \n", nDevices);
       /* XXX */
       nDevices = 1; /* DO NOT COMMENT ME OUT AGAIN! nDevices does NOT WORK !!!! */
       HYPRE_DEVICE_COUNT=nDevices;
@@ -145,9 +144,6 @@ printf("I see %d devices!! \n", nDevices);
       CudaCompileFlagCheck();
 #endif
    }
-else{
-printf("GPU MEM this is device %d num devices %d \n", HYPRE_DEVICE, HYPRE_DEVICE_COUNT);
-}
 }
 
 
@@ -224,10 +220,9 @@ void MemPrefetchSized(const void *ptr,size_t size,hypre_int device,cudaStream_t 
   PUSH_RANGE_DOMAIN("MemPreFetchSized",4,0);
   /* Do a prefetch every time until a possible UM bug is fixed */
   if (size>0){
-    //hypre_CheckErrorDevice(
-//printf("before the orefetch, last error %d \n",  	cudaGetLastError() );
-cudaError_t aaa = cudaMemPrefetchAsync(ptr,size,device,stream);
-//printf("error code in prefetch %d string %s \n", aaa, cudaGetErrorString(aaa));
+#ifdef HYPRE_NREL_CUDA
+    cudaError_t aaa = cudaMemPrefetchAsync(ptr,size,device,stream);
+#endif
     POP_RANGE_DOMAIN(0);
     return;
   }

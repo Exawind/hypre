@@ -1020,7 +1020,9 @@ HYPRE_Int HYPRE_ParCSRCOGMRESSetPrecond ( HYPRE_Solver solver , HYPRE_PtrToParSo
 HYPRE_Int HYPRE_ParCSRCOGMRESGetPrecond ( HYPRE_Solver solver , HYPRE_Solver *precond_data_ptr );
 HYPRE_Int HYPRE_ParCSRCOGMRESSetLogging ( HYPRE_Solver solver , HYPRE_Int logging );
 HYPRE_Int HYPRE_ParCSRCOGMRESSetPrintLevel ( HYPRE_Solver solver , HYPRE_Int print_level );
+#ifdef HYPRE_NREL_CUDA
 HYPRE_Int HYPRE_ParCSRCOGMRESSetGSoption ( HYPRE_Solver solver , HYPRE_Int gsOption );
+#endif
 HYPRE_Int HYPRE_ParCSRCOGMRESGetNumIterations ( HYPRE_Solver solver , HYPRE_Int *num_iterations );
 HYPRE_Int HYPRE_ParCSRCOGMRESGetFinalRelativeResidualNorm ( HYPRE_Solver solver , HYPRE_Real *norm );
 HYPRE_Int HYPRE_ParCSRCOGMRESGetResidual ( HYPRE_Solver solver , HYPRE_ParVector *residual );
@@ -1620,8 +1622,10 @@ HYPRE_Real bndfun_rs ( HYPRE_Real xx , HYPRE_Real yy , HYPRE_Real zz );
 void *hypre_ParKrylovCAlloc ( HYPRE_Int count , HYPRE_Int elt_size );
 HYPRE_Int hypre_ParKrylovFree ( void *ptr );
 void *hypre_ParKrylovCreateVector ( void *vvector );
+#ifdef HYPRE_NREL_CUDA
 void *hypre_ParKrylovCreateMultiVector ( void *vvector, HYPRE_Int num_vectors );
 void *hypre_ParKrylovUpdateVectorCPU ( void *vvector);
+#endif
 void *hypre_ParKrylovCreateVectorArray ( HYPRE_Int n , void *vvector );
 HYPRE_Int hypre_ParKrylovDestroyVector ( void *vvector );
 void *hypre_ParKrylovMatvecCreate ( void *A , void *x );
@@ -1629,19 +1633,23 @@ HYPRE_Int hypre_ParKrylovMatvec ( void *matvec_data , HYPRE_Complex alpha , void
 HYPRE_Int hypre_ParKrylovMatvecT ( void *matvec_data , HYPRE_Complex alpha , void *A , void *x , HYPRE_Complex beta , void *y );
 HYPRE_Int hypre_ParKrylovMatvecDestroy ( void *matvec_data );
 
+#ifdef HYPRE_NREL_CUDA
 void *hypre_ParKrylovMatvecMultCreate ( void *A , void *x );
 HYPRE_Int hypre_ParKrylovMatvecMult ( void *matvec_data , HYPRE_Complex alpha , void *A , void *x ,HYPRE_Int k1, HYPRE_Complex beta , void *y, HYPRE_Int k2 );
 HYPRE_Int hypre_ParKrylovMatvecMultDestroy ( void *matvec_data );
-
+#endif
 
 HYPRE_Real hypre_ParKrylovInnerProd ( void *x , void *y );
+#ifdef HYPRE_NREL_CUDA
 HYPRE_Real hypre_ParKrylovInnerProdOneOfMult ( void *x ,HYPRE_Int k1, void *y, HYPRE_Int k2 );
 HYPRE_Int  hypre_ParKrylovDoubleInnerProdOneOfMult ( void * x ,HYPRE_Int k1, void * y, HYPRE_Int k2, void  *res );
 HYPRE_Int hypre_ParKrylovAxpyOneOfMult(HYPRE_Complex alpha,  void *x , HYPRE_Int k1,  void *  y , HYPRE_Int k2);
+#endif
 HYPRE_Int hypre_ParKrylovMassInnerProd ( void *x , void **y, HYPRE_Int k, HYPRE_Int unroll, void *result );
 HYPRE_Int hypre_ParKrylovMassDotpTwo ( void *x , void *y , void **z, HYPRE_Int k, HYPRE_Int unroll, void *result_x, void *result_y );
 HYPRE_Int hypre_ParKrylovMassAxpy( HYPRE_Complex *alpha, void **x, void *y, HYPRE_Int k, HYPRE_Int unroll);
 
+#ifdef HYPRE_NREL_CUDA
 HYPRE_Int  hypre_ParKrylovMassInnerProdMult ( void *x ,HYPRE_Int k, void *y, HYPRE_Int k2, void *result );
 HYPRE_Int  hypre_ParKrylovMassInnerProdTwoVectorsMult ( void *x ,HYPRE_Int k, void *y1, HYPRE_Int k2,void *y2, HYPRE_Int k3, void *result );
 HYPRE_Int  hypre_ParKrylovMassInnerProdWithScalingMult ( void *x ,HYPRE_Int k, void *y, HYPRE_Int k2,void *scaleFactors, void *result );
@@ -1652,16 +1660,18 @@ HYPRE_Int hypre_ParKrylovGivensRotRight(
     void * q1,
     void  * q2,
     HYPRE_Real  a1, HYPRE_Real a2, HYPRE_Real a3,  HYPRE_Real a4);
-
 void  hypre_ParKrylovMassInnerProdGPU ( void *x , void *y, int k, int n,  void *result );
-//void  hypre_ParKrylovMassInnerProdGPU (int k, int n,  void *result );
-//void hypre_ParKrylovMassAxpyGPU ( HYPRE_Real *alpha, void *x, void *y, HYPRE_Int k, int n);
+#endif
 
 HYPRE_Int hypre_ParKrylovCopyVector ( void *x , void *y );
+#ifdef HYPRE_NREL_CUDA
 HYPRE_Int hypre_ParKrylovCopyVectorOneOfMult ( void *x ,HYPRE_Int k1,  void *y, HYPRE_Int k2 );
+#endif
 HYPRE_Int hypre_ParKrylovClearVector ( void *x );
 HYPRE_Int hypre_ParKrylovScaleVector ( HYPRE_Complex alpha , void *x );
+#ifdef HYPRE_NREL_CUDA
 HYPRE_Int hypre_ParKrylovScaleVectorOneOfMult ( HYPRE_Complex alpha , void *x, HYPRE_Int k1 );
+#endif
 HYPRE_Int hypre_ParKrylovAxpy ( HYPRE_Complex alpha , void *x , void *y );
 HYPRE_Int hypre_ParKrylovCommInfo ( void *A , HYPRE_Int *my_id , HYPRE_Int *num_procs );
 HYPRE_Int hypre_ParKrylovIdentitySetup ( void *vdata , void *A , void *b , void *x );

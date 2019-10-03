@@ -48,8 +48,10 @@ typedef struct
   HYPRE_Int drc; /* device ref count */
   HYPRE_Int hrc; /* host ref count */
 #endif
-/*KS for GPU */
-HYPRE_Complex *d_data;
+#ifdef HYPRE_NREL_CUDA
+  /*KS for GPU */
+  HYPRE_Complex *d_data;
+#endif
 } hypre_Vector;
 
 /*--------------------------------------------------------------------------

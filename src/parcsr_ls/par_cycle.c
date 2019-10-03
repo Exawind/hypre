@@ -153,7 +153,7 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
    smooth_type         = hypre_ParAMGDataSmoothType(amg_data);
    smooth_num_levels   = hypre_ParAMGDataSmoothNumLevels(amg_data);
    l1_norms            = hypre_ParAMGDataL1Norms(amg_data);
-/* smooth_option       = hypre_ParAMGDataSmoothOption(amg_data); */
+   /* smooth_option       = hypre_ParAMGDataSmoothOption(amg_data); */
    /* RL */
    restri_type = hypre_ParAMGDataRestriction(amg_data);
 
@@ -275,12 +275,13 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
            hypre_VectorSize(hypre_ParVectorLocalVector(Ptemp)) = local_size;
            Ztemp_data = hypre_VectorData(hypre_ParVectorLocalVector(Ztemp));
            Ptemp_data = hypre_VectorData(hypre_ParVectorLocalVector(Ptemp));
-    hypre_ParVectorSetConstantValues(Ztemp,0);
+           hypre_ParVectorSetConstantValues(Ztemp,0);
            alpha = -1.0;
            beta = 1.0;
-
+           //printf("par_cycle.c 1 %d\n",level);
            hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                                 U_array[level], beta, F_array[level], Rtemp);
+           //printf("par_cycle.c 1 Done\n");
            cg_num_sweep = hypre_ParAMGDataSmoothNumSweeps(amg_data);
            num_sweep = num_grid_sweeps[cycle_param];
            Aux_U = Ztemp;
@@ -330,10 +331,9 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
          *-----------------------------------------------------------------*/
          for (jj = 0; jj < cg_num_sweep; jj++)
          {
-            if (smooth_num_levels > level && smooth_type > 9){
- 
-             hypre_ParVectorSetConstantValues(Aux_U,0);
-}
+            if (smooth_num_levels > level && smooth_type > 9)
+              hypre_ParVectorSetConstantValues(Aux_U,0);
+
            for (j = 0; j < num_sweep; j++)
            {
               if (num_levels == 1 && max_levels > 1)
@@ -371,6 +371,7 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
               /*-----------------------------------------------
                 Choose Smoother
                 -----------------------------------------------*/
+
               if (smooth_num_levels > level &&
                     (smooth_type == 7 || smooth_type == 8 ||
                      smooth_type == 9 || smooth_type == 19 ||
@@ -379,8 +380,8 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
                  hypre_VectorSize(hypre_ParVectorLocalVector(Utemp)) = local_size;
                  alpha = -1.0;
                  beta = 1.0;
-                 
-hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
+                 //printf("par_cycle.c 2 %d\n",level);
+                 hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                                 U_array[level], beta, Aux_F, Vtemp);
                  if (smooth_type == 8 || smooth_type == 18)
                     HYPRE_ParCSRParaSailsSolve(smoother[level],
@@ -429,8 +430,7 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                        loc_relax_points[0] = -1;
                        loc_relax_points[1] = 1;
                     }
-                    for (i=0; i < 2; i++){
-
+                    for (i=0; i < 2; i++)
                        hypre_ParCSRRelax_L1_Jacobi(A_array[level],
                                                  Aux_F,
                                                  CF_marker_array[level],
@@ -439,11 +439,11 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                                                  l1_norms[level],
                                                  Aux_U,
                                                  Vtemp);
-                } 
-}
+                 }
                  else /* not CF - so use through AMS */
                  {
 #if defined(HYPRE_USING_GPU)|| defined(HYPRE_USING_OPENMP_OFFLOAD) || defined(HYPRE_USING_MAPPED_OPENMP_OFFLOAD)
+                    //printf("par_cycle.c 3 %d\n",level);
                     hypre_ParCSRRelax(A_array[level],
                                        Aux_F,
                                        1,
@@ -454,6 +454,7 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                                        Aux_U,
                                        Vtemp,
                                        Ztemp);
+                    //printf("par_cycle.c 3 done %d\n",level);
 #else
                     if (num_threads == 1)
                        hypre_ParCSRRelax(A_array[level],
@@ -510,6 +511,10 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
               }
               else if (old_version)
               {
+                /*
+                 printf("cycle %d: relax_type %d, relax_points %d\n",
+                         cycle_param, relax_type, relax_points);
+                */
                  Solve_err_flag = hypre_BoomerAMGRelax(A_array[level],
                                                      Aux_F,
                                                      CF_marker_array[level],
@@ -540,10 +545,7 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                  }
                  else
                  {
-                 
-
-
-  Solve_err_flag = hypre_BoomerAMGRelaxIF(A_array[level],
+                    Solve_err_flag = hypre_BoomerAMGRelaxIF(A_array[level],
                                                           Aux_F,
                                                           CF_marker_array[level],
                                                           relax_type,
@@ -600,6 +602,7 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
 
          fine_grid = level;
          coarse_grid = level + 1;
+
          hypre_ParVectorSetConstantValues(U_array[coarse_grid], 0.0);
 
          alpha = -1.0;
@@ -614,8 +617,10 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
          else
          {
             // JSP: avoid unnecessary copy using out-of-place version of SpMV
+            //printf("par_cycle.c 4 %d\n",level);
             hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[fine_grid], U_array[fine_grid],
                                                beta, F_array[fine_grid], Vtemp);
+            //printf("par_cycle.c 4 done %d\n",level);
             //SyncVectorToHost(hypre_ParVectorLocalVector(Vtemp));
          }
 
@@ -639,10 +644,10 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
             {
                //SyncVectorToHost(hypre_ParVectorLocalVector(Vtemp));
                //SyncVectorToHost(hypre_ParVectorLocalVector(F_array[coarse_grid]));
-              
-
- hypre_ParCSRMatrixMatvecT(alpha,R_array[fine_grid],Vtemp,
+               //printf("par_cycle.c 5 %d\n",level,PrintPointerAttributes( hypre_ParCSRMatrixDiag(R_array[fine_grid])->data));
+               hypre_ParCSRMatrixMatvecT(alpha,R_array[fine_grid],Vtemp,
                                          beta,F_array[coarse_grid]);
+               //printf("par_cycle.c 5 Done %d\n",level);
                //UpdateDRC(hypre_ParVectorLocalVector(F_array[coarse_grid]));
                //SyncVectorToHost(hypre_ParVectorLocalVector(F_array[coarse_grid]));
             }
@@ -678,11 +683,12 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
          }
          else
          {
-
+            //printf("par_cycle.c 6 %d\n",level);
             hypre_ParCSRMatrixMatvec(alpha, P_array[fine_grid],
                                      U_array[coarse_grid],
                                      beta, U_array[fine_grid]);
-    }
+            //printf("par_cycle.c 6 done %d\n",level);
+         }
 
          --level;
          cycle_param = 2;
@@ -711,5 +717,6 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
          smooth_type == 17 || smooth_type == 18 || smooth_type == 19 )
         hypre_ParVectorDestroy(Utemp);
    }
+   //printf("HYPRE_BoomerAMGCycle END\n");
    return(Solve_err_flag);
 }

@@ -13,17 +13,12 @@
 
 #ifndef HYPRE_PARCSR_LS_HEADER
 #define HYPRE_PARCSR_LS_HEADER
-/*
-#include "HYPRE_utilities.h"
-#include "../seq_mv/HYPRE_seq_mv.h"
-#include "../parcsr_mv/HYPRE_parcsr_mv.h"
-#include "../IJ_mv/HYPRE_IJ_mv.h"
-*/
 
 #include "HYPRE_utilities.h"
 #include "HYPRE_seq_mv.h"
 #include "HYPRE_parcsr_mv.h"
 #include "HYPRE_IJ_mv.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -2390,9 +2385,11 @@ HYPRE_Int HYPRE_ParCSRCOGMRESSetLogging(HYPRE_Solver solver,
 HYPRE_Int HYPRE_ParCSRCOGMRESSetPrintLevel(HYPRE_Solver solver,
                                          HYPRE_Int    print_level);
 
-
+#ifdef HYPRE_NREL_CUDA
 HYPRE_Int HYPRE_ParCSRCOGMRESSetGSoption(HYPRE_Solver solver,
                                          HYPRE_Int    GSoption);
+#endif
+
 HYPRE_Int HYPRE_ParCSRCOGMRESGetNumIterations(HYPRE_Solver  solver,
                                             HYPRE_Int    *num_iterations);
 

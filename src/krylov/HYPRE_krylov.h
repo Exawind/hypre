@@ -196,9 +196,10 @@ HYPRE_Int HYPRE_PCGSetLogging(HYPRE_Solver solver,
  **/
 HYPRE_Int HYPRE_PCGSetPrintLevel(HYPRE_Solver solver,
                            HYPRE_Int          level);
-
+#ifdef HYPRE_NREL_CUDA
 HYPRE_Int HYPRE_COGMRESSetGSoption(HYPRE_Solver solver,
                                  HYPRE_Int  GSoption);
+#endif
 /**
  * Return the number of iterations taken.
  **/

@@ -67,13 +67,12 @@ typedef struct
   HYPRE_Int mapped;
 #endif
 
-/*KS for GPU */
-
+#ifdef HYPRE_NREL_CUDA
+   /*KS for GPU */
    HYPRE_Int     *d_i;
    HYPRE_Int     *d_j, *d_rownnz;
-
    HYPRE_Complex  *d_data;
-
+#endif
 
 } hypre_CSRMatrix;
 
@@ -237,8 +236,10 @@ typedef struct
   HYPRE_Int drc; /* device ref count */
   HYPRE_Int hrc; /* host ref count */
 #endif
-/* KS for the GPU */
-HYPRE_Complex *d_data;
+#ifdef HYPRE_NREL_CUDA
+  /* KS for the GPU */
+  HYPRE_Complex *d_data;
+#endif
 } hypre_Vector;
 
 /*--------------------------------------------------------------------------
@@ -269,8 +270,8 @@ void VecScale(double *u, double *v, double *l1_norm, int num_rows,cudaStream_t s
 void VecScaleSplit(double *u, double *v, double *l1_norm, int num_rows,cudaStream_t s);
 void CudaCompileFlagCheck();
 void PackOnDevice(HYPRE_Complex *send_data,HYPRE_Complex *x_local_data, hypre_int *send_map, hypre_int begin,hypre_int end,cudaStream_t s);
- void PackOnDeviceGPUonly(HYPRE_Complex *send_data,HYPRE_Complex *x_local_data, hypre_int *send_map, hypre_int begin,hypre_int end);
-
+#ifdef HYPRE_NREL_CUDA
+void PackOnDeviceGPUonly(HYPRE_Complex *send_data,HYPRE_Complex *x_local_data, hypre_int *send_map, hypre_int begin,hypre_int end);
 void MassAxpyGPUonly(int N,    int k,
     const  double  * x_data,
     double *y_data,
@@ -280,7 +281,6 @@ void MassInnerProdGPUonly(const double * __restrict__ u,
     double * result,
     const int k,
     const int N);
-
 void MassInnerProdTwoVectorsGPUonly(const double * __restrict__ u1,const double * __restrict__ u2,
     const double * __restrict__ v,
     double * result1,
@@ -296,7 +296,7 @@ void ScaleGPUonly(double * __restrict__ u,
     const double alpha,
     const int N);
 void AxpyGPUonly(const double * __restrict__ u,
-     double * __restrict__ v,
+    double * __restrict__ v,
     const double alpha,
     const int N);
 void InnerProdGPUonly(const double * __restrict__ u,
@@ -305,11 +305,12 @@ void InnerProdGPUonly(const double * __restrict__ u,
     const int N);
 
 void GivensRotRight(int N,
-     HYPRE_Int k1,
+    HYPRE_Int k1,
     HYPRE_Int k2,
     double  * q1,
     double  * q2,
     const HYPRE_Real  a1, const HYPRE_Real a2, const HYPRE_Real a3,const HYPRE_Real a4);
+#endif
 #endif
 #endif
 
@@ -347,19 +348,25 @@ void hypre_CSRMatrixUnMapFromDevice(hypre_CSRMatrix *A);
 // y[offset:end] = alpha*A[offset:end,:]*x + beta*b[offset:end]
 HYPRE_Int hypre_CSRMatrixMatvecOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
 
- HYPRE_Int hypre_CSRMatrixMatvecMultOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1,  HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int hypre_CSRMatrixMatvecMultOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1,  HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
+#endif
 
 HYPRE_Int hypre_CSRMatrixMatvecOutOfPlaceOOMP ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
 // y = alpha*A + beta*y
 HYPRE_Int hypre_CSRMatrixMatvec ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *y );
- HYPRE_Int hypre_CSRMatrixMatvecMult ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1, HYPRE_Complex beta , hypre_Vector *y, HYPRE_Int k2 );
+
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int hypre_CSRMatrixMatvecMult ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1, HYPRE_Complex beta , hypre_Vector *y, HYPRE_Int k2 );
+#endif
 
 HYPRE_Int hypre_CSRMatrixMatvecT ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *y );
 HYPRE_Int hypre_CSRMatrixMatvec_FF ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *y , HYPRE_Int *CF_marker_x , HYPRE_Int *CF_marker_y , HYPRE_Int fpt );
 #ifdef HYPRE_USING_GPU
 HYPRE_Int hypre_CSRMatrixMatvecDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
+#ifdef HYPRE_NREL_CUDA
 HYPRE_Int hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_Vector *b,HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
-
+#endif
 #endif
 /* genpart.c */
 HYPRE_Int hypre_GeneratePartitioning ( HYPRE_Int length , HYPRE_Int num_procs , HYPRE_Int **part_ptr );
@@ -369,8 +376,10 @@ HYPRE_Int hypre_GenerateLocalPartitioning ( HYPRE_Int length , HYPRE_Int num_pro
 HYPRE_CSRMatrix HYPRE_CSRMatrixCreate ( HYPRE_Int num_rows , HYPRE_Int num_cols , HYPRE_Int *row_sizes );
 HYPRE_Int HYPRE_CSRMatrixDestroy ( HYPRE_CSRMatrix matrix );
 HYPRE_Int HYPRE_CSRMatrixInitialize ( HYPRE_CSRMatrix matrix );
-  HYPRE_Int hypre_CSRMatrixCopyGPUtoCPU ( hypre_CSRMatrix *matrix );
-  HYPRE_Int hypre_CSRMatrixCopyCPUtoGPU ( hypre_CSRMatrix *matrix );
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int hypre_CSRMatrixCopyGPUtoCPU ( hypre_CSRMatrix *matrix );
+HYPRE_Int hypre_CSRMatrixCopyCPUtoGPU ( hypre_CSRMatrix *matrix );
+#endif
 HYPRE_CSRMatrix HYPRE_CSRMatrixRead ( char *file_name );
 void HYPRE_CSRMatrixPrint ( HYPRE_CSRMatrix matrix , char *file_name );
 HYPRE_Int HYPRE_CSRMatrixGetNumRows ( HYPRE_CSRMatrix matrix , HYPRE_Int *num_rows );
@@ -440,16 +449,22 @@ HYPRE_Int hypre_SeqVectorPrint ( hypre_Vector *vector , char *file_name );
 HYPRE_Int hypre_SeqVectorSetConstantValues ( hypre_Vector *v , HYPRE_Complex value );
 HYPRE_Int hypre_SeqVectorSetRandomValues ( hypre_Vector *v , HYPRE_Int seed );
 HYPRE_Int hypre_SeqVectorCopy ( hypre_Vector *x , hypre_Vector *y );
-  HYPRE_Int hypre_SeqVectorCopyOneOfMult ( hypre_Vector *x , HYPRE_Int k1,  hypre_Vector *y, HYPRE_Int k2 );
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int hypre_SeqVectorCopyOneOfMult ( hypre_Vector *x , HYPRE_Int k1,  hypre_Vector *y, HYPRE_Int k2 );
+#endif
 hypre_Vector *hypre_SeqVectorCloneDeep ( hypre_Vector *x );
 hypre_Vector *hypre_SeqVectorCloneShallow ( hypre_Vector *x );
 HYPRE_Int hypre_SeqVectorScale ( HYPRE_Complex alpha , hypre_Vector *y );
-  HYPRE_Int hypre_SeqVectorScaleOneOfMult ( HYPRE_Complex alpha , hypre_Vector *y, HYPRE_Int k1 );
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int hypre_SeqVectorScaleOneOfMult ( HYPRE_Complex alpha , hypre_Vector *y, HYPRE_Int k1 );
+#endif
 HYPRE_Int hypre_SeqVectorAxpy ( HYPRE_Complex alpha , hypre_Vector *x , hypre_Vector *y );
 HYPRE_Real hypre_SeqVectorInnerProd ( hypre_Vector *x , hypre_Vector *y );
 HYPRE_Real hypre_SeqVectorInnerProdOneOfMult ( hypre_Vector *x ,HYPRE_Int k1, hypre_Vector *y, HYPRE_Int k2 );
 HYPRE_Real hypre_SeqVectorDoubleInnerProdOneOfMult ( hypre_Vector *x ,HYPRE_Int k1,  hypre_Vector y, HYPRE_Int k2, HYPRE_Real *res );
-  HYPRE_Int  hypre_SeqVectorAxpyOneOfMult(HYPRE_Complex alpha,  hypre_Vector* x , HYPRE_Int k1,  hypre_Vector* y , HYPRE_Int k2 );
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int  hypre_SeqVectorAxpyOneOfMult(HYPRE_Complex alpha,  hypre_Vector* x , HYPRE_Int k1,  hypre_Vector* y , HYPRE_Int k2 );
+#endif
 HYPRE_Int hypre_SeqVectorMassInnerProd(hypre_Vector *x, hypre_Vector **y, HYPRE_Int k, HYPRE_Int unroll, HYPRE_Real *result);
 HYPRE_Int hypre_SeqVectorMassInnerProd4(hypre_Vector *x, hypre_Vector **y, HYPRE_Int k,  HYPRE_Real *result);
 HYPRE_Int hypre_SeqVectorMassInnerProd8(hypre_Vector *x, hypre_Vector **y, HYPRE_Int k,  HYPRE_Real *result);
@@ -460,26 +475,27 @@ HYPRE_Int hypre_SeqVectorMassAxpy(HYPRE_Complex *alpha, hypre_Vector **x, hypre_
 HYPRE_Int hypre_SeqVectorMassAxpy4(HYPRE_Complex *alpha, hypre_Vector **x, hypre_Vector *y, HYPRE_Int k);
 HYPRE_Int hypre_SeqVectorMassAxpy8(HYPRE_Complex *alpha, hypre_Vector **x, hypre_Vector *y, HYPRE_Int k);
 
-  void  hypre_SeqVectorMassInnerProdMult(hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2,  HYPRE_Real * result);
-  void  hypre_SeqVectorMassInnerProdTwoVectorsMult(hypre_Vector *x, HYPRE_Int k, hypre_Vector *y1, HYPRE_Int k2,  hypre_Vector *y2, HYPRE_Int k3, HYPRE_Real * result);
-  void  hypre_SeqVectorMassInnerProdWithScalingMult(hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2,HYPRE_Real * scaleFactors,  HYPRE_Real * result);
-  void hypre_SeqVectorMassAxpyMult(HYPRE_Real * alpha, hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2);
+#ifdef HYPRE_NREL_CUDA
+void  hypre_SeqVectorMassInnerProdMult(hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2,  HYPRE_Real * result);
+void  hypre_SeqVectorMassInnerProdTwoVectorsMult(hypre_Vector *x, HYPRE_Int k, hypre_Vector *y1, HYPRE_Int k2,  hypre_Vector *y2, HYPRE_Int k3, HYPRE_Real * result);
+void  hypre_SeqVectorMassInnerProdWithScalingMult(hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2,HYPRE_Real * scaleFactors,  HYPRE_Real * result);
+void hypre_SeqVectorMassAxpyMult(HYPRE_Real * alpha, hypre_Vector *x, HYPRE_Int k, hypre_Vector *y, HYPRE_Int k2);
 
 void hypre_SeqVectorGivensRotRight(
-     HYPRE_Int k1,
+    HYPRE_Int k1,
     HYPRE_Int k2,
     hypre_Vector  * q1,
     hypre_Vector  * q2,
     HYPRE_Real  a1, HYPRE_Real a2, HYPRE_Real a3,HYPRE_Real a4);
 HYPRE_Int hypre_SeqVectorCopyDevice ( hypre_Vector *x , hypre_Vector *y );
-  HYPRE_Int hypre_SeqVectorAxpyDevice( HYPRE_Complex alpha , hypre_Vector *x , hypre_Vector *y );
-  HYPRE_Real hypre_SeqVectorInnerProdDevice ( hypre_Vector *x , hypre_Vector *y );
-  void  hypre_SeqVectorMassInnerProdDevice ( hypre_Vector *x , hypre_Vector **y, HYPRE_Int k, HYPRE_Real * result);
-  void hypre_SeqVectorMassAxpyDevice(HYPRE_Real * alpha, hypre_Vector **x, hypre_Vector *y, HYPRE_Int k);
-
+HYPRE_Int hypre_SeqVectorAxpyDevice( HYPRE_Complex alpha , hypre_Vector *x , hypre_Vector *y );
+HYPRE_Real hypre_SeqVectorInnerProdDevice ( hypre_Vector *x , hypre_Vector *y );
+void  hypre_SeqVectorMassInnerProdDevice ( hypre_Vector *x , hypre_Vector **y, HYPRE_Int k, HYPRE_Real * result);
+void hypre_SeqVectorMassAxpyDevice(HYPRE_Real * alpha, hypre_Vector **x, hypre_Vector *y, HYPRE_Int k);
 HYPRE_Int HYPRE_SeqVectorCopyDataCPUtoGPU( hypre_Vector *vector );
 HYPRE_Int HYPRE_SeqVectorCopyDataGPUtoCPU( hypre_Vector *vector );
-  void  hypre_SeqVectorMassInnerProdDeviceDevice ( HYPRE_Real *x ,  HYPRE_Real *y, HYPRE_Int n,HYPRE_Int k, HYPRE_Real * result);
+void  hypre_SeqVectorMassInnerProdDeviceDevice ( HYPRE_Real *x ,  HYPRE_Real *y, HYPRE_Int n,HYPRE_Int k, HYPRE_Real * result);
+#endif
 
 HYPRE_Complex hypre_VectorSumElts ( hypre_Vector *vector );
 #ifdef HYPRE_USING_GPU
@@ -501,8 +517,10 @@ void hypre_SeqVectorUnMapFromDevice(hypre_Vector *x);
 void hypre_SeqVectorUpdateDevice(hypre_Vector *x);
 void hypre_SeqVectorUpdateHost(hypre_Vector *x);
 #endif
+#ifdef HYPRE_NREL_CUDA
 HYPRE_Int hypre_SeqVectorCopyDataCPUtoGPU( hypre_Vector *vector );
 HYPRE_Int hypre_SeqVectorCopyDataGPUtoCPU( hypre_Vector *vector );
+#endif
 
 HYPRE_Int hypre_CSRMatrixMatvecOutOfPlaceOOMP3( HYPRE_Complex alpha, hypre_CSRMatrix *A, hypre_Vector *x, HYPRE_Complex beta, hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset);
 

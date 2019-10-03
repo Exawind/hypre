@@ -1809,7 +1809,7 @@ hypre_BoomerAMGSetRelaxType( void     *data,
    HYPRE_Int i;
    HYPRE_Int *grid_relax_type;
    hypre_ParAMGData  *amg_data = (hypre_ParAMGData*) data;
-//printf("SETTING RELAX TYPE TO %d\n", relax_type);
+
    if (!amg_data)
    {
       hypre_error_in_arg(1);

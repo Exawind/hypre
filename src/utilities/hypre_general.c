@@ -47,7 +47,7 @@ HYPRE_Init( hypre_int argc, char *argv[] )
    }
 #endif
 #if defined(HYPRE_USING_GPU)
-   printf("this is hypre init, using gpu? %d \n", HYPRE_USING_GPU);
+   //printf("this is hypre init, using gpu? %d \n", HYPRE_USING_GPU);
    hypre_GPUInit(-1);
 #endif
 

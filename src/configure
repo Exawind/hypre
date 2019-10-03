@@ -5348,13 +5348,13 @@ if test "$ac_test_CFLAGS" = set; then
   CFLAGS=$ac_save_CFLAGS
 elif test $ac_cv_prog_cc_g = yes; then
   if test "$GCC" = yes; then
-    CFLAGS="-g -O3"
+    CFLAGS="-g -O2"
   else
     CFLAGS="-g"
   fi
 else
   if test "$GCC" = yes; then
-    CFLAGS="-O3"
+    CFLAGS="-O2"
   else
     CFLAGS=
   fi
@@ -5699,13 +5699,13 @@ if test "$ac_test_CXXFLAGS" = set; then
   CXXFLAGS=$ac_save_CXXFLAGS
 elif test $ac_cv_prog_cxx_g = yes; then
   if test "$GXX" = yes; then
-    CXXFLAGS="-g -O3"
+    CXXFLAGS="-g -O2"
   else
     CXXFLAGS="-g"
   fi
 else
   if test "$GXX" = yes; then
-    CXXFLAGS="-O3"
+    CXXFLAGS="-O2"
   else
     CXXFLAGS=
   fi
@@ -5908,13 +5908,13 @@ if test "$ac_test_FCFLAGS" = set; then
   FCFLAGS=$ac_save_FCFLAGS
 elif test $ac_cv_prog_fc_g = yes; then
   if test "x$ac_cv_fc_compiler_gnu" = xyes; then
-    FCFLAGS="-g -O3"
+    FCFLAGS="-g -O2"
   else
     FCFLAGS="-g"
   fi
 else
   if test "x$ac_cv_fc_compiler_gnu" = xyes; then
-    FCFLAGS="-O3"
+    FCFLAGS="-O2"
   else
     FCFLAGS=
   fi
@@ -7703,14 +7703,14 @@ if test "x${hypre_user_chose_cflags}" = "xno"
 then
    case "${CC}" in
       gcc|mpigcc|mpicc)
-        CFLAGS="-O3"
+        CFLAGS="-O2"
         if test "$hypre_using_openmp" = "yes" ; then
           CFLAGS="$CFLAGS -fopenmp"
           LDFLAGS="$LDFLAGS -fopenmp"
         fi
         ;;
       icc|mpiicc)
-        CFLAGS="-O3"
+        CFLAGS="-O2"
         if test "$hypre_using_openmp" = "yes" ; then
           CFLAGS="$CFLAGS -qopenmp"
           LDFLAGS="$LDFLAGS -qopenmp"
@@ -7724,7 +7724,7 @@ then
         fi
         ;;
       cc|xlc|xlc_r|mpxlc|mpixlc|mpixlc_r|mpixlc-gpu|mpcc)
-        CFLAGS="-O3"
+        CFLAGS="-O2"
         if test "$hypre_using_openmp" = "yes" ; then
           CFLAGS="$CFLAGS -qsmp=omp"
           LDFLAGS="$LDFLAGS -qsmp=omp"
@@ -7743,13 +7743,13 @@ if test "x${hypre_user_chose_cxxflags}" = "xno"
 then
    case "${CXX}" in
       g++|gCC|mpig++|mpicxx|mpic++|mpiCC)
-        CXXFLAGS="-O3"
+        CXXFLAGS="-O2"
         if test "$hypre_using_openmp" = "yes" ; then
           CXXFLAGS="$CXXFLAGS -fopenmp"
         fi
         ;;
       icpc|icc|mpiicpc|mpiicc)
-        CXXFLAGS="-O3"
+        CXXFLAGS="-O2"
         if test "$hypre_using_openmp" = "yes" ; then
           CXXFLAGS="$CXXFLAGS -qopenmp"
         fi
@@ -7761,7 +7761,7 @@ then
         fi
         ;;
       CC|cxx|xlC|xlC_r|mpxlC|mpixlC|mpixlC-gpu|mpixlcxx|mpixlcxx_r|mpCC)
-        CXXFLAGS="-O3"
+        CXXFLAGS="-O2"
         if test "$hypre_using_openmp" = "yes" ; then
           CXXFLAGS="$CXXFLAGS -qsmp=omp"
         fi
@@ -7779,13 +7779,13 @@ if test "x${hypre_user_chose_fflags}" = "xno"
 then
    case "${FC}" in
       g77|gfortran|mpigfortran|mpif77)
-        FFLAGS="-O3"
+        FFLAGS="-O2"
         if test "$hypre_using_openmp" = "yes" ; then
           FFLAGS="$FFLAGS -fopenmp"
         fi
         ;;
       ifort|mpiifort)
-        FFLAGS="-O3"
+        FFLAGS="-O2"
         if test "$hypre_using_openmp" = "yes" ; then
           FFLAGS="$FFLAGS -qopenmp"
         fi
@@ -7797,7 +7797,7 @@ then
         fi
         ;;
       f77|f90|xlf|xlf_r|mpxlf|mpixlf77|mpixlf77_r)
-        FFLAGS="-O3"
+        FFLAGS="-O2"
         if test "$hypre_using_openmp" = "yes" ; then
           FFLAGS="$FFLAGS -qsmp=omp"
         fi
@@ -8271,7 +8271,7 @@ done
 
    HYPRE_CUDA_GENCODE="-gencode arch=compute_${HYPRE_CUDA_SM},\"code=sm_${HYPRE_CUDA_SM}\""
 
-   CUFLAGS+="-O3 -ccbin=$NVCCBIN ${HYPRE_CUDA_GENCODE} -expt-extended-lambda -dc --std=c++11 -Xcompiler -Wno-deprecated-register --x cu"
+   CUFLAGS+="-O2 -ccbin=$NVCCBIN ${HYPRE_CUDA_GENCODE} -expt-extended-lambda -dc --std=c++11 -Xcompiler -Wno-deprecated-register --x cu"
    CXXFLAGS="${CUFLAGS} -Xcompiler \"${CXXFLAGS}\""
    CFLAGS=${CXXFLAGS}
    LDFLAGS="-ccbin=$NVCCBIN ${HYPRE_CUDA_GENCODE} -Xcompiler \"${LDFLAGS}\""
