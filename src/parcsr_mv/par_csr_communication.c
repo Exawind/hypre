@@ -295,7 +295,9 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
     *--------------------------------------------------------------------*/
 
    num_requests = num_sends + num_recvs;
+#ifndef HYPRE_NREL_CUDA
    requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+#endif
  
    hypre_MPI_Comm_size(comm,&num_procs);
    hypre_MPI_Comm_rank(comm,&my_id);
@@ -305,6 +307,9 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
    {
       case  1:
       {
+#ifdef HYPRE_NREL_CUDA
+         requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+#endif
          HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
          HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
          for (i = 0; i < num_recvs; i++)
@@ -325,8 +330,39 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
          }
          break;
       }
+#ifdef HYPRE_NREL_CUDA
+      case  111:
+      {
+         HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
+         HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
+         MPI_Request requestR;
+  
+         for (i = 0; i < num_sends; i++)
+           {
+              vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
+              vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1)-vec_start;
+              ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
+              hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
+                              ip, 0, comm, &requestR);
+           }
+           for (i = 0; i < num_recvs; i++)
+           {
+              ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
+              vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
+              vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
+              hypre_MPI_Status statusR;
+              hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
+                              ip, 0, comm, &requestR);
+              hypre_MPI_Wait(&requestR, &statusR);         
+           }
+           break;
+      }
+#endif
       case  2:
       {
+#ifdef HYPRE_NREL_CUDA
+         requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+#endif
          HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
          HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
          for (i = 0; i < num_sends; i++)
@@ -349,6 +385,9 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
       }
       case  11:
       {
+#ifdef HYPRE_NREL_CUDA
+         requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+#endif
          HYPRE_Int *i_send_data = (HYPRE_Int *) send_data;
          HYPRE_Int *i_recv_data = (HYPRE_Int *) recv_data;
          for (i = 0; i < num_recvs; i++)
@@ -371,6 +410,9 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
       }
       case  12:
       {
+#ifdef HYPRE_NREL_CUDA
+         requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+#endif
          HYPRE_Int *i_send_data = (HYPRE_Int *) send_data;
          HYPRE_Int *i_recv_data = (HYPRE_Int *) recv_data;
          for (i = 0; i < num_sends; i++)
@@ -402,8 +444,14 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
    hypre_ParCSRCommHandleSendData(comm_handle)    = send_data;
    hypre_ParCSRCommHandleRecvData(comm_handle)    = recv_data;
    hypre_ParCSRCommHandleNumRequests(comm_handle) = num_requests;
+#ifdef HYPRE_NREL_CUDA
+   if (job !=111)
+      hypre_ParCSRCommHandleRequests(comm_handle)    = requests;
+   else
+      hypre_ParCSRCommHandleRequests(comm_handle)  = NULL;
+#else
    hypre_ParCSRCommHandleRequests(comm_handle)    = requests;
-
+#endif
    return ( comm_handle );
 }
 
@@ -412,7 +460,14 @@ hypre_ParCSRCommHandleDestroy( hypre_ParCSRCommHandle *comm_handle )
 {
    hypre_MPI_Status          *status0;
 
+#ifdef HYPRE_NREL_CUDA
+   hypre_MPI_Request         *requests;
+#endif
    if ( comm_handle==NULL ) return hypre_error_flag;
+#ifdef HYPRE_NREL_CUDA
+   if (hypre_ParCSRCommHandleRequests(comm_handle) != NULL)   
+   {
+#endif
    if (hypre_ParCSRCommHandleNumRequests(comm_handle))
    {
       status0 = hypre_CTAlloc(hypre_MPI_Status, 
@@ -423,6 +478,9 @@ hypre_ParCSRCommHandleDestroy( hypre_ParCSRCommHandle *comm_handle )
    }
 
    hypre_TFree(hypre_ParCSRCommHandleRequests(comm_handle), HYPRE_MEMORY_HOST);
+#ifdef HYPRE_NREL_CUDA
+   }
+#endif
    hypre_TFree(comm_handle, HYPRE_MEMORY_HOST);
 
    return hypre_error_flag;
