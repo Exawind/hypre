@@ -34,7 +34,6 @@ extern "C"{
 
 extern "C"{
   void VecScale(HYPRE_Complex *u, HYPRE_Complex *v, HYPRE_Complex *l1_norm, hypre_int num_rows,cudaStream_t s){
-#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
     PUSH_RANGE_PAYLOAD("VECSCALE",1,num_rows);
     const hypre_int tpb=64;
     hypre_int num_blocks=num_rows/tpb+1;
@@ -43,18 +42,17 @@ extern "C"{
     hypre_CheckErrorDevice(cudaDeviceSynchronize());
 #endif
     MemPrefetchSized(l1_norm,num_rows*sizeof(HYPRE_Complex),HYPRE_DEVICE,s);
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+    VecScaleKernel<<<num_blocks,tpb>>>(u,v,l1_norm,num_rows);
+#else
     VecScaleKernel<<<num_blocks,tpb,0,s>>>(u,v,l1_norm,num_rows);
+#endif
 #ifdef CATCH_LAUNCH_ERRORS
     hypre_CheckErrorDevice(cudaPeekAtLastError());
     hypre_CheckErrorDevice(cudaDeviceSynchronize());
 #endif
     hypre_CheckErrorDevice(cudaStreamSynchronize(s));
     POP_RANGE;
-#else
-    const hypre_int tpb=64;
-    hypre_int num_blocks=num_rows/tpb+1;
-    VecScaleKernel<<<num_blocks,tpb>>>(u,v,l1_norm,num_rows);
-#endif
   }
 }
 
