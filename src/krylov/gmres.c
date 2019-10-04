@@ -246,6 +246,10 @@ hypre_GMRESSolve(void  *gmres_vdata,
                  void  *b,
 		 void  *x)
 {
+#ifdef HYPRE_NREL_CUDA
+   HYPRE_Real time1, time2;
+   HYPRE_Real gsTime = 0.0, matvecTime = 0.0, preconTime=0.0f; 
+#endif
    hypre_GMRESData  *gmres_data   = (hypre_GMRESData *)gmres_vdata;
    hypre_GMRESFunctions *gmres_functions = gmres_data->functions;
    HYPRE_Int 		     k_dim        = (gmres_data -> k_dim);
@@ -330,9 +334,16 @@ hypre_GMRESSolve(void  *gmres_vdata,
 
    (*(gmres_functions->CopyVector))(b,p[0]);
 
+#ifdef HYPRE_NREL_CUDA
+    time1 = MPI_Wtime(); 
+#endif
+
    /* compute initial residual */
    (*(gmres_functions->Matvec))(matvec_data,-1.0, A, x, 1.0, p[0]);
-
+#ifdef HYPRE_NREL_CUDA
+   time2 = MPI_Wtime(); 
+   matvecTime += (time2-time1);
+#endif
    b_norm = sqrt((*(gmres_functions->InnerProd))(b,b));
    real_r_norm_old = b_norm;
 
@@ -468,7 +479,14 @@ hypre_GMRESSolve(void  *gmres_vdata,
                              * relative change is on*/
            {
               (*(gmres_functions->CopyVector))(b,r);
+#ifdef HYPRE_NREL_CUDA
+              time1 = MPI_Wtime();
+#endif
               (*(gmres_functions->Matvec))(matvec_data,-1.0,A,x,1.0,r);
+#ifdef HYPRE_NREL_CUDA
+              time2 = MPI_Wtime();
+              matvecTime += (time2-time1);            
+#endif
               r_norm = sqrt((*(gmres_functions->InnerProd))(r,r));
               if (r_norm  <= epsilon)
               {
@@ -497,9 +515,24 @@ hypre_GMRESSolve(void  *gmres_vdata,
            i++;
            iter++;
            (*(gmres_functions->ClearVector))(r);
+#ifdef HYPRE_NREL_CUDA
+           time1 = MPI_Wtime();
+#endif
            precond(precond_data, A, p[i-1], r);
+#ifdef HYPRE_NREL_CUDA
+           time2 = MPI_Wtime();
+           preconTime += (time2-time1);
+           time1 = MPI_Wtime();
+#endif
            (*(gmres_functions->Matvec))(matvec_data, 1.0, A, r, 0.0, p[i]);
+#ifdef HYPRE_NREL_CUDA
+           time2 = MPI_Wtime();
+           matvecTime += (time2-time1);         
+#endif
            /* modified Gram_Schmidt */
+#ifdef HYPRE_NREL_CUDA
+           time1 = MPI_Wtime();
+#endif
            for (j=0; j < i; j++)
            {
               hh[j][i-1] = (*(gmres_functions->InnerProd))(p[j],p[i]);
@@ -512,6 +545,10 @@ hypre_GMRESSolve(void  *gmres_vdata,
               t = 1.0/t;
               (*(gmres_functions->ScaleVector))(t,p[i]);
            }
+#ifdef HYPRE_NREL_CUDA
+           time2 = MPI_Wtime();
+           gsTime += (time2-time1);
+#endif
            /* done with modified Gram_schmidt and Arnoldi step.
               update factorization of hh */
            for (j = 1; j < i; j++)
@@ -610,7 +647,14 @@ hypre_GMRESSolve(void  *gmres_vdata,
                     
                  (*(gmres_functions->ClearVector))(r);
                  /* find correction (in r) */
+#ifdef HYPRE_NREL_CUDA
+                 time1 = MPI_Wtime();
+#endif
                  precond(precond_data, A, w, r);
+#ifdef HYPRE_NREL_CUDA
+                 time2 = MPI_Wtime();
+                 preconTime += (time2-time1);
+#endif
                  /* copy current solution (x) to w (don't want to over-write x)*/
                  (*(gmres_functions->CopyVector))(x,w);
 
@@ -652,9 +696,16 @@ hypre_GMRESSolve(void  *gmres_vdata,
                        (*(gmres_functions->ClearVector))(w);
                        (*(gmres_functions->Axpy))(rs_2[i-1], p[i-1], w);
                        (*(gmres_functions->ClearVector))(r);
+#ifdef HYPRE_NREL_CUDA            
+                      time1 = MPI_Wtime();
+#endif
                        /* apply the preconditioner */
                        precond(precond_data, A, w, r);
                        /* now r contains x_i - x_i-1 */          
+#ifdef HYPRE_NREL_CUDA            
+                       time2 = MPI_Wtime();
+                       preconTime += (time2-time1);
+#endif
                     }
                     /* find the norm of x_i - x_i-1 */          
                     w_norm = sqrt( (*(gmres_functions->InnerProd))(r,r) );
@@ -704,9 +755,15 @@ hypre_GMRESSolve(void  *gmres_vdata,
                 (*(gmres_functions->Axpy))(rs[j], p[j], w);
 
 	(*(gmres_functions->ClearVector))(r);
+#ifdef HYPRE_NREL_CUDA
+        time1 = MPI_Wtime();
+#endif
 	/* find correction (in r) */
         precond(precond_data, A, w, r);
-
+#ifdef HYPRE_NREL_CUDA
+        time2 = MPI_Wtime();
+        preconTime += (time2-time1);
+#endif
         /* update current solution x (in x) */
 	(*(gmres_functions->Axpy))(1.0,r,x);
          
@@ -722,7 +779,14 @@ hypre_GMRESSolve(void  *gmres_vdata,
 
            /* calculate actual residual norm*/
            (*(gmres_functions->CopyVector))(b,r);
+#ifdef HYPRE_NREL_CUDA
+           time1 = MPI_Wtime();
+#endif
            (*(gmres_functions->Matvec))(matvec_data,-1.0,A,x,1.0,r);
+#ifdef HYPRE_NREL_CUDA
+           time2 = MPI_Wtime();
+           matvecTime += (time2-time1);
+#endif
            real_r_norm_new = r_norm = sqrt( (*(gmres_functions->InnerProd))(r,r) );
 
            if (r_norm <= epsilon)
@@ -747,7 +811,14 @@ hypre_GMRESSolve(void  *gmres_vdata,
                     (*(gmres_functions->Axpy))(rs[i-1], p[i-1], w);
                     (*(gmres_functions->ClearVector))(r);
                     /* apply the preconditioner */
+#ifdef HYPRE_NREL_CUDA
+                    time1 = MPI_Wtime();
+#endif
                     precond(precond_data, A, w, r);
+#ifdef HYPRE_NREL_CUDA
+                    time2 = MPI_Wtime();
+                    preconTime += (time2-time1);
+#endif
                     /* find the norm of x_i - x_i-1 */          
                     w_norm = sqrt( (*(gmres_functions->InnerProd))(r,r) );
                     relative_error= w_norm/x_norm;
@@ -826,6 +897,16 @@ hypre_GMRESSolve(void  *gmres_vdata,
         }
    } /* END of iteration while loop */
 
+#ifdef HYPRE_NREL_CUDA
+   if ( print_level>1 && my_id == 0 )
+   {
+      hypre_printf("\n\n");
+      printf("timers \n");
+      hypre_printf("gram-schmidt (total) = %16.16f \n", gsTime);
+      hypre_printf("matvec  = %16.16f \n", matvecTime);
+      hypre_printf("precon  = %16.16f \n", preconTime);
+   }
+#endif
 
    if ( print_level>1 && my_id == 0 )
           hypre_printf("\n\n"); 
