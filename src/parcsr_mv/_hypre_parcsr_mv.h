@@ -357,7 +357,11 @@ typedef struct hypre_ParCSRMatrix_struct
    hypre_IJAssumedPart  *assumed_partition; /* only populated if
                                               no_global_partition option is used
                                               (compile-time option)*/
-
+#ifdef HYPRE_NREL_CUDA
+   hypre_Vector      *x_tmp;
+   HYPRE_Complex * x_buf;
+   HYPRE_Int * comm_d;
+#endif
 } hypre_ParCSRMatrix;
 
 /*--------------------------------------------------------------------------
@@ -664,6 +668,10 @@ HYPRE_Int hypre_MatTCommPkgCreate ( hypre_ParCSRMatrix *A );
 HYPRE_Int HYPRE_ParCSRMatrixCreate ( MPI_Comm comm , HYPRE_Int global_num_rows , HYPRE_Int global_num_cols , HYPRE_Int *row_starts , HYPRE_Int *col_starts , HYPRE_Int num_cols_offd , HYPRE_Int num_nonzeros_diag , HYPRE_Int num_nonzeros_offd , HYPRE_ParCSRMatrix *matrix );
 HYPRE_Int HYPRE_ParCSRMatrixDestroy ( HYPRE_ParCSRMatrix matrix );
 HYPRE_Int HYPRE_ParCSRMatrixInitialize ( HYPRE_ParCSRMatrix matrix );
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int HYPRE_ParCSRMatrixCopyGPUtoCPU ( HYPRE_ParCSRMatrix matrix );
+HYPRE_Int HYPRE_ParCSRMatrixCopyCPUtoGPU ( HYPRE_ParCSRMatrix matrix );
+#endif
 HYPRE_Int HYPRE_ParCSRMatrixRead ( MPI_Comm comm , const char *file_name , HYPRE_ParCSRMatrix *matrix );
 HYPRE_Int HYPRE_ParCSRMatrixPrint ( HYPRE_ParCSRMatrix matrix , const char *file_name );
 HYPRE_Int HYPRE_ParCSRMatrixGetComm ( HYPRE_ParCSRMatrix matrix , MPI_Comm *comm );
@@ -678,6 +686,12 @@ HYPRE_Int HYPRE_CSRMatrixToParCSRMatrix_WithNewPartitioning ( MPI_Comm comm , HY
 HYPRE_Int HYPRE_ParCSRMatrixMatvec ( HYPRE_Complex alpha , HYPRE_ParCSRMatrix A , HYPRE_ParVector x , HYPRE_Complex beta , HYPRE_ParVector y );
 HYPRE_Int HYPRE_ParCSRMatrixMatvecT ( HYPRE_Complex alpha , HYPRE_ParCSRMatrix A , HYPRE_ParVector x , HYPRE_Complex beta , HYPRE_ParVector y );
 
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int HYPRE_ParCSRMatrixMatvecMult ( HYPRE_Complex alpha , HYPRE_ParCSRMatrix A , HYPRE_ParVector x ,HYPRE_Int k1,  HYPRE_Complex beta , HYPRE_ParVector y, HYPRE_Int k2 );
+HYPRE_Int hypre_ParCSRMatrixMatvecMult ( HYPRE_Complex alpha , hypre_ParCSRMatrix *A , hypre_ParVector *x ,HYPRE_Int k1, HYPRE_Complex beta , hypre_ParVector *y, HYPRE_Int k2 );
+HYPRE_Int hypre_ParCSRMatrixMatvecMultOutOfPlace ( HYPRE_Complex alpha , hypre_ParCSRMatrix *A , hypre_ParVector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_ParVector *b,HYPRE_Int k3, hypre_ParVector *y, HYPRE_Int k2 );
+#endif
+
 /* HYPRE_parcsr_vector.c */
 HYPRE_Int HYPRE_ParVectorCreate ( MPI_Comm comm , HYPRE_Int global_size , HYPRE_Int *partitioning , HYPRE_ParVector *vector );
 HYPRE_Int HYPRE_ParMultiVectorCreate ( MPI_Comm comm , HYPRE_Int global_size , HYPRE_Int *partitioning , HYPRE_Int number_vectors , HYPRE_ParVector *vector );
@@ -688,10 +702,21 @@ HYPRE_Int HYPRE_ParVectorPrint ( HYPRE_ParVector vector , const char *file_name 
 HYPRE_Int HYPRE_ParVectorSetConstantValues ( HYPRE_ParVector vector , HYPRE_Complex value );
 HYPRE_Int HYPRE_ParVectorSetRandomValues ( HYPRE_ParVector vector , HYPRE_Int seed );
 HYPRE_Int HYPRE_ParVectorCopy ( HYPRE_ParVector x , HYPRE_ParVector y );
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int HYPRE_ParVectorCopyOneOfMult ( HYPRE_ParVector x , HYPRE_Int k1, HYPRE_ParVector y, HYPRE_Int k2 );
+#endif
 HYPRE_ParVector HYPRE_ParVectorCloneShallow ( HYPRE_ParVector x );
 HYPRE_Int HYPRE_ParVectorScale ( HYPRE_Complex value , HYPRE_ParVector x );
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int HYPRE_ParVectorScaleOneOfMult ( HYPRE_Complex value , HYPRE_ParVector x, HYPRE_Int k1 );
+#endif
 HYPRE_Int HYPRE_ParVectorAxpy ( HYPRE_Complex alpha , HYPRE_ParVector x , HYPRE_ParVector y );
 HYPRE_Int HYPRE_ParVectorInnerProd ( HYPRE_ParVector x , HYPRE_ParVector y , HYPRE_Real *prod );
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int HYPRE_ParVectorInnerProdOneOfMult ( HYPRE_ParVector x ,HYPRE_Int k1,  HYPRE_ParVector y , HYPRE_Int k2, HYPRE_Real *prod );
+HYPRE_Int HYPRE_ParVectorDoubleInnerProdOneOfMult ( HYPRE_ParVector x ,HYPRE_Int k1,  HYPRE_ParVector y, HYPRE_Int k2, HYPRE_Real *res );
+HYPRE_Int HYPRE_ParVectorAxpyOneOfMult(HYPRE_Complex alpha,  HYPRE_ParVector x , HYPRE_Int k1,  HYPRE_ParVector y , HYPRE_Int k2 );
+#endif
 HYPRE_Int HYPRE_VectorToParVector ( MPI_Comm comm , HYPRE_Vector b , HYPRE_Int *partitioning , HYPRE_ParVector *vector );
 HYPRE_Int HYPRE_ParVectorGetValues ( HYPRE_ParVector vector, HYPRE_Int num_values, HYPRE_Int *indices , HYPRE_Complex *values);
 
@@ -822,6 +847,10 @@ void hypre_ParCSRMatrixDropEntries ( hypre_ParCSRMatrix *C , hypre_ParCSRMatrix 
 hypre_ParCSRMatrix *hypre_ParCSRMatrixCreate ( MPI_Comm comm , HYPRE_Int global_num_rows , HYPRE_Int global_num_cols , HYPRE_Int *row_starts , HYPRE_Int *col_starts , HYPRE_Int num_cols_offd , HYPRE_Int num_nonzeros_diag , HYPRE_Int num_nonzeros_offd );
 HYPRE_Int hypre_ParCSRMatrixDestroy ( hypre_ParCSRMatrix *matrix );
 HYPRE_Int hypre_ParCSRMatrixInitialize ( hypre_ParCSRMatrix *matrix );
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int hypre_ParCSRMatrixCopyGPUtoCPU ( hypre_ParCSRMatrix *matrix );
+HYPRE_Int hypre_ParCSRMatrixCopyCPUtoGPU ( hypre_ParCSRMatrix *matrix );
+#endif
 HYPRE_Int hypre_ParCSRMatrixSetNumNonzeros ( hypre_ParCSRMatrix *matrix );
 HYPRE_Int hypre_ParCSRMatrixSetDNumNonzeros ( hypre_ParCSRMatrix *matrix );
 HYPRE_Int hypre_ParCSRMatrixSetDataOwner ( hypre_ParCSRMatrix *matrix , HYPRE_Int owns_data );
@@ -873,10 +902,21 @@ HYPRE_Int hypre_ParVectorPrint ( hypre_ParVector *vector , const char *file_name
 HYPRE_Int hypre_ParVectorSetConstantValues ( hypre_ParVector *v , HYPRE_Complex value );
 HYPRE_Int hypre_ParVectorSetRandomValues ( hypre_ParVector *v , HYPRE_Int seed );
 HYPRE_Int hypre_ParVectorCopy ( hypre_ParVector *x , hypre_ParVector *y );
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int hypre_ParVectorCopyOneOfMult ( hypre_ParVector *x , HYPRE_Int k1,  hypre_ParVector *y, HYPRE_Int k2 );
+#endif
 hypre_ParVector *hypre_ParVectorCloneShallow ( hypre_ParVector *x );
 HYPRE_Int hypre_ParVectorScale ( HYPRE_Complex alpha , hypre_ParVector *y );
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int hypre_ParVectorScaleOneOfMult ( HYPRE_Complex alpha , hypre_ParVector *y, HYPRE_Int k1 );
+#endif
 HYPRE_Int hypre_ParVectorAxpy ( HYPRE_Complex alpha , hypre_ParVector *x , hypre_ParVector *y );
 HYPRE_Real hypre_ParVectorInnerProd ( hypre_ParVector *x , hypre_ParVector *y );
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Real hypre_ParVectorInnerProdOneOfMult ( hypre_ParVector *x , HYPRE_Int k1,  hypre_ParVector *y, HYPRE_Int k2 );
+HYPRE_Real hypre_ParVectorDoubleInnerProdOneOfMult ( hypre_ParVector *x ,HYPRE_Int k1,  hypre_ParVector *y, HYPRE_Int k2, HYPRE_Real *res );
+HYPRE_Int hypre_ParVectorAxpyOneOfMult(HYPRE_Complex alpha,  hypre_ParVector *x , HYPRE_Int k1,  hypre_ParVector *y , HYPRE_Int k2 );
+#endif
 hypre_ParVector *hypre_VectorToParVector ( MPI_Comm comm , hypre_Vector *v , HYPRE_Int *vec_starts );
 hypre_Vector *hypre_ParVectorToVectorAll ( hypre_ParVector *par_v );
 HYPRE_Int hypre_ParVectorPrintIJ ( hypre_ParVector *vector , HYPRE_Int base_j , const char *filename );
@@ -887,6 +927,38 @@ HYPRE_Int hypre_ParVectorMassInnerProd ( hypre_ParVector *x , hypre_ParVector **
 HYPRE_Int hypre_ParVectorMassDotpTwo ( hypre_ParVector *x , hypre_ParVector *y , hypre_ParVector **z, HYPRE_Int k, HYPRE_Int unroll, HYPRE_Real *prod_x , HYPRE_Real *prod_y );
 HYPRE_Int hypre_ParVectorMassAxpy ( HYPRE_Complex *alpha, hypre_ParVector **x, hypre_ParVector *y, HYPRE_Int k, HYPRE_Int unroll);  
 HYPRE_Int hypre_ParVectorGetValues ( hypre_ParVector *vector, HYPRE_Int num_values, HYPRE_Int *indices , HYPRE_Complex *values);
+
+#ifdef HYPRE_NREL_CUDA
+void hypre_ParVectorMassInnerProdMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y , HYPRE_Int k2, HYPRE_Real *prod );
+void HYPRE_ParVectorMassInnerProdMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y , HYPRE_Int k2, HYPRE_Real *prod );
+void hypre_ParVectorMassInnerProdTwoVectorsMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y1 , HYPRE_Int k2, hypre_ParVector *y2 , HYPRE_Int k3, HYPRE_Real *prod );
+void hypre_ParVectorMassInnerProdTwoVectorsMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y1 , HYPRE_Int k2, hypre_ParVector *y2 , HYPRE_Int k3, HYPRE_Real *prod );
+void hypre_ParVectorMassInnerProdWithScalingMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y , HYPRE_Int k2,HYPRE_Real *scaleFactors,  HYPRE_Real *prod );
+void HYPRE_ParVectorMassInnerProdWithScalingMult ( hypre_ParVector *x ,HYPRE_Int k,  hypre_ParVector *y , HYPRE_Int k2,HYPRE_Real *scaleFactors,  HYPRE_Real *prod );
+void HYPRE_ParVectorMassAxpyMult      ( HYPRE_Real *alpha, HYPRE_ParVector x, HYPRE_Int k,  HYPRE_ParVector y, HYPRE_Int k2);
+void hypre_ParVectorMassAxpyMult      ( HYPRE_Real *alpha, hypre_ParVector *x, HYPRE_Int k, hypre_ParVector *y, HYPRE_Int k2);
+void hypre_ParVectorGivensRotRight(
+     HYPRE_Int k1,
+     HYPRE_Int k2,
+     hypre_ParVector  * q1,
+     hypre_ParVector  * q2,
+     HYPRE_Real  a1, HYPRE_Real a2, HYPRE_Real a3, HYPRE_Real a4);
+void HYPRE_ParVectorGivensRotRight(
+     HYPRE_Int k1,
+     HYPRE_Int k2,
+     hypre_ParVector  * q1,
+     hypre_ParVector  * q2,
+     HYPRE_Real  a1, HYPRE_Real a2, HYPRE_Real a3, HYPRE_Real a4);
+void HYPRE_ParVectorMassInnerProdGPU ( HYPRE_Real * x , HYPRE_Real *y , HYPRE_Int k, HYPRE_Int n,HYPRE_Real *prod );
+void HYPRE_ParVectorMassAxpyGPU      ( HYPRE_Real *alpha, HYPRE_Real *x, HYPRE_Real *y, HYPRE_Int k, HYPRE_Int n);
+void hypre_ParVectorMassInnerProdGPU ( HYPRE_Real * x , HYPRE_Real *y , HYPRE_Int k, HYPRE_Int n,HYPRE_Real *prod );
+void hypre_ParVectorMassAxpyGPU      ( HYPRE_Real *alpha, HYPRE_Real *x, HYPRE_Real *y, HYPRE_Int k, HYPRE_Int n);
+HYPRE_Int HYPRE_ParVectorCopyDataCPUtoGPU( HYPRE_ParVector vector );
+HYPRE_Int HYPRE_ParVectorCopyDataGPUtoCPU( HYPRE_ParVector vector );
+HYPRE_Int hypre_ParVectorCopyDataCPUtoGPU( hypre_ParVector * vector );
+HYPRE_Int hypre_ParVectorCopyDataGPUtoCPU( hypre_ParVector * vector );
+#endif
+
 #ifdef HYPRE_USING_GPU
 hypre_int hypre_ParVectorIsManaged(hypre_ParVector *vector);
 #endif
