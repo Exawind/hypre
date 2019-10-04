@@ -38,7 +38,7 @@ hypre_CSRMatrixMatvecOutOfPlace( HYPRE_Complex    alpha,
    HYPRE_Real time_begin = hypre_MPI_Wtime();
 #endif
 
-#if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY) /* CUDA */
+#if defined(HYPRE_USING_GPU)  /* CUDA */
    PUSH_RANGE_PAYLOAD("MATVEC",0, hypre_CSRMatrixNumRows(A));
    HYPRE_Int ierr = hypre_CSRMatrixMatvecDevice( alpha,A,x,beta,b,y,offset );
    POP_RANGE;
@@ -783,7 +783,7 @@ hypre_CSRMatrixMatvec_FF( HYPRE_Complex    alpha,
 
    return ierr;
 }
-#if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY)
+#if defined(HYPRE_USING_GPU)
 HYPRE_Int
 hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
                              hypre_CSRMatrix *A,
@@ -856,5 +856,163 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
   return 0;
 
 }
+
+#ifdef HYPRE_NREL_CUDA
+// for multivectors
+//
+
+/* y[offset:end, k2] = alpha*A[offset:end,:]*x(:, k1) + beta*b[offset:end, k3] */
+  HYPRE_Int
+hypre_CSRMatrixMatvecMultOutOfPlace( HYPRE_Complex    alpha,
+    hypre_CSRMatrix *A,
+    hypre_Vector    *x,
+    HYPRE_Int k1,
+    HYPRE_Complex    beta,
+    hypre_Vector    *b,
+    HYPRE_Int k3,
+    hypre_Vector    *y,
+    HYPRE_Int k2,
+    HYPRE_Int        offset     )
+{
+  HYPRE_Int ret, ierr = 101;
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)  
+  ret=hypre_CSRMatrixMatvecMultDevice( alpha,A,x,k1, beta,b,k3, y,k2, offset);
+  return ret;
+#else
+  printf("it does not work with MANAGED nor without GPU! change your parameters or write a proper function\n");
+#endif
+  return ierr;
+}
+
+  HYPRE_Int
+hypre_CSRMatrixMatvecMult( HYPRE_Complex    alpha,
+    hypre_CSRMatrix *A,
+    hypre_Vector    *x,
+    HYPRE_Int k1,
+    HYPRE_Complex    beta,
+    hypre_Vector    *y,
+    HYPRE_Int k2     )
+{
+  return hypre_CSRMatrixMatvecMultOutOfPlace(alpha, A, x,k1, beta, y,k2, y,k2, 0);
+}
+
+ HYPRE_Int
+hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
+    hypre_CSRMatrix *A,
+    hypre_Vector    *x,
+    HYPRE_Int k1,
+    HYPRE_Complex    beta,
+    hypre_Vector    *b,
+    HYPRE_Int k3,
+    hypre_Vector    *y,
+    HYPRE_Int k2,
+    HYPRE_Int offset )
+{
+ HYPRE_Int         x_size = hypre_VectorSize(x);
+  HYPRE_Int         y_size = hypre_VectorSize(y);
+HYPRE_Complex * xddata =  x->d_data;
+HYPRE_Complex * yddata =  y->d_data;
+//printf("TEST TEST TEST k1 = %d x_size = %d \n", k1, x_size);
+  static cusparseHandle_t handle;
+  static cusparseMatDescr_t descr;
+  static HYPRE_Int FirstCall=1;
+  cusparseStatus_t status;
+  static cudaStream_t s[10];
+  static HYPRE_Int myid;
+
+  if (b!=y){
+    // printf("copying vector inside matvec \n");
+    PUSH_RANGE_PAYLOAD("MEMCPY",1,y->size-offset);
+    //    VecCopy(y->data,b->data,(y->size-offset),HYPRE_STREAM(4));
+    POP_RANGE
+  }
+ // if (x==y) fprintf(stderr,"MULTIVEC ERROR::x and y are the same pointer in hypre_CSRMatrixMatvecDevice\n");
+
+  if (FirstCall){
+    PUSH_RANGE("FIRST_CALL",4);
+
+    handle=getCusparseHandle();
+
+    status= cusparseCreateMatDescr(&descr);
+    if (status != CUSPARSE_STATUS_SUCCESS) {
+      exit(2);
+    }
+
+    cusparseSetMatType(descr,CUSPARSE_MATRIX_TYPE_GENERAL);
+    cusparseSetMatIndexBase(descr,CUSPARSE_INDEX_BASE_ZERO);
+    FirstCall=0;
+    hypre_int jj;
+    for(jj=0;jj<5;jj++)
+      s[jj]=HYPRE_STREAM(jj);
+    nvtxNameCudaStreamA(s[4], "HYPRE_COMPUTE_STREAM");
+hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
+    myid++;
+    POP_RANGE;
+  }
+
+  //cudaMemcpy( dst, src, size, cudaMemcpyHostToDevice);
+  PUSH_RANGE("PREFETCH+SPMV",2);
+
+  if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
+
+//printf("k1 = %d k2 = %d this is matvec. num rows in A %d , num cols in A %d  nnz in A %d alpha = %f beta = %f\n",k1, k2,A->num_rows, A->num_cols, A->num_nonzeros, alpha, beta );
+if ((A->d_data == NULL)) {
+printf("d_data is NULL; updating!\n");
+//hypre_SeqVectorPrefetchToDevice(A->data);
+//cudaMemPrefetchAsync(ptr,size,device,stream);
+// cudaError_t err; 
+ cudaMemPrefetchAsync(A->data,A->num_nonzeros*sizeof(HYPRE_Complex),HYPRE_DEVICE,HYPRE_STREAM(4));
+//printf("error code in prefetch %d string %s \n", err, cudaGetErrorString(err));
+
+    hypre_CSRMatrixDeviceData(A)    = hypre_CTAlloc(HYPRE_Complex,  A->num_nonzeros, HYPRE_MEMORY_DEVICE);
+cudaDeviceSynchronize();
+
+  cudaMemcpy ( A->d_data,A->data,
+      A->num_nonzeros*sizeof(HYPRE_Complex),
+      cudaMemcpyDeviceToDevice );
+  cudaDeviceSynchronize();
+}
+if ((A->d_i == NULL)) {
+//printf("d_i is NULL, updating!\n");
+
+hypre_CSRMatrixDeviceI(A)    = hypre_CTAlloc(HYPRE_Int,  A->num_rows + 1, HYPRE_MEMORY_DEVICE);
+
+cudaMemPrefetchAsync(A->i,(A->num_rows+1)*sizeof(HYPRE_Int),HYPRE_DEVICE,HYPRE_STREAM(4));
+cudaDeviceSynchronize();
+
+  cudaMemcpy ( A->d_i,A->i,
+      (A->num_rows+1)*sizeof(HYPRE_Int),
+      cudaMemcpyDeviceToDevice );
+  cudaDeviceSynchronize();
+}
+if ((A->d_j == NULL)) {
+//printf("d_j is NULL, updating\n");
+
+    hypre_CSRMatrixDeviceJ(A)    = hypre_CTAlloc(HYPRE_Int,  A->num_nonzeros, HYPRE_MEMORY_DEVICE);
+
+cudaMemPrefetchAsync(A->j,(A->num_nonzeros)*sizeof(HYPRE_Int),HYPRE_DEVICE,HYPRE_STREAM(4));
+cudaDeviceSynchronize();
+
+  cudaMemcpy ( A->d_j,A->j,
+      (A->num_nonzeros)*sizeof(HYPRE_Int),
+      cudaMemcpyDeviceToDevice );
+  cudaDeviceSynchronize();
+
+}
+if ((xddata == NULL)) printf("x d is NULL\n");
+if ((yddata == NULL)) printf("y d is NULL\n");
+
+  status = cusparseDcsrmv(handle ,
+      CUSPARSE_OPERATION_NON_TRANSPOSE,
+      A->num_rows-offset, A->num_cols, A->num_nonzeros,
+      &alpha, descr,
+      A->d_data ,A->d_i,A->d_j,
+      &xddata[k1*x_size], &beta, &yddata[k2*y_size]);
+  POP_RANGE;
+
+  return 0;
+}
+
+#endif
 #endif
 
