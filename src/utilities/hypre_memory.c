@@ -62,7 +62,11 @@ static inline HYPRE_Int hypre_RedefMemLocation(HYPRE_Int location)
 
    if (location == HYPRE_MEMORY_SHARED)
    {
+#ifdef HYPRE_NREL_CUDA
+      return HYPRE_MEMORY_SHARED;
+#else
       return HYPRE_MEMORY_SHARED_ACT;
+#endif
    }
 
    if (location == HYPRE_MEMORY_HOST_PINNED)
@@ -208,7 +212,7 @@ hypre_UnifiedMalloc(size_t size, HYPRE_Int zeroinit)
 {
    void *ptr = NULL;
 
-#if defined(HYPRE_USING_CUDA) || defined(HYPRE_USING_DEVICE_OPENMP)
+#if defined(HYPRE_USING_GPU) || defined(HYPRE_USING_DEVICE_OPENMP)
    size_t count = size + sizeof(size_t)*HYPRE_MEM_PAD_LEN;
    /* with UM, managed memory alloc */
    hypre_CheckErrorDevice( cudaMallocManaged(&ptr, count, CUDAMEMATTACHTYPE) );
