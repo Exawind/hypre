@@ -79,10 +79,11 @@ typedef struct hypre_ParCSRMatrix_struct
    hypre_IJAssumedPart  *assumed_partition; /* only populated if
                                               no_global_partition option is used
                                               (compile-time option)*/
-
-hypre_Vector      *x_tmp;
-HYPRE_Complex * x_buf;
-HYPRE_Int * comm_d;
+#ifdef HYPRE_NREL_CUDA
+   hypre_Vector      *x_tmp;
+   HYPRE_Complex * x_buf;
+   HYPRE_Int * comm_d;
+#endif
 } hypre_ParCSRMatrix;
 
 /*--------------------------------------------------------------------------

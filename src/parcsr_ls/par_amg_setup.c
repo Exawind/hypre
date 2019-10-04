@@ -799,6 +799,7 @@ hypre_BoomerAMGSetup( void               *amg_vdata,
 
    F_array[0] = f;
    U_array[0] = u;
+
    hypre_ParAMGDataFArray(amg_data) = F_array;
    hypre_ParAMGDataUArray(amg_data) = U_array;
 
@@ -822,7 +823,6 @@ hypre_BoomerAMGSetup( void               *amg_vdata,
    S_commpkg_switch = hypre_ParAMGDataSCommPkgSwitch(amg_data);
    if (smooth_num_levels > level)
    {
-
       smoother = hypre_CTAlloc(HYPRE_Solver, smooth_num_levels, HYPRE_MEMORY_HOST);
       hypre_ParAMGDataSmoother(amg_data) = smoother;
    }
@@ -928,7 +928,6 @@ hypre_BoomerAMGSetup( void               *amg_vdata,
 	 if (hypre_ParAMGDataGSMG(amg_data) ||
              hypre_ParAMGDataInterpType(amg_data) == 1)
          {
-
 	    hypre_BoomerAMGCreateSmoothVecs(amg_data, A_array[level],
 	       hypre_ParAMGDataNumGridSweeps(amg_data)[1],
                level, &SmoothVecs);
@@ -1001,7 +1000,6 @@ hypre_BoomerAMGSetup( void               *amg_vdata,
 	 }
 	 else
 	 {
-
 	    hypre_BoomerAMGCreateSmoothDirs(amg_data, A_array[level],
 	       SmoothVecs, strong_threshold,
                num_functions, dof_func_array[level], &S);
@@ -2000,7 +1998,6 @@ hypre_BoomerAMGSetup( void               *amg_vdata,
 
          break;
       }
-
       if (level < agg_num_levels && coarse_size < min_coarse_size)
       {
 	 if (S)

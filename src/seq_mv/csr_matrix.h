@@ -42,9 +42,11 @@ typedef struct
    HYPRE_Int     *rownnz;
    HYPRE_Int      num_rownnz;
 
- /* KS: for GPU storage - only used when unified memory not used */
+#ifdef HYPRE_NREL_CUDA
+   /* KS: for GPU storage - only used when unified memory not used */
    HYPRE_Int *d_i, *d_j, *d_rownnz;
    HYPRE_Complex *d_data;
+#endif
 } hypre_CSRMatrix;
 
 /*--------------------------------------------------------------------------
