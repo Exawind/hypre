@@ -68,16 +68,19 @@ HYPRE_Int hypre_ParCSRRelax(/* matrix to relax with */
       {
          PUSH_RANGE_PAYLOAD("RELAX",4,sweep);
          HYPRE_Int num_rows = hypre_ParCSRMatrixNumRows(A);
-#ifdef HYPRE_USING_UNIFIED_MEMORY
+#ifdef HYPRE_USING_GPU
          if (sweep==0)
          {
             hypre_SeqVectorPrefetchToDevice(hypre_ParVectorLocalVector(v));
             hypre_SeqVectorPrefetchToDevice(hypre_ParVectorLocalVector(f));
+#ifdef HYPRE_NREL_CUDA
+            hypre_SeqVectorPrefetchToDevice(hypre_ParVectorLocalVector(u));
+#endif
          }
 #endif
          //SyncVectorToHost(hypre_ParVectorLocalVector(v));
          //SyncVectorToHost(hypre_ParVectorLocalVector(f));
-#if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY)
+#if defined(HYPRE_USING_GPU)
          VecCopy(v_data,f_data,hypre_VectorSize(hypre_ParVectorLocalVector(v)),HYPRE_STREAM(4));
 #else
          //printRC(hypre_ParVectorLocalVector(v),"Pre-COPY V");
@@ -92,7 +95,7 @@ HYPRE_Int hypre_ParCSRRelax(/* matrix to relax with */
          //SyncVectorToHost(hypre_ParVectorLocalVector(v));
          //SyncVectorToHost(hypre_ParVectorLocalVector(u));
          PUSH_RANGE_PAYLOAD("VECSCALE-RELAX",5,num_rows);
-#if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY)
+#if defined(HYPRE_USING_GPU)
          VecScale(u_data,v_data,l1_norms,num_rows,HYPRE_STREAM(4));
 #else
          HYPRE_Int i;
