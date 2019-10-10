@@ -91,10 +91,16 @@ HYPRE_ParCSRCOGMRESSolve( HYPRE_Solver solver,
                         HYPRE_ParVector b,
                         HYPRE_ParVector x      )
 {
-   return( HYPRE_COGMRESSolve( solver,
+   HYPRE_Int ret =  HYPRE_COGMRESSolve( solver,
                              (HYPRE_Matrix) A,
                              (HYPRE_Vector) b,
-                             (HYPRE_Vector) x ) );
+                             (HYPRE_Vector) x ) ;
+
+//update GPU version if necessary
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+hypre_ParVectorCopyDataGPUtoCPU(x);
+#endif
+return ret;
 }
 
 /*--------------------------------------------------------------------------
