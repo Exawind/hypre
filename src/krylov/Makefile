@@ -21,7 +21,12 @@ C_COMPILE_FLAGS = \
  -I$(srcdir)/../blas\
  -I$(srcdir)/../lapack\
  -I$(srcdir)/../multivector\
+ -I$(srcdir)/../parcsr_ls\
+ -I$(srcdir)/../seq_mv\
+ -I$(srcdir)/../parcsr_mv\
+ -I$(srcdir)/../IJ_mv\
  -I$(srcdir)/../utilities\
+ -I$(srcdir)\
  ${CINCLUDES}
 
 HEADERS =\

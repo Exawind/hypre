@@ -1585,7 +1585,7 @@ if test "$hypre_user_chose_cuda" = "yes"
 then
    dnl to delete
    AC_DEFINE(HYPRE_USING_GPU, 1, [GPU being used])
-
+   AC_DEFINE(HYPRE_NREL_CUDA, 1, [NREL CUDA modifications being used])
    AC_DEFINE(HYPRE_USING_CUDA, 1, [CUDA being used])
    AC_DEFINE(USE_NVTX, 1, [NVTX being used])
 

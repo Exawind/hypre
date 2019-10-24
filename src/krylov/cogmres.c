@@ -13,11 +13,7 @@
  *
  *
  ***********************************************************************EHEADER*/
-#ifdef HYPRE_NREL_CUDA
-#define solverTimers 1
-#define usePrecond 1
-#define leftPrecond 0
-#endif
+
 /******************************************************************************
  *
  * COGMRES cogmres
@@ -1263,6 +1259,22 @@ hypre_COGMRESSetModifyPC(void *cogmres_vdata,
 } 
 
 #ifdef HYPRE_NREL_CUDA
+
+#define solverTimers 1
+#define usePrecond 1
+#define leftPrecond 0
+
+/*-----------------------------------------------------
+ * Aux function for Hessenberg matrix storage
+ *-----------------------------------------------------*/
+
+HYPRE_Int idx(HYPRE_Int r, HYPRE_Int c, HYPRE_Int n){
+  //n is the # el IN THE COLUMN
+  //
+  //#define IDX2C(i,j,ld) (((i)*(ld))+(j))
+  return r*n+c;
+}
+
 /*--------------------------------------------------------------------------
  * hypre_COGMRESSetStopCrit, hypre_COGMRESGetStopCrit
  *
@@ -1560,17 +1572,6 @@ Hcolumn[(i-2)*(k_dim+1) +i-1] = t ;
   }//if
 }
 
-/*-----------------------------------------------------
- * Aux function for Hessenberg matrix storage
- *-----------------------------------------------------*/
-
-HYPRE_Int idx(HYPRE_Int r, HYPRE_Int c, HYPRE_Int n){
-  //n is the # el IN THE COLUMN
-  //
-  //#define IDX2C(i,j,ld) (((i)*(ld))+(j))
-  return r*n+c;
-}
-
 /*--------------------------------------------------------------------------
  * hypre_COGMRESSolve
  *-------------------------------------------------------------------------*/
@@ -1587,8 +1588,8 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
   HYPRE_Real gsOtherTime  = 0.0f;
   HYPRE_Real massIPTime   = 0.0f, preconTime = 0.0f, mvTime = 0.0f;    
   HYPRE_Real initTime     = 0.0f;
-  if (solverTimers)
-    time1                                     = MPI_Wtime(); 
+  //if (solverTimers)
+  //  time1                                     = MPI_Wtime(); 
 
   hypre_COGMRESData      *cogmres_data      = (hypre_COGMRESData *)cogmres_vdata;
   hypre_COGMRESFunctions *cogmres_functions = cogmres_data->functions;
@@ -1674,10 +1675,10 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
     hypre_printf("-----    ------------    ---------- \n");
   }
 
-  if (solverTimers){
-    time2 = MPI_Wtime();
-    initTime += (time2-time1);
-  }
+  //if (solverTimers){
+  //  time2 = MPI_Wtime();
+  //  initTime += (time2-time1);
+  //}
   //outer loop 
 
   iter = 0;
@@ -1685,43 +1686,43 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
   while (iter < max_iter)
   {
     if (iter == 0){
-      if (solverTimers){
-	time1 = MPI_Wtime();
-      }
+      //if (solverTimers){
+      //  time1 = MPI_Wtime();
+      //}
       b_norm_original =  sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0));
       b_norm = b_norm_original;
 
-      if (solverTimers){
-	time2 = MPI_Wtime();
-	remainingTime += (time2-time1);
-      }
+      //if (solverTimers){
+      //  time2 = MPI_Wtime();
+      //  remainingTime += (time2-time1);
+      //}
       if ((usePrecond) && (leftPrecond)){
-	if (solverTimers){
-	  time1 = MPI_Wtime();
-	}
+	//if (solverTimers){
+	//  time1 = MPI_Wtime();
+	//}
 	(*(cogmres_functions->UpdateVectorCPU))(b);
 	(*(cogmres_functions->ClearVector))(w_2);
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	  remainingTime += (time2-time1); 
-	  time1 = MPI_Wtime();
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//  remainingTime += (time2-time1); 
+	//  time1 = MPI_Wtime();
+	//}
 	precond(precond_data, A, b,w_2 );
 
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	  matvecPreconTime+=(time2-time1);
-	  preconTime += (time2-time1);
-	  time1 = MPI_Wtime();
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//  matvecPreconTime+=(time2-time1);
+	//  preconTime += (time2-time1);
+	//  time1 = MPI_Wtime();
+	//}
 	(*(cogmres_functions->UpdateVectorCPU))(w_2);
 	(*(cogmres_functions->CopyVector))(w_2, 0, b, 0);
 	(*(cogmres_functions->UpdateVectorCPU))(b);
 	b_norm =  sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0));
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	  remainingTime += (time2-time1);
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//  remainingTime += (time2-time1);
+	//}
       }
     }
 
@@ -1729,8 +1730,8 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
      * RESTART, PRECON IS RIGHT
      * *****************************************************************/    
     if ((usePrecond)&&(!leftPrecond)){
-      if (solverTimers)
-	time1 = MPI_Wtime();
+      //if (solverTimers)
+      //  time1 = MPI_Wtime();
 
       (*(cogmres_functions->ClearVector))(w);
       //KS: if iter == 0, x has the right CPU data, no need to copy	
@@ -1740,23 +1741,23 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
       }	
       //w = Mx
       (*(cogmres_functions->CopyVector))(x, 0, w_2, 0);
-      if (solverTimers){
-	time2 = MPI_Wtime();
-	remainingTime += (time2-time1);
-	time3 = MPI_Wtime();
-      }
+      //if (solverTimers){
+      //  time2 = MPI_Wtime();
+      //  remainingTime += (time2-time1);
+      //  time3 = MPI_Wtime();
+      //}
 
       PUSH_RANGE("cogmres precon", 0);
       precond(precond_data, A, w_2,w );
       POP_RANGE;
 
-      if (solverTimers){
-	time4 = MPI_Wtime();
-	preconTime +=(time4-time3);
-	matvecPreconTime += (time4-time3);
+      //if (solverTimers){
+      //  time4 = MPI_Wtime();
+      //  preconTime +=(time4-time3);
+      //  matvecPreconTime += (time4-time3);
 
-	time1 = MPI_Wtime();
-      }
+      //  time1 = MPI_Wtime();
+      //}
       //w_2 = AMx = Aw   
 
       (*(cogmres_functions->Matvec))(matvec_data,
@@ -1767,28 +1768,28 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 	  zero,
 	  w_2, 0);
 
-      if (solverTimers){
-	time2 = MPI_Wtime();
-	mvTime +=(time2-time1);
-	matvecPreconTime += (time2-time1);
-	time1 = MPI_Wtime();      
-      }
+      //if (solverTimers){
+      //  time2 = MPI_Wtime();
+      //  mvTime +=(time2-time1);
+      //  matvecPreconTime += (time2-time1);
+      //  time1 = MPI_Wtime();      
+      //}
       //use Hegedus, if indicated AND first cycle
 
       HYPRE_Real part2 = (*(cogmres_functions->InnerProd))(w_2,0,w_2, 0);
-      if (solverTimers){
-	time2 = MPI_Wtime();
-	remainingTime +=(time2-time1);
-      }
+      //if (solverTimers){
+      //  time2 = MPI_Wtime();
+      //  remainingTime +=(time2-time1);
+      //}
       if (part2 == 0.0f){
 	//safety check - cant divide by 0
 	HegedusTrick = 0;
       }      
       if ((HegedusTrick)&&(iter==0)){
-	if (solverTimers){
-	  time1 = MPI_Wtime();
-	  remainingTime +=(time2-time1);
-	}
+	//if (solverTimers){
+	//  time1 = MPI_Wtime();
+	//  remainingTime +=(time2-time1);
+	//}
 	HYPRE_Real part1 = (*(cogmres_functions->InnerProd))(w_2,0,b, 0);
 
 	(*(cogmres_functions->ScaleVector))(part1/part2,x, 0);
@@ -1796,25 +1797,25 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 	//w = Mx_0
 	(*(cogmres_functions->ClearVector))(w);
 
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	  remainingTime +=(time2-time1);
-	  time1 = MPI_Wtime();     
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//  remainingTime +=(time2-time1);
+	//  time1 = MPI_Wtime();     
+	//}
 	precond(precond_data, A, x,w );
 
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	  preconTime +=(time2-time1);
-	  matvecPreconTime += (time2-time1);
-	  time1 = MPI_Wtime();      
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//  preconTime +=(time2-time1);
+	//  matvecPreconTime += (time2-time1);
+	//  time1 = MPI_Wtime();      
+	//}
 	(*(cogmres_functions->CopyVector))(b, 0, p, 0);
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	  remainingTime +=(time2-time1);
-	  time1 = MPI_Wtime();     
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//  remainingTime +=(time2-time1);
+	//  time1 = MPI_Wtime();     
+	//}
 	(*(cogmres_functions->Matvec))(matvec_data,
 	    minusone,
 	    A,
@@ -1822,23 +1823,23 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 	    0,
 	    one,
 	    p, 0);
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	  mvTime +=(time2-time1);
-	  matvecPreconTime += (time2-time1);
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//  mvTime +=(time2-time1);
+	//  matvecPreconTime += (time2-time1);
+	//}
       }//if Hegedus
       else {
 	//not using Hegedus, compute the right residual
-	if (solverTimers){
-	  time1 = MPI_Wtime();
-	}
+	//if (solverTimers){
+	//  time1 = MPI_Wtime();
+	//}
 	(*(cogmres_functions->CopyVector))(b, 0, p, 0);
 	(*(cogmres_functions->Axpy))(-1.0f, w_2, 0, p, 0);
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	  remainingTime +=(time2-time1);
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//  remainingTime +=(time2-time1);
+	//}
       }    
     }// if RIGHT Precond
 
@@ -1846,9 +1847,9 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
      * RESTART, PRECON IS LEFT
      * *****************************************************************/    
     if ((usePrecond)&&(leftPrecond)){
-      if (solverTimers){
-	time1 = MPI_Wtime();
-      }
+      //if (solverTimers){
+      //  time1 = MPI_Wtime();
+      //}
       (*(cogmres_functions->Matvec))(matvec_data,
 	  one,
 	  A,
@@ -1857,52 +1858,52 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 	  zero,
 	  w, 0);
 
-      if (solverTimers){
-	time2 = MPI_Wtime();
-	mvTime +=(time2-time1);
-	matvecPreconTime += (time2-time1);
-	time1 = MPI_Wtime();	
-      }
+      //if (solverTimers){
+      //  time2 = MPI_Wtime();
+      //  mvTime +=(time2-time1);
+      //  matvecPreconTime += (time2-time1);
+      //  time1 = MPI_Wtime();	
+      //}
 
       (*(cogmres_functions->UpdateVectorCPU))(w);
       (*(cogmres_functions->ClearVector))(w_2);
 
-      if (solverTimers){
-	time2 = MPI_Wtime();
-	remainingTime +=(time2-time1);
-	time1 = MPI_Wtime();
-      }
+      //if (solverTimers){
+      //  time2 = MPI_Wtime();
+      //  remainingTime +=(time2-time1);
+      //  time1 = MPI_Wtime();
+      //}
       precond(precond_data, A, w,w_2 );
 
-      if (solverTimers){
-	time2 = MPI_Wtime();
-	preconTime +=(time2-time1);
-	matvecPreconTime += (time2-time1);
-	time1 = MPI_Wtime();
-      }
+      //if (solverTimers){
+      //  time2 = MPI_Wtime();
+      //  preconTime +=(time2-time1);
+      //  matvecPreconTime += (time2-time1);
+      //  time1 = MPI_Wtime();
+      //}
       HYPRE_Real part2 = (*(cogmres_functions->InnerProd))(w_2,0,w_2, 0);
       if (part2 == 0.0f){HegedusTrick = 0;}     
-      if (solverTimers){
-	time2 = MPI_Wtime();
-	remainingTime +=(time2-time1);
-      }
+      //if (solverTimers){
+      //  time2 = MPI_Wtime();
+      //  remainingTime +=(time2-time1);
+      //}
       if ((HegedusTrick)&&(iter==0)){
 	//(Mb)'*(MAx)/\|MAx\|^2 = b'w_2/[(w_2)'*(w_2)] <-- scaling factor
 
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//}
 	HYPRE_Real part1 = (*(cogmres_functions->InnerProd))(b,0,w_2, 0);
 
 	(*(cogmres_functions->ScaleVector))(part1/part2,x, 0);
 	(*(cogmres_functions->UpdateVectorCPU))(x);
 	//update w_2 = MAx_0
 
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	  remainingTime +=(time2-time1);
-	  time1 = MPI_Wtime();
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//  remainingTime +=(time2-time1);
+	//  time1 = MPI_Wtime();
+	//}
 	(*(cogmres_functions->Matvec))(matvec_data,
 	    one,
 	    A,
@@ -1911,56 +1912,56 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 	    zero,
 	    w, 0);
 
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	  mvTime +=(time2-time1);
-	  matvecPreconTime += (time2-time1);
-	  time1 = MPI_Wtime();	
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//  mvTime +=(time2-time1);
+	//  matvecPreconTime += (time2-time1);
+	//  time1 = MPI_Wtime();	
+	//}
 
 	(*(cogmres_functions->UpdateVectorCPU))(w);
 	(*(cogmres_functions->ClearVector))(w_2);
 
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	  remainingTime +=(time2-time1);
-	  time1 = MPI_Wtime();
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//  remainingTime +=(time2-time1);
+	//  time1 = MPI_Wtime();
+	//}
 	precond(precond_data, A, w,w_2 );
 
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	  preconTime +=(time2-time1);
-	  matvecPreconTime += (time2-time1);
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//  preconTime +=(time2-time1);
+	//  matvecPreconTime += (time2-time1);
+	//}
 
       }//Hegedus
 
-      if (solverTimers){
-	time1 = MPI_Wtime();
-      }
+      //if (solverTimers){
+      //  time1 = MPI_Wtime();
+      //}
       (*(cogmres_functions->CopyVector))(b, 0, p, 0);
       (*(cogmres_functions->Axpy))(-1.0f, w_2, 0, p, 0);		
 
-      if (solverTimers){
-	time2 = MPI_Wtime();
-	remainingTime +=(time2-time1);
-      }
+      //if (solverTimers){
+      //  time2 = MPI_Wtime();
+      //  remainingTime +=(time2-time1);
+      //}
     }//LEFT precond
 
     /*******************************************************************
      * RESTART, PRECON IS NONE
      * *****************************************************************/    
     if (!usePrecond){
-      if (solverTimers){
-	time1 = MPI_Wtime();
-      }
+      //if (solverTimers){
+      //  time1 = MPI_Wtime();
+      //}
       (*(cogmres_functions->CopyVector))(b, 0, p, 0);
-      if (solverTimers){
-	time2 = MPI_Wtime();
-	remainingTime +=(time2-time1);
-	time1 = MPI_Wtime();
-      }
+      //if (solverTimers){
+      //  time2 = MPI_Wtime();
+      //  remainingTime +=(time2-time1);
+      //  time1 = MPI_Wtime();
+      //}
 
       (*(cogmres_functions->Matvec))(matvec_data,
 	  minusone,
@@ -1969,16 +1970,16 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 	  0,
 	  one,
 	  p, 0);
-      if (solverTimers){
-	time2 = MPI_Wtime();
-	mvTime +=(time2-time1);
-	matvecPreconTime += (time2-time1);
-      }
+      //if (solverTimers){
+      //  time2 = MPI_Wtime();
+      //  mvTime +=(time2-time1);
+      //  matvecPreconTime += (time2-time1);
+      //}
     }//no precon
 
-    if (solverTimers){
-      time1 = MPI_Wtime();
-    }
+    //if (solverTimers){
+    //  time1 = MPI_Wtime();
+    //}
     r_norm = sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0));
     if (iter == 0){      
       epsilon = r_tol*b_norm;
@@ -1997,10 +1998,10 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
     }
 
     // conv criteria 
-    if (solverTimers){
-      time2 = MPI_Wtime();
-      remainingTime += (time2-time1);
-    }
+    //if (solverTimers){
+    //  time2 = MPI_Wtime();
+    //  remainingTime += (time2-time1);
+    //}
 
     if (r_norm <epsilon){
       (cogmres_data -> converged) = 1;
@@ -2008,8 +2009,8 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
     }//conv check
     //iter++;
 
-    if (solverTimers)
-      time1 = MPI_Wtime();
+    //if (solverTimers)
+    //  time1 = MPI_Wtime();
 
     t = 1.0f/r_norm;
 
@@ -2027,10 +2028,10 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 	  cudaMemcpyHostToDevice );
     }
 
-    if (solverTimers){
-      time2 = MPI_Wtime();
-      remainingTime += (time2-time1);
-    }
+    //if (solverTimers){
+    //  time2 = MPI_Wtime();
+    //  remainingTime += (time2-time1);
+    //}
 
     //inner loop 
     i = -1; 
@@ -2042,28 +2043,28 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 	//x = M * p[i-1]
 	//p[i] = A*x
 
-	if (solverTimers)
-	  time1 = MPI_Wtime();
+	//if (solverTimers)
+	//  time1 = MPI_Wtime();
 	(*(cogmres_functions->CopyVector))(p, i, w_2, 0);
 	//clear vector is absolutely necessary
 	(*(cogmres_functions->ClearVector))(w);
 
-	if (solverTimers){
-	  time2 = MPI_Wtime();
-	  remainingTime += (time2-time1);
-	  time3 = MPI_Wtime();
-	}
+	//if (solverTimers){
+	//  time2 = MPI_Wtime();
+	//  remainingTime += (time2-time1);
+	//  time3 = MPI_Wtime();
+	//}
 
 	PUSH_RANGE("cogmres precon", 1);
 	precond(precond_data, A, w_2, w);
 	POP_RANGE;
-	if (solverTimers){
-	  time4 = MPI_Wtime();
+	//if (solverTimers){
+	//  time4 = MPI_Wtime();
 
-	  preconTime += (time4-time3);
-	  matvecPreconTime += (time4-time3);
-	  time1 = MPI_Wtime();
-	}
+	//  preconTime += (time4-time3);
+	//  matvecPreconTime += (time4-time3);
+	//  time1 = MPI_Wtime();
+	//}
 
 	(*(cogmres_functions->Matvec))(matvec_data,
 	    one,
@@ -2072,27 +2073,27 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 	    0,
 	    zero,
 	    p, i+1);
-	if (solverTimers){
+	//if (solverTimers){
 
-	  time2 = MPI_Wtime();
-	  mvTime += (time2-time1);
-	  matvecPreconTime += (time2-time1);   
-	}
+	//  time2 = MPI_Wtime();
+	//  mvTime += (time2-time1);
+	//  matvecPreconTime += (time2-time1);   
+	//}
       }
       else{
 	if ((usePrecond) && (leftPrecond)){
 
-	  if (solverTimers)
-	    time1 = MPI_Wtime();
+	  //if (solverTimers)
+	  //  time1 = MPI_Wtime();
 
 	  (*(cogmres_functions->ClearVector))(w);
 
 	  (*(cogmres_functions->CopyVector))(p, i, w_2, 0);
-	  if (solverTimers){
-	    time2 = MPI_Wtime();
-	    remainingTime += (time2-time1);
-	    time1 = MPI_Wtime();
-	  }
+	  //if (solverTimers){
+	  //  time2 = MPI_Wtime();
+	  //  remainingTime += (time2-time1);
+	  //  time1 = MPI_Wtime();
+	  //}
 	  (*(cogmres_functions->Matvec))(matvec_data,
 	      one,
 	      A,
@@ -2101,50 +2102,50 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 	      zero,
 	      w, 0);
 
-	  if (solverTimers){
-	    time2 = MPI_Wtime();
-	    mvTime += (time2-time1);
-	    matvecPreconTime += (time2-time1);   
-	    time1 = MPI_Wtime();
-	  }
+	  //if (solverTimers){
+	  //  time2 = MPI_Wtime();
+	  //  mvTime += (time2-time1);
+	  //  matvecPreconTime += (time2-time1);   
+	  //  time1 = MPI_Wtime();
+	  //}
 
-	  if (solverTimers)
-	    time1 = MPI_Wtime();
+	  //if (solverTimers)
+	  //  time1 = MPI_Wtime();
 	  (*(cogmres_functions->UpdateVectorCPU))(w);
 
 	  (*(cogmres_functions->ClearVector))(w_2);
 
-	  if (solverTimers){
-	    time2 = MPI_Wtime();
-	    remainingTime += (time2-time1);
-	    time1 = MPI_Wtime();
-	  }
+	  //if (solverTimers){
+	  //  time2 = MPI_Wtime();
+	  //  remainingTime += (time2-time1);
+	  //  time1 = MPI_Wtime();
+	  //}
 	  precond(precond_data, A, w, w_2);
 
-	  if (solverTimers){
-	    time2 = MPI_Wtime();
-	    preconTime += (time2-time1);
-	    matvecPreconTime += (time2-time1);   
-	    time1 = MPI_Wtime();
-	  }
+	  //if (solverTimers){
+	  //  time2 = MPI_Wtime();
+	  //  preconTime += (time2-time1);
+	  //  matvecPreconTime += (time2-time1);   
+	  //  time1 = MPI_Wtime();
+	  //}
 
 	  (*(cogmres_functions->CopyVector))(w_2, 0, p, i+1);
-	  if (solverTimers){
-	    time2 = MPI_Wtime();
-	    remainingTime += (time2-time1);
-	  }
+	  //if (solverTimers){
+	  //  time2 = MPI_Wtime();
+	  //  remainingTime += (time2-time1);
+	  //}
 	}
 	else{
 	  // not using preconddd
-	  if (solverTimers)
-	    time1 = MPI_Wtime();
+	  //if (solverTimers)
+	  //  time1 = MPI_Wtime();
 
 	  (*(cogmres_functions->CopyVector))(p, i, w, 0);
-	  if (solverTimers){
-	    time2 = MPI_Wtime();
-	    remainingTime += (time2-time1);
-	    time1 = MPI_Wtime();
-	  }
+	  //if (solverTimers){
+	  //  time2 = MPI_Wtime();
+	  //  remainingTime += (time2-time1);
+	  //  time1 = MPI_Wtime();
+	  //}
 
 	  (*(cogmres_functions->Matvec))(matvec_data,
 	      one,
@@ -2153,18 +2154,17 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 	      0,
 	      zero,
 	      p, i+1);
-	  if (solverTimers){
-	    time2 = MPI_Wtime();
-	    mvTime += (time2-time1);
-	    matvecPreconTime += (time2-time1);   
-	  }
+	  //if (solverTimers){
+	  //  time2 = MPI_Wtime();
+	  //  mvTime += (time2-time1);
+	  //  matvecPreconTime += (time2-time1);   
+	  //}
 
 	}
       }
-      if (solverTimers){
-
-	time1=MPI_Wtime();
-      }
+      //if (solverTimers){
+      //  time1=MPI_Wtime();
+      //}
 
       // GRAM SCHMIDT 
       if (GSoption == 0){
@@ -2203,12 +2203,12 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
       }
 
       // CALL IT HERE
-      if (solverTimers){
-	time2 = MPI_Wtime();
-	//gsOtherTime +=  time2-time3;
-	gsTime += (time2-time1);
-	time1 = MPI_Wtime();
-      }
+      //if (solverTimers){
+      //  time2 = MPI_Wtime();
+      //  //gsOtherTime +=  time2-time3;
+      //  gsTime += (time2-time1);
+      //  time1 = MPI_Wtime();
+      //}
       if (!doNotSolve){
 	if (GSoption >3) i--;
 	for (j = 1; j <= i; j++)
@@ -2232,10 +2232,10 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 	// determine residual norm 
 	hh[idx(i,i, k_dim+1)] = s[i]*hh[idx(i,i+1, k_dim+1)] + c[i]*hh[idx(i,i, k_dim+1)];
 	r_norm = fabs(rs[i+1]);
-	if (solverTimers){
-	  time4 = MPI_Wtime();
-	  linSolveTime += (time4-time1);
-	}
+	//if (solverTimers){
+	//  time4 = MPI_Wtime();
+	//  linSolveTime += (time4-time1);
+	//}
 
 	if ( print_level>0 )
 	{
@@ -2259,9 +2259,9 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
       }//doNotSolve
     }//while (inner)
 
-    if (solverTimers){
-      time1 = MPI_Wtime();
-    }
+    //if (solverTimers){
+    //  time1 = MPI_Wtime();
+    //}
     int k1, ii;
     rs[i] = rs[i]/hh[idx(i,i,k_dim+1)];
     for (ii=2; ii<=i+1; ii++)
@@ -2280,10 +2280,10 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
     }	
     (*(cogmres_functions->UpdateVectorCPU))(x);
 
-    if (solverTimers){
-      time2 = MPI_Wtime();
-      remainingTime += (time2-time1);
-    }
+    //if (solverTimers){
+    //  time2 = MPI_Wtime();
+    //  remainingTime += (time2-time1);
+    //}
     //test solution 
     if (r_norm < epsilon){
       (cogmres_data -> converged) = 1;
@@ -2291,31 +2291,31 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
     }
 
     // final tolerance 
-    if (solverTimers){
-      time2 = MPI_Wtime();
-      remainingTime += (time2-time1);
-    }
+    //if (solverTimers){
+    //  time2 = MPI_Wtime();
+    //  remainingTime += (time2-time1);
+    //}
   }
   if ((usePrecond)&&(!leftPrecond)){
-    if (solverTimers){
-      time1 = MPI_Wtime();
-    }
+    //if (solverTimers){
+    //  time1 = MPI_Wtime();
+    //}
     (*(cogmres_functions->CopyVector))(x, 0, w_2, 0);
     (*(cogmres_functions->ClearVector))(w);
-    if (solverTimers){
-      time2 = MPI_Wtime();
-      remainingTime += (time2-time1);
-      time1 = MPI_Wtime();
-    }
+    //if (solverTimers){
+    //  time2 = MPI_Wtime();
+    //  remainingTime += (time2-time1);
+    //  time1 = MPI_Wtime();
+    //}
 
     PUSH_RANGE("cogmres precon", 2);
     precond(precond_data, A, w_2, w);
     POP_RANGE;
-    if (solverTimers){
-      time2 = MPI_Wtime();
-      matvecPreconTime+=(time2-time1);
-      preconTime += (time2-time1);
-    }
+    //if (solverTimers){
+    //  time2 = MPI_Wtime();
+    //  matvecPreconTime+=(time2-time1);
+    //  preconTime += (time2-time1);
+    //}
     //debug code
 
     (*(cogmres_functions->CopyVector))(w, 0, x, 0);
@@ -2336,7 +2336,7 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
 
     cudaFree(tempRV);
   }
-
+/*
   if ((my_id == 0)&& (solverTimers)){
     hypre_printf("itersAll(%d,%d)                = %d \n", GSoption+1, k_dim/5, iter);
     hypre_printf("timeGSAll(%d,%d)                = %16.16f \n",GSoption+1, k_dim/5, gsTime);
@@ -2357,7 +2357,7 @@ hypre_COGMRESSolve(void  *cogmres_vdata,
     hypre_printf("timeAll(%d,%d)                =  ",GSoption+1, k_dim/5);
 
   }
-
+*/
   if ((HegedusTrick == 0))
     HegedusTrick=1;
 

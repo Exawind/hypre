@@ -629,6 +629,7 @@ extern "C" {
         void *x, HYPRE_Complex beta, void *y );
 #endif
     HYPRE_Int    (*MatvecDestroy) ( void *matvec_data );
+    HYPRE_Int    (*ClearVector)   ( void *x );
 #ifdef HYPRE_NREL_CUDA
     HYPRE_Real   (*InnerProd)     ( void *x, HYPRE_Int i1, void *y, HYPRE_Int i2 );
     HYPRE_Int    (*MassInnerProd) ( void *x, HYPRE_Int k1, void *y, HYPRE_Int k2, void *result);
@@ -644,7 +645,6 @@ extern "C" {
     HYPRE_Int    (*MassInnerProd) ( void *x, void **p, HYPRE_Int k, HYPRE_Int unroll, void *result);
     HYPRE_Int    (*MassDotpTwo)   ( void *x, void *y, void **p, HYPRE_Int k, HYPRE_Int unroll, void *result_x, void *result_y);
     HYPRE_Int    (*CopyVector)    ( void *x, void *y );
-    HYPRE_Int    (*ClearVector)   ( void *x );
     HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x );
     HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y );
     HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex * alpha, void **x, void *y, HYPRE_Int k, HYPRE_Int unroll);

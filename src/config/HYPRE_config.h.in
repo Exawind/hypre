@@ -118,6 +118,7 @@
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 /* Define to 1 if executing on device with CUDA */
 #undef HYPRE_USING_CUDA
+#undef HYPRE_NREL_CUDA
 
 /* Define to 1 if executing on device with OpenMP  */
 #undef HYPRE_USING_DEVICE_OPENMP

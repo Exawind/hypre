@@ -8211,6 +8211,7 @@ $as_echo "#define HYPRE_USING_GPU 1" >>confdefs.h
 
 
 $as_echo "#define HYPRE_USING_CUDA 1" >>confdefs.h
+$as_echo "#define HYPRE_NREL_CUDA 1" >>confdefs.h
 
 
 $as_echo "#define USE_NVTX 1" >>confdefs.h
