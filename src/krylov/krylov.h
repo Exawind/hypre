@@ -728,6 +728,10 @@ extern "C" {
           HYPRE_Int    (*CommInfo)      ( void  *A, HYPRE_Int   *my_id,
             HYPRE_Int   *num_procs ),
           void *       (*CreateVector)  ( void *vector ),
+          HYPRE_Int    (*DestroyVector) ( void *vector ),
+          void *       (*MatvecCreate)  ( void *A, void *x ),
+          HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
+          HYPRE_Int    (*ClearVector)   ( void *x ),
 #ifdef HYPRE_NREL_CUDA
           void *       (*CreateMultiVector)  (void *vectors, HYPRE_Int num_vectors ),	  
           void *       (*UpdateVectorCPU)  ( void *vector ),
@@ -753,10 +757,6 @@ extern "C" {
           HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, void *y ),
           HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex *alpha, void **x, void *y, HYPRE_Int k, HYPRE_Int unroll),
 #endif
-          HYPRE_Int    (*DestroyVector) ( void *vector ),
-          void *       (*MatvecCreate)  ( void *A, void *x ),
-          HYPRE_Int    (*MatvecDestroy) ( void *matvec_data ),
-          HYPRE_Int    (*ClearVector)   ( void *x ),
           HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
           HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
           );
