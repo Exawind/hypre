@@ -769,6 +769,11 @@ HYPRE_IJMatrixAssemble( HYPRE_IJMatrix matrix )
 {
    hypre_IJMatrix *ijmatrix = (hypre_IJMatrix *) matrix;
 
+#if defined(HYPRE_NREL_CUDA)
+   MPI_Comm comm;
+   comm = hypre_IJMatrixComm(ijmatrix);
+#endif
+
    if (!ijmatrix)
    {
       hypre_error_in_arg(1);
@@ -777,7 +782,13 @@ HYPRE_IJMatrixAssemble( HYPRE_IJMatrix matrix )
 
    if ( hypre_IJMatrixObjectType(ijmatrix) == HYPRE_PARCSR )
    {
-      return( hypre_IJMatrixAssembleParCSR( ijmatrix ) );
+      HYPRE_Int ret = hypre_IJMatrixAssembleParCSR( ijmatrix ) ;
+#if defined(HYPRE_NREL_CUDA)
+      hypre_MPI_Barrier(comm);
+      hypre_IJMatrixCopyCPUtoGPUParCSR( ijmatrix ) ;
+      hypre_MPI_Barrier(comm);
+#endif
+      return ret;
    }
    else
    {

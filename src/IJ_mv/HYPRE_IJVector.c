@@ -401,7 +401,11 @@ HYPRE_IJVectorAssemble( HYPRE_IJVector  vector )
 
    if ( hypre_IJVectorObjectType(vec) == HYPRE_PARCSR )
    {
-      return( hypre_IJVectorAssemblePar(vec) );
+      HYPRE_Int ret =  hypre_IJVectorAssemblePar(vec);
+#if defined(HYPRE_NREL_CUDA)
+      hypre_IJVectorCopyDataCPUtoGPUPar(vec);
+#endif
+      return ret;
    }
    else 
    {
