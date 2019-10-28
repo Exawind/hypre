@@ -152,15 +152,13 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
    {
       HYPRE_Int begin = hypre_ParCSRCommPkgSendMapStart(comm_pkg, 0);
       HYPRE_Int end   = hypre_ParCSRCommPkgSendMapStart(comm_pkg, num_sends);
-#if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY)
+#if defined(HYPRE_USING_GPU)
       PUSH_RANGE("PERCOMM2DEVICE",4);
 #ifdef HYPRE_USING_PERSISTENT_COMM
       PackOnDevice((HYPRE_Complex*)persistent_comm_handle->send_data,x_local_data,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),begin,end,HYPRE_STREAM(4));
       //PrintPointerAttributes(persistent_comm_handle->send_data);
 #else
 #if defined(DEBUG_PACK_ON_DEVICE)
-      hypre_CheckErrorDevice(cudaPeekAtLastError());
-      hypre_CheckErrorDevice(cudaDeviceSynchronize());
       ASSERT_MANAGED(x_buf_data[0]);
       ASSERT_MANAGED(x_local_data);
       ASSERT_MANAGED(hypre_ParCSRCommPkgSendMapElmts(comm_pkg));
@@ -173,7 +171,6 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
 #endif
       POP_RANGE;
       SetAsyncMode(1);
-      hypre_CheckErrorDevice(cudaPeekAtLastError());
       hypre_CheckErrorDevice(cudaDeviceSynchronize());
       hypre_CSRMatrixMatvecOutOfPlace( alpha, diag, x_local, beta, b_local, y_local, 0);
       //hypre_SeqVectorUpdateHost(y_local);
@@ -190,7 +187,6 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
       HYPRE_Int num_threads=64;
       HYPRE_Int num_teams = (end-begin+(end-begin)%num_threads)/num_threads;
       HYPRE_Int *local_send_map_elmts = comm_pkg->send_map_elmts;
-      printf("USING OFFLOADED PACKING OF BUFER\n");
 #pragma omp target teams  distribute  parallel for private(i) num_teams(num_teams) thread_limit(num_threads) is_device_ptr(x_local_data,x_buf_data,comm_pkg,local_send_map_elmts)
 #elif defined(HYPRE_USING_OPENMP)
 #pragma omp parallel for HYPRE_SMP_SCHEDULE
@@ -256,7 +252,7 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
    hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] += hypre_MPI_Wtime();
 #endif
    POP_RANGE;
-#if !defined(HYPRE_USING_GPU) || !defined(HYPRE_USING_UNIFIED_MEMORY)
+#if !defined(HYPRE_USING_GPU)
    hypre_CSRMatrixMatvecOutOfPlace( alpha, diag, x_local, beta, b_local, y_local, 0);
 #endif
 #ifdef HYPRE_PROFILE
@@ -306,7 +302,7 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
    hypre_profile_times[HYPRE_TIMER_ID_PACK_UNPACK] += hypre_MPI_Wtime();
 #endif
    POP_RANGE;
-#if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY)
+#if defined(HYPRE_USING_GPU)
    hypre_CheckErrorDevice(cudaStreamSynchronize(HYPRE_STREAM(4)));
 #endif
    POP_RANGE; // PAR_CSR
@@ -604,7 +600,8 @@ hypre_ParCSRMatrixMatvecT( HYPRE_Complex       alpha,
 /*--------------------------------------------------------------------------
  * hypre_ParCSRMatrixMatvec_FF
  *--------------------------------------------------------------------------*/
-                                                                                    HYPRE_Int
+
+HYPRE_Int
 hypre_ParCSRMatrixMatvec_FF( HYPRE_Complex       alpha,
                              hypre_ParCSRMatrix *A,
                              hypre_ParVector    *x,
@@ -731,8 +728,8 @@ hypre_ParCSRMatrixMatvec_FF( HYPRE_Complex       alpha,
    return ierr;
 }
 
-#if defined(HYPRE_NREL_CUDA)
-  HYPRE_Int
+#ifdef HYPRE_NREL_CUDA
+HYPRE_Int
 hypre_ParCSRMatrixMatvecMult( HYPRE_Complex       alpha,
     hypre_ParCSRMatrix *A,
     hypre_ParVector    *x,
@@ -743,6 +740,7 @@ hypre_ParCSRMatrixMatvecMult( HYPRE_Complex       alpha,
 {
   return hypre_ParCSRMatrixMatvecMultOutOfPlace(alpha, A, x,k1, beta, y,k2, y,k2);
 }
+#endif
 
   HYPRE_Int
 hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
@@ -896,4 +894,3 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
 #endif
   return ierr;
 }
-#endif

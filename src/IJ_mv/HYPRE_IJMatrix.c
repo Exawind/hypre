@@ -769,7 +769,7 @@ HYPRE_IJMatrixAssemble( HYPRE_IJMatrix matrix )
 {
    hypre_IJMatrix *ijmatrix = (hypre_IJMatrix *) matrix;
 
-#if defined(HYPRE_NREL_CUDA)
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
    MPI_Comm comm;
    comm = hypre_IJMatrixComm(ijmatrix);
 #endif
@@ -783,7 +783,7 @@ HYPRE_IJMatrixAssemble( HYPRE_IJMatrix matrix )
    if ( hypre_IJMatrixObjectType(ijmatrix) == HYPRE_PARCSR )
    {
       HYPRE_Int ret = hypre_IJMatrixAssembleParCSR( ijmatrix ) ;
-#if defined(HYPRE_NREL_CUDA)
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
       hypre_MPI_Barrier(comm);
       hypre_IJMatrixCopyCPUtoGPUParCSR( ijmatrix ) ;
       hypre_MPI_Barrier(comm);
