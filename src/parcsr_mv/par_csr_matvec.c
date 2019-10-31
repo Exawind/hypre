@@ -740,7 +740,6 @@ hypre_ParCSRMatrixMatvecMult( HYPRE_Complex       alpha,
 {
   return hypre_ParCSRMatrixMatvecMultOutOfPlace(alpha, A, x,k1, beta, y,k2, y,k2);
 }
-#endif
 
   HYPRE_Int
 hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
@@ -894,3 +893,4 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
 #endif
   return ierr;
 }
+#endif

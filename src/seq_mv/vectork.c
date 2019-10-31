@@ -285,27 +285,27 @@ hypre_SeqVectorSetConstantValues( hypre_Vector *v,
 #else /*GPU only,  CPU or OMP 4.5 */
 
 #if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU)
-  if (hypre_VectorSize(v)!=0){
-    cudaDeviceSynchronize();
-    VecSet(hypre_VectorData(v),hypre_VectorSize(v),value,HYPRE_STREAM(4));
-    cudaDeviceSynchronize();
-    hypre_SeqVectorPrefetchToDevice(v);
-    cudaDeviceSynchronize();
-    hypre_SeqVectorCopyDataCPUtoGPU(v);
-  }
-#endif
 
+if (hypre_VectorSize(v)!=0){
+  cudaDeviceSynchronize();
+  VecSet(hypre_VectorData(v),hypre_VectorSize(v),value,HYPRE_STREAM(4));
+  cudaDeviceSynchronize();
+
+  hypre_SeqVectorPrefetchToDevice(v);
+  cudaDeviceSynchronize();
+  hypre_SeqVectorCopyDataCPUtoGPU(v);
+
+}
+  return 0;
+#endif
+  return 0;
 #endif /* defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY) */
 
 #ifdef HYPRE_PROFILE
    hypre_profile_times[HYPRE_TIMER_ID_BLAS1] += hypre_MPI_Wtime();
 #endif
 
-#if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY) /* CUDA */
    return ierr;
-#else
-   return 0;
-#endif
 }
 
 /*--------------------------------------------------------------------------
