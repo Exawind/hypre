@@ -271,6 +271,7 @@ hypre_SeqVectorPrint( hypre_Vector *vector,
  * hypre_SeqVectorSetConstantValues
  *--------------------------------------------------------------------------*/
 
+#ifdef HYPRE_NREL_CUDA
 HYPRE_Int
 hypre_SeqVectorSetConstantValues( hypre_Vector *v,
                                   HYPRE_Complex value )
@@ -307,6 +308,65 @@ hypre_SeqVectorSetConstantValues( hypre_Vector *v,
    return 0;
 #endif
 }
+
+#else
+
+HYPRE_Int
+hypre_SeqVectorSetConstantValues( hypre_Vector *v,
+                                  HYPRE_Complex value )
+{
+#ifdef HYPRE_PROFILE
+   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
+#endif
+
+#if defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY) /* CUDA */
+   HYPRE_Int      ierr  = 0;
+   VecSet(hypre_VectorData(v),hypre_VectorSize(v),value,HYPRE_STREAM(4));
+#else /*GPU only,  CPU or OMP 4.5 */
+
+   HYPRE_Complex *vector_data = hypre_VectorData(v);
+   HYPRE_Int      size        = hypre_VectorSize(v);
+   HYPRE_Int      i;
+   HYPRE_Int      ierr  = 0;
+
+   size *=hypre_VectorNumVectors(v);
+#if defined(HYPRE_USING_MAPPED_OPENMP_OFFLOAD)
+   if (!v->mapped) hypre_SeqVectorMapToDevice(v);
+#endif
+#ifdef HYPRE_USING_UNIFIED_MEMORY
+   hypre_SeqVectorPrefetchToDevice(v);
+#endif
+#if defined(HYPRE_USING_OPENMP_OFFLOAD)
+#pragma omp target teams  distribute  parallel for private(i) num_teams(NUM_TEAMS) thread_limit(NUM_THREADS) is_device_ptr(vector_data)
+#elif defined(HYPRE_USING_MAPPED_OPENMP_OFFLOAD)
+   //printf("Vec Constant Value on Device %d %p size = %d \n",omp_target_is_present(vector_data,0),v,size);
+#pragma omp target teams  distribute  parallel for private(i) num_teams(NUM_TEAMS) thread_limit(NUM_THREADS)
+#elif defined(HYPRE_USING_OPENMP)
+   //printf("Vec Constant Value on Host %d \n",omp_target_is_present(vector_data,0));
+   #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
+#endif
+   for (i = 0; i < size; i++)
+   {
+      vector_data[i] = value;
+   }
+
+#ifdef HYPRE_USING_MAPPED_OPENMP_OFFLOAD
+   UpdateDRC(v);
+   // 2 lines below required to get exact match with baseline
+   // Not clear why this is the case.
+   SyncVectorToHost(v);
+   UpdateHRC(v);
+#endif
+
+#endif /* defined(HYPRE_USING_GPU) && defined(HYPRE_USING_UNIFIED_MEMORY) */
+
+#ifdef HYPRE_PROFILE
+   hypre_profile_times[HYPRE_TIMER_ID_BLAS1] += hypre_MPI_Wtime();
+#endif
+
+   return ierr;
+}
+#endif
 
 /*--------------------------------------------------------------------------
  * hypre_SeqVectorSetRandomValues
@@ -347,7 +407,7 @@ hypre_SeqVectorCopy( hypre_Vector *x,
                      hypre_Vector *y )
 {
 HYPRE_Complex *x_data, *y_data;
-HYPRE_Int size, size_y; 
+HYPRE_Int size, size_y;
 #ifdef HYPRE_PROFILE
    hypre_profile_times[HYPRE_TIMER_ID_BLAS1] -= hypre_MPI_Wtime();
 #endif

@@ -2625,7 +2625,7 @@ hypre_using_openmp=no
 hypre_using_device_openmp=no
 hypre_using_insure=no
 hypre_using_cuda=no
-hypre_using_gpu=yes
+hypre_using_gpu=no
 hypre_using_um=no
 
 hypre_using_caliper=no
