@@ -24,6 +24,8 @@ HYPRE_BoomerAMGCreate( HYPRE_Solver *solver)
       hypre_error_in_arg(1);
       return hypre_error_flag;
    }
+//end of KS code
+
    *solver = (HYPRE_Solver) hypre_BoomerAMGCreate( ) ;
 
    return hypre_error_flag;

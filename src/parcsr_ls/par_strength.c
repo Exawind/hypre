@@ -170,6 +170,9 @@ hypre_BoomerAMGCreateS(hypre_ParCSRMatrix    *A,
    S_offd = hypre_ParCSRMatrixOffd(S);
    hypre_CSRMatrixI(S_offd) = hypre_CTAlloc(HYPRE_Int,  num_variables+1, HYPRE_MEMORY_HOST);
 
+   hypre_CSRMatrixHostOnly(S_diag)=1;
+   hypre_CSRMatrixHostOnly(S_offd)=1;
+
    S_diag_i = hypre_CSRMatrixI(S_diag);
    HYPRE_Int *S_temp_diag_j = hypre_CSRMatrixJ(S_diag);
    S_offd_i = hypre_CSRMatrixI(S_offd);
@@ -178,7 +181,19 @@ hypre_BoomerAMGCreateS(hypre_ParCSRMatrix    *A,
    HYPRE_Int *S_temp_offd_j = NULL;
 
    dof_func_offd = NULL;
+//KS
 
+   hypre_CSRMatrixData(S_diag) = NULL;
+   hypre_CSRMatrixData(S_offd) = NULL;
+   
+   hypre_CSRMatrixDeviceData(S_offd) = NULL;
+   hypre_CSRMatrixDeviceI(S_offd) = NULL;
+   hypre_CSRMatrixDeviceJ(S_offd) = NULL;
+   
+   hypre_CSRMatrixDeviceData(S_diag) = NULL;
+   hypre_CSRMatrixDeviceI(S_diag) = NULL;
+   hypre_CSRMatrixDeviceJ(S_diag) = NULL;
+//end of KS code
    if (num_cols_offd)
    {
         A_offd_data = hypre_CSRMatrixData(A_offd);
@@ -519,6 +534,11 @@ hypre_BoomerAMGCreateS(hypre_ParCSRMatrix    *A,
 
    hypre_ParCSRMatrixCommPkg(S) = NULL;
 
+
+
+
+S->x_tmp = NULL;
+S->x_buf = NULL;
    *S_ptr        = S;
 
    hypre_TFree(prefix_sum_workspace, HYPRE_MEMORY_HOST);
@@ -628,6 +648,8 @@ hypre_BoomerAMGCreateSFromCFMarker(hypre_ParCSRMatrix    *A,
    S_offd_i = hypre_CSRMatrixI(S_offd);
 
    S_diag_j = hypre_CTAlloc(HYPRE_Int,  num_nonzeros_diag, HYPRE_MEMORY_HOST);
+   hypre_CSRMatrixHostOnly(S_diag)=1;
+   hypre_CSRMatrixHostOnly(S_offd)=1;
 /*
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
@@ -1064,6 +1086,8 @@ hypre_BoomerAMGCreateSabs(hypre_ParCSRMatrix    *A,
    S_offd = hypre_ParCSRMatrixOffd(S);
    hypre_CSRMatrixI(S_offd) = hypre_CTAlloc(HYPRE_Int,  num_variables+1, HYPRE_MEMORY_HOST);
 
+   hypre_CSRMatrixHostOnly(S_diag)=1;
+   hypre_CSRMatrixHostOnly(S_offd)=1;
    S_diag_i = hypre_CSRMatrixI(S_diag);
    S_diag_j = hypre_CSRMatrixJ(S_diag);
    S_offd_i = hypre_CSRMatrixI(S_offd);
@@ -1113,6 +1137,8 @@ hypre_BoomerAMGCreateSabs(hypre_ParCSRMatrix    *A,
       hypre_TFree(int_buf_data, HYPRE_MEMORY_HOST);
    }
 
+   hypre_CSRMatrixHostOnly(S_diag)=1;
+   hypre_CSRMatrixHostOnly(S_offd)=1;
    /* give S same nonzero structure as A */
    hypre_ParCSRMatrixCopy(A,S,0);
 
@@ -2632,6 +2658,10 @@ HYPRE_Int hypre_BoomerAMGCreate2ndS( hypre_ParCSRMatrix *S, HYPRE_Int *CF_marker
    hypre_CSRMatrixI(C_offd) = C_offd_i; 
    hypre_ParCSRMatrixOffd(S2) = C_offd;
 
+   hypre_CSRMatrixHostOnly(hypre_ParCSRMatrixDiag(S2))=1;
+   hypre_CSRMatrixHostOnly(hypre_ParCSRMatrixOffd(S2))=1;
+
+
    if (num_cols_offd_C)
    {
       if (C_offd_i[num_coarse]) hypre_CSRMatrixJ(C_offd) = C_offd_j; 
@@ -2671,6 +2701,8 @@ HYPRE_Int hypre_BoomerAMGCreate2ndS( hypre_ParCSRMatrix *S, HYPRE_Int *CF_marker
       hypre_TFree(fine_to_coarse_offd, HYPRE_MEMORY_HOST);
    }
 
+S2->x_tmp = NULL;
+S2->x_buf = NULL;
    *C_ptr = S2;
 
 #ifdef HYPRE_PROFILE

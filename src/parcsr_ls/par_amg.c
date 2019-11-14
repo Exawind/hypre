@@ -480,10 +480,15 @@ hypre_BoomerAMGDestroy( void *data )
       if (grid_relax_type[1] == 15 || grid_relax_type[3] == 15 )
       {
          if (grid_relax_type[1] == 15)
-	    for (i=0; i < num_levels; i++)
+	    for (i=0; i < num_levels; i++){
+printf("Matrix destroy, 1\n");
 	       HYPRE_ParCSRPCGDestroy(smoother[i]);
-         if (grid_relax_type[3] == 15 && grid_relax_type[1] != 15)
-	    HYPRE_ParCSRPCGDestroy(smoother[num_levels-1]);
+
+}
+         if (grid_relax_type[3] == 15 && grid_relax_type[1] != 15){
+
+printf("Matrix destroy, 2\n");
+	    HYPRE_ParCSRPCGDestroy(smoother[num_levels-1]);}
          hypre_TFree(smoother, HYPRE_MEMORY_HOST);
       }
 
@@ -522,17 +527,21 @@ hypre_BoomerAMGDestroy( void *data )
 	hypre_ParVectorDestroy(hypre_ParAMGDataFArray(amg_data)[i]);
 	hypre_ParVectorDestroy(hypre_ParAMGDataUArray(amg_data)[i]);
 
-        if (hypre_ParAMGDataAArray(amg_data)[i])
-           hypre_ParCSRMatrixDestroy(hypre_ParAMGDataAArray(amg_data)[i]);
-
-        if (hypre_ParAMGDataPArray(amg_data)[i-1])
-           hypre_ParCSRMatrixDestroy(hypre_ParAMGDataPArray(amg_data)[i-1]);
-
+        if (hypre_ParAMGDataAArray(amg_data)[i]){
+ 
+          hypre_ParCSRMatrixDestroy(hypre_ParAMGDataAArray(amg_data)[i]);
+}
+        if (hypre_ParAMGDataPArray(amg_data)[i-1]){
+ 
+          hypre_ParCSRMatrixDestroy(hypre_ParAMGDataPArray(amg_data)[i-1]);
+}
         /* RL */
         if (hypre_ParAMGDataRestriction(amg_data))
         {
            if (hypre_ParAMGDataRArray(amg_data)[i-1])
            {
+
+printf("Matrix destroy, 5\n");
               hypre_ParCSRMatrixDestroy(hypre_ParAMGDataRArray(amg_data)[i-1]);
            }
         }
@@ -556,11 +565,15 @@ hypre_BoomerAMGDestroy( void *data )
         }
    }
 
-   if (hypre_ParAMGDataLambda(amg_data))
-      hypre_ParCSRMatrixDestroy(hypre_ParAMGDataLambda(amg_data));
-
+   if (hypre_ParAMGDataLambda(amg_data)){
+ 
+printf("Matrix destroy, 6\n");
+     hypre_ParCSRMatrixDestroy(hypre_ParAMGDataLambda(amg_data));
+}
    if (hypre_ParAMGDataAtilde(amg_data))
    {
+
+printf("Matrix destroy, 7\n");
       hypre_ParCSRMatrix *Atilde = hypre_ParAMGDataAtilde(amg_data);
       hypre_CSRMatrixDestroy(hypre_ParCSRMatrixDiag(Atilde));
       hypre_CSRMatrixDestroy(hypre_ParCSRMatrixOffd(Atilde));

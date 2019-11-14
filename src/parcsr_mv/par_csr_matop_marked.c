@@ -375,6 +375,8 @@ hypre_ParCSRMatrix * hypre_ParMatmul_FC(
       Ps_ext_i    = hypre_CSRMatrixI(Ps_ext);
       Ps_ext_j    = hypre_CSRMatrixJ(Ps_ext);
    }
+
+   hypre_CSRMatrixHostOnly(Ps_ext)=1;
    P_ext_diag_i = hypre_CTAlloc(HYPRE_Int,  num_cols_offd_A+1, HYPRE_MEMORY_HOST);
    P_ext_offd_i = hypre_CTAlloc(HYPRE_Int,  num_cols_offd_A+1, HYPRE_MEMORY_HOST);
    P_ext_diag_size = 0;

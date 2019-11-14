@@ -3147,6 +3147,7 @@ HYPRE_Int hypre_AMSConstructDiscreteGradient(hypre_ParCSRMatrix *A,
       hypre_error_in_arg(4);
 
 
+   hypre_CSRMatrixHostOnly(local)=1;
     hypre_CSRMatrixI(local) = I;
     hypre_CSRMatrixJ(local) = edge_vertex;
     hypre_CSRMatrixData(local) = data;

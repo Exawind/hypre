@@ -117,6 +117,7 @@ hypre_COGMRESCreate( hypre_COGMRESFunctions *cogmres_functions )
   (cogmres_data -> norms)          = NULL;
   (cogmres_data -> log_file_name)  = NULL;
 
+  (cogmres_data -> GSoption)  = 2;
   return (void *) cogmres_data;
 }
 
@@ -127,6 +128,12 @@ hypre_COGMRESCreate( hypre_COGMRESFunctions *cogmres_functions )
   HYPRE_Int
 hypre_COGMRESDestroy( void *cogmres_vdata )
 {
+
+size_t mf, ma;
+//cudaMemGetInfo(&mf, &ma);
+//printf("starting de-allocation, free memory %zu allocated memory %zu \n", mf, ma);
+//printf("DESTROYING COGMRES, free memory %zu total memory %zu percentage of allocated %f \n", mf, ma, (double)mf/ma);
+
   hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
   if (cogmres_data)
@@ -151,12 +158,17 @@ hypre_COGMRESDestroy( void *cogmres_vdata )
 
     if ( (cogmres_data -> p) != NULL )
     {
-      cudaFree(cogmres_data -> p);
+//printf("freeing p\n");
+     // cudaFree(cogmres_data -> p);
+      (*(cogmres_functions->DestroyVector))(cogmres_data -> p);
     }
     hypre_TFreeF( cogmres_data, cogmres_functions );
     hypre_TFreeF( cogmres_functions, cogmres_functions );
   }
 
+//cudaMemGetInfo(&mf, &ma);
+//printf("starting de-allocation, free memory %zu allocated memory %zu \n", mf, ma);
+//printf("\n ENDED COGMRES, free memory %zu total memory %zu percentage of allocated %f \n", mf, ma, (double)mf/ma);
   return hypre_error_flag;
 }
 
@@ -212,8 +224,10 @@ hypre_COGMRESSetup( void *cogmres_vdata,
   if ((cogmres_data -> matvec_data) == NULL)
     (cogmres_data -> matvec_data) = (*(cogmres_functions->MatvecCreate))(A, x);
 
+    PUSH_RANGE("cogmres precon SETUP", 2);
   precond_setup(precond_data, A, b, x);
 
+      POP_RANGE;
   /*-----------------------------------------------------
    * Allocate space for log info
    *-----------------------------------------------------*/
@@ -516,6 +530,10 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 {
 
 
+size_t mf, ma;
+//cudaMemGetInfo(&mf, &ma);
+//printf("starting de-allocation, free memory %zu allocated memory %zu \n", mf, ma);
+//printf("STARTING COGMRES, free memory %zu total memory %zu percentage of allocated %f \n", mf, ma, (double)mf/ma);
   HYPRE_Real time1, time2, time3, time4;
   HYPRE_Real gsTime = 0.0, matvecPreconTime = 0.0, linSolveTime= 0.0, remainingTime = 0.0; 
   HYPRE_Real massAxpyTime = 0.0; 
@@ -964,14 +982,17 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
     if ( logging>0 || print_level > 0)
     {
       norms[iter] = r_norm;
-      if ( print_level>1 && my_id == 0  ){
-	if (iter == 0)
+}
+      if (my_id == 0  ){
+	if (iter == 0){
+#if 0
 	  hypre_printf("Orthogonalization variant: %d \n", GSoption);
 	hypre_printf("L2 norm of b: %16.16f\n", b_norm);
 	hypre_printf("Initial L2 norm of (current) residual: %16.16f\n", r_norm);
-
+#endif
+}
       }
-    }
+    
 
     // conv criteria 
     if (solverTimers){
@@ -1099,8 +1120,9 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	    remainingTime += (time2-time1);
 	    time1 = MPI_Wtime();
 	  }
+    PUSH_RANGE("cogmres precon", 2);
 	  precond(precond_data, A, w, w_2);
-
+POP_RANGE;
 	  if (solverTimers){
 	    time2 = MPI_Wtime();
 	    preconTime += (time2-time1);
@@ -1353,8 +1375,8 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
       preconTime += (time2-time1);
     }
     //debug code
-
     (*(cogmres_functions->CopyVector))(w, 0, x, 0);
+#if 0
     (*(cogmres_functions->CopyVector))(b, 0, p, 0);
     (*(cogmres_functions->Matvec))(matvec_data,
 	minusone,
@@ -1364,7 +1386,8 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	one,
 	p, 0);
     printf("END: norm of residual: %16.16f \n",sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0)));
-    //end of debug code
+#endif   
+ //end of debug code
   }//done only for right precond
 #if 0
   double ttt;
@@ -1393,7 +1416,6 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 
   if (GSoption != 0){
     cudaFree(tempH);
-
     cudaFree(tempRV);
   }
 
@@ -1403,7 +1425,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 
 
   if ((my_id == 0)&& (solverTimers)){
-    hypre_printf("itersAll(%d,%d)                = %d \n", GSoption+1, k_dim/5, iter);
+    hypre_printf("\n\nitersAll(%d,%d)                = %d \n", GSoption+1, k_dim/5, iter);
     hypre_printf("timeGSAll(%d,%d)                = %16.16f \n",GSoption+1, k_dim/5, gsTime);
 
     hypre_printf("TIME for CO-GMRES\n");
@@ -1420,7 +1442,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
     hypre_printf("mv time              = %16.16f \n", mvTime);
     hypre_printf("MATLAB timers \n");
     hypre_printf("gsTime(%d) = %16.16f \n", k_dim/5, gsTime);	
-    hypre_printf("timeAll(%d,%d)                =  ",GSoption+1, k_dim/5);
+    hypre_printf("timeAll(%d,%d)                =  \n\n",GSoption+1, k_dim/5);
 
   }
 #endif
@@ -1428,6 +1450,9 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
     HegedusTrick=1;
 
 
+//cudaMemGetInfo(&mf, &ma);
+//printf("starting de-allocation, free memory %zu allocated memory %zu \n", mf, ma);
+//printf("\n ENDING COGMRES(solve), free memory %zu total memory %zu percentage of allocated %f \n", mf, ma, (double)mf/ma);
   return 0;
 }//Solve
 

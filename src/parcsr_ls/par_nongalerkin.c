@@ -311,6 +311,8 @@ hypre_BoomerAMG_MyCreateS(hypre_ParCSRMatrix  *A,
             dof_func_offd = hypre_CTAlloc(HYPRE_Int,  num_cols_offd, HYPRE_MEMORY_HOST);
     }
     
+   hypre_CSRMatrixHostOnly(S_diag)=1;
+   hypre_CSRMatrixHostOnly(S_offd)=1;
     
     /*-------------------------------------------------------------------
      * Get the dof_func data for the off-processor columns
@@ -1443,6 +1445,7 @@ hypre_BoomerAMGBuildNonGalerkinCoarseOperator( hypre_ParCSRMatrix **RAP_ptr,
         S_ext_j    = hypre_CSRMatrixJ(S_ext);
     }
     
+   hypre_CSRMatrixHostOnly(S_ext)=1;
     /* This uses the num_cols_RAP_offd to set S_ext_diag|offd_i, because S_ext
      * is the off-processor information needed to compute RAP*S.  That is,
      * num_cols_RAP_offd represents the number of rows needed from S_ext for

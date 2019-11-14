@@ -28,8 +28,15 @@ void cudaSafeFree(void *ptr,int padding)
 {
   PUSH_RANGE("SAFE_FREE",3);
   struct cudaPointerAttributes ptr_att;
+//printf("PADDING: %d\n", padding);
   size_t *sptr=(size_t*)ptr-padding;
+if (ptr==NULL) printf("why are you sending null pointers to cuda free?\n");
+
+
+
   cudaError_t err;
+
+
 
   err=cudaPointerGetAttributes(&ptr_att,ptr);
   if (err!=cudaSuccess)
@@ -39,7 +46,10 @@ void cudaSafeFree(void *ptr,int padding)
 #ifdef FULL_WARN
     if (err==cudaErrorInvalidValue)
     {
-       fprintf(stderr,"WARNING :: Raw pointer passed to cudaSafeFree %p\n",ptr);
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+//      hypre_CheckErrorDevice(cudaFree(ptr)); 
+free(ptr);
+#endif  
     }
     else if (err==cudaErrorInvalidDevice)
     {
@@ -59,12 +69,14 @@ void cudaSafeFree(void *ptr,int padding)
     fprintf(stderr,"ERROR:: cudaSafeFree Aborting on raw unmanaged pointer %p\n",ptr);
     raise(SIGABRT);
 #endif /* ABORT_ON_RAW_POINTER */
-    free(ptr); /* Free the nonManaged pointer */
-    return;
+//    free(ptr); /* Free the nonManaged pointer */
+ 
+   return;
   }
 
-  if (ptr_att.isManaged)
+if (ptr_att.isManaged)
   {
+//printf("managed memory encounted, trying to free!!\n");
 #if defined(HYPRE_MEASURE_GPU_HWM)
      size_t mfree,mtotal;
      hypre_CheckErrorDevice(cudaMemGetInfo(&mfree,&mtotal));
@@ -72,7 +84,7 @@ void cudaSafeFree(void *ptr,int padding)
 #endif
     /* Code below for handling managed memory pointers not allocated using hypre_CTAlloc oir hypre_TAlooc */
     if (PointerAttributes(ptr)!=PointerAttributes(sptr)){
-      //fprintf(stderr,"ERROR IN Pointer for freeing %p %p\n",ptr,sptr);
+      fprintf(stderr,"ERROR IN Pointer for freeing %p %p\n",ptr,sptr);
       hypre_CheckErrorDevice(cudaFree(ptr)); 
       return;
     }
@@ -81,7 +93,6 @@ void cudaSafeFree(void *ptr,int padding)
   else
   {
     /* It is a pinned memory pointer */
-    //printf("ERROR:: NON-managed pointer passed to cudaSafeFree\n");
     if (ptr_att.memoryType==cudaMemoryTypeHost)
     {
       hypre_CheckErrorDevice(cudaFreeHost(sptr));
@@ -89,7 +100,8 @@ void cudaSafeFree(void *ptr,int padding)
     else if (ptr_att.memoryType==cudaMemoryTypeDevice)
     {
       hypre_CheckErrorDevice(cudaFree(sptr)); 
-    }
+  
+  }
   }
   POP_RANGE;
 

@@ -209,6 +209,7 @@ hypre_BoomerAMGCreateNodalA(hypre_ParCSRMatrix    *A,
    hypre_CSRMatrixJ(AN_diag) = AN_diag_j;
    hypre_CSRMatrixData(AN_diag) = AN_diag_data;
        
+   hypre_CSRMatrixHostOnly(AN_diag)=1;
    for (i=0; i < num_nodes; i++)
       counter[i] = -1;
    index = 0;
@@ -545,6 +546,7 @@ hypre_BoomerAMGCreateNodalA(hypre_ParCSRMatrix    *A,
    AN_offd = hypre_CSRMatrixCreate(num_nodes,num_cols_offd_AN,	
 		AN_num_nonzeros_offd);
    hypre_CSRMatrixI(AN_offd) = AN_offd_i;
+   hypre_CSRMatrixHostOnly(AN_offd)=1;
    if (AN_num_nonzeros_offd)
    {
       AN_offd_j = hypre_CTAlloc(HYPRE_Int,  AN_num_nonzeros_offd, HYPRE_MEMORY_HOST);	
@@ -988,7 +990,12 @@ hypre_BoomerAMGCreateScalarCFS(hypre_ParCSRMatrix    *SN,
    S_diag_i = hypre_CTAlloc(HYPRE_Int,  num_variables+1, HYPRE_MEMORY_HOST);
    S_offd_i = hypre_CTAlloc(HYPRE_Int,  num_variables+1, HYPRE_MEMORY_HOST);
    S_diag_j = hypre_CTAlloc(HYPRE_Int,  S_num_nonzeros_diag, HYPRE_MEMORY_HOST);
-   hypre_CSRMatrixI(S_diag) = S_diag_i;
+//HERE  
+
+   hypre_CSRMatrixHostOnly(S_diag)=1;
+   hypre_CSRMatrixHostOnly(S_offd)=1;
+
+ hypre_CSRMatrixI(S_diag) = S_diag_i;
    hypre_CSRMatrixJ(S_diag) = S_diag_j;
    if (data) 
    {
@@ -1076,7 +1083,7 @@ hypre_BoomerAMGCreateScalarCFS(hypre_ParCSRMatrix    *SN,
       }
       hypre_ParCSRMatrixColMapOffd(S) = col_map_offd_S;
    }
-   
+
    if (col_offd_SN_to_AN)
    {
       col_offd_S_to_A = hypre_CTAlloc(HYPRE_Int,  num_cols_offd_S, HYPRE_MEMORY_HOST);

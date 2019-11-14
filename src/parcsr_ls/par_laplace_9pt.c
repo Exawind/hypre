@@ -477,11 +477,13 @@ GenerateLaplacian9pt( MPI_Comm comm,
    hypre_ParCSRMatrixColMapOffd(A) = col_map_offd;
 
    diag = hypre_ParCSRMatrixDiag(A);
+   hypre_CSRMatrixHostOnly(diag)=1;
    hypre_CSRMatrixI(diag) = diag_i;
    hypre_CSRMatrixJ(diag) = diag_j;
    hypre_CSRMatrixData(diag) = diag_data;
 
    offd = hypre_ParCSRMatrixOffd(A);
+   hypre_CSRMatrixHostOnly(offd)=1;
    hypre_CSRMatrixI(offd) = offd_i;
    if (num_cols_offd)
    {

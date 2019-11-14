@@ -19,6 +19,11 @@
   HYPRE_Int
 HYPRE_ParCSRCOGMRESCreate( MPI_Comm comm, HYPRE_Solver *solver )
 {
+
+//gou should be set here(???)
+//KS code
+////end of KS code
+
   hypre_COGMRESFunctions * cogmres_functions;
 
   if (!solver)

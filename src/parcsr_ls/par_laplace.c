@@ -1399,6 +1399,8 @@ GenerateSysLaplacianVCoef( MPI_Comm comm,
 
    offd = hypre_ParCSRMatrixOffd(A);
    hypre_CSRMatrixI(offd) = offd_i;
+   hypre_CSRMatrixHostOnly(diag)=1;
+   hypre_CSRMatrixHostOnly(offd)=1;
    if (num_cols_offd)
    {
       hypre_CSRMatrixJ(offd) = offd_j;

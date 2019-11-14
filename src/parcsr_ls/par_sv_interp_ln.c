@@ -423,6 +423,7 @@ HYPRE_Int hypre_BoomerAMG_LNExpandInterp( hypre_ParCSRMatrix *A,
          P_ext_data = hypre_CSRMatrixData(P_ext);
       }
       
+   hypre_CSRMatrixHostOnly(P_ext)=1;
       index = 0;
       /* now check whether each col is in the diag of offd part of P)*/
       for (i=0; i < num_cols_A_offd; i++)

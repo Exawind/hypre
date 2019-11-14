@@ -45,6 +45,7 @@ typedef struct
  /* KS: for GPU storage - only used when unified memory not used */
    HYPRE_Int *d_i, *d_j, *d_rownnz;
    HYPRE_Complex *d_data;
+   HYPRE_Int hostOnly=0;
 } hypre_CSRMatrix;
 
 /*--------------------------------------------------------------------------
@@ -65,6 +66,8 @@ typedef struct
 #define hypre_CSRMatrixDeviceData(matrix)         ((matrix) -> d_data)
 #define hypre_CSRMatrixDeviceI(matrix)            ((matrix) -> d_i)
 #define hypre_CSRMatrixDeviceJ(matrix)            ((matrix) -> d_j)
+
+#define hypre_CSRMatrixHostOnly(matrix)         ((matrix) -> hostOnly)
 
 HYPRE_Int hypre_CSRMatrixGetLoadBalancedPartitionBegin( hypre_CSRMatrix *A );
 HYPRE_Int hypre_CSRMatrixGetLoadBalancedPartitionEnd( hypre_CSRMatrix *A );

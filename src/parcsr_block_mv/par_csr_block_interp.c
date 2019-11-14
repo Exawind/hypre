@@ -6085,6 +6085,7 @@ hypre_BoomerAMGBuildBlockStdInterp(hypre_ParCSRBlockMatrix *A,
       Sop_j         = hypre_CSRMatrixJ(Sop);
       Soprows       = hypre_CSRMatrixNumRows(Sop);
 
+   hypre_CSRMatrixHostOnly(Sop)=1;
       /* Find nodes that are neighbors of neighbors, not found in offd */
       newoff = new_offd_nodes(&found, A_ext_rows, A_ext_i, A_ext_j, 
                               Soprows, col_map_offd, col_1, col_n, 

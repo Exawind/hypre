@@ -177,6 +177,9 @@ hypre_ExchangeRAPData( hypre_CSRMatrix *RAP_int,
                                         RAP_ext_j);
    RAP_ext = hypre_CSRMatrixCreate(num_rows,num_cols,num_nonzeros);
 
+   
+   
+   hypre_CSRMatrixHostOnly(RAP_ext)=1;
    hypre_CSRMatrixI(RAP_ext) = RAP_ext_i;
    if (num_nonzeros)
    {
@@ -504,6 +507,7 @@ hypre_BoomerAMGBuildCoarseOperatorKT( hypre_ParCSRMatrix  *RT,
         Ps_ext_j    = hypre_CSRMatrixJ(Ps_ext);
    }
 
+   hypre_CSRMatrixHostOnly(Ps_ext)=1;
    P_ext_diag_i = hypre_TAlloc(HYPRE_Int, num_cols_offd_A+1, HYPRE_MEMORY_HOST);
    P_ext_offd_i = hypre_TAlloc(HYPRE_Int, num_cols_offd_A+1, HYPRE_MEMORY_HOST);
    P_ext_diag_i[0] = 0;
@@ -578,6 +582,8 @@ hypre_BoomerAMGBuildCoarseOperatorKT( hypre_ParCSRMatrix  *RT,
 
    if (num_procs > 1) 
    {
+//this is ok
+hypre_CSRMatrixHostOnly(Ps_ext)=1;
       hypre_CSRMatrixDestroy(Ps_ext);
       Ps_ext = NULL;
    }
@@ -1175,7 +1181,9 @@ hypre_BoomerAMGBuildCoarseOperatorKT( hypre_ParCSRMatrix  *RT,
    }
    if (num_cols_offd_RT)
    {
-      hypre_CSRMatrixDestroy(RAP_int);
+//this is ok
+hypre_CSRMatrixHostOnly(RAP_int)=1;
+     hypre_CSRMatrixDestroy(RAP_int);
       RAP_int = NULL;
    }
  
@@ -2120,7 +2128,8 @@ hypre_BoomerAMGBuildCoarseOperatorKT( hypre_ParCSRMatrix  *RT,
    }
    else
    {
-      hypre_CSRMatrixDestroy(R_diag);
+//hypre_CSRMatrixHostOnly(R_diag)=1;
+     hypre_CSRMatrixDestroy(R_diag);
    }
    R_diag = NULL;
 
@@ -2132,6 +2141,7 @@ hypre_BoomerAMGBuildCoarseOperatorKT( hypre_ParCSRMatrix  *RT,
       }
       else
       {
+//hypre_CSRMatrixHostOnly(R_offd)=1;
          hypre_CSRMatrixDestroy(R_offd);
       }
       R_offd = NULL;
@@ -2139,7 +2149,8 @@ hypre_BoomerAMGBuildCoarseOperatorKT( hypre_ParCSRMatrix  *RT,
 
    if (num_sends_RT || num_recvs_RT) 
    {
-      hypre_CSRMatrixDestroy(RAP_ext);
+hypre_CSRMatrixHostOnly(RAP_ext)=1;
+   hypre_CSRMatrixDestroy(RAP_ext);
       RAP_ext = NULL;
    }
    hypre_TFree(P_mark_array, HYPRE_MEMORY_HOST);   

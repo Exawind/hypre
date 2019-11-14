@@ -1008,7 +1008,6 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
   //works if commented out completely
   hypre_ParCSRCommHandle *comm_handle;
   hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
-  //printf("test 1 passed \n");
   //works if commented here
   hypre_CSRMatrix   *diag   = hypre_ParCSRMatrixDiag(A);
   hypre_CSRMatrix   *offd   = hypre_ParCSRMatrixOffd(A);
@@ -1142,7 +1141,7 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
 
   //  hypre_TFree(x_buf_data, HYPRE_MEMORY_DEVICE);
 #else
-  hypre_TFree(x_buf_data, HYPRE_MEMORY_SHARED);
+//  hypre_TFree(x_buf_data, HYPRE_MEMORY_SHARED);
 #endif
   return ierr;
 }

@@ -273,6 +273,7 @@ hypre_BoomerAMGBuildRestrAIR( hypre_ParCSRMatrix   *A,
       A_ext_data = hypre_CSRMatrixData(A_ext);
    }
 
+   hypre_CSRMatrixHostOnly(A_ext)=1;
    /* marker array: if this point is i's strong F neighbors
     *             >=  0: yes, and is the local dense id 
     *             == -1: no */
@@ -705,6 +706,8 @@ hypre_BoomerAMGBuildRestrAIR( hypre_ParCSRMatrix   *A,
    /* R does not own ColStarts, since A does */
    hypre_ParCSRMatrixOwnsColStarts(R) = 0;
    
+   hypre_CSRMatrixHostOnly(R_diag)=1;
+   hypre_CSRMatrixHostOnly(R_offd)=1;
    hypre_ParCSRMatrixColMapOffd(R) = col_map_offd_R;
 
    /* create CommPkg of R */

@@ -386,6 +386,8 @@ hypre_ParCSRMatrixThreshold(hypre_ParCSRMatrix *A, HYPRE_Real thresh)
    hypre_TFree(A_diag_data, HYPRE_MEMORY_HOST);
 
    /* assign the new vectors */
+
+   hypre_CSRMatrixHostOnly(A_diag)=1;
    hypre_CSRMatrixI(A_diag) = S_diag_i;
    hypre_CSRMatrixJ(A_diag) = S_diag_j;
    hypre_CSRMatrixData(A_diag) = S_diag_data;
@@ -420,6 +422,7 @@ hypre_ParCSRMatrixThreshold(hypre_ParCSRMatrix *A, HYPRE_Real thresh)
       }
    }
    S_offd_i[n] = jS;
+   hypre_CSRMatrixHostOnly(A_offd)=1;
    hypre_CSRMatrixNumNonzeros(A_offd) = jS;
 
    /* free the vectors we don't need */
@@ -913,6 +916,7 @@ hypre_BoomerAMGBuildInterpLS( hypre_ParCSRMatrix   *A,
 */
    }
    
+   hypre_CSRMatrixHostOnly(S_ext)=1;
    if (debug_flag==4)
    {
       wall_time = time_getWallclockSeconds() - wall_time;
@@ -1208,6 +1212,8 @@ hypre_BoomerAMGBuildInterpLS( hypre_ParCSRMatrix   *A,
    hypre_CSRMatrixJ(P_offd) = P_offd_j;
    hypre_ParCSRMatrixOwnsRowStarts(P) = 0;
                                                                                 
+   hypre_CSRMatrixHostOnly(P_diag)=1;
+   hypre_CSRMatrixHostOnly(P_offd)=1;
    /* Compress P, removing coefficients smaller than trunc_factor * Max */
 
    if (trunc_factor != 0.0)
@@ -1478,6 +1484,7 @@ hypre_BoomerAMGBuildInterpGSMG( hypre_ParCSRMatrix   *A,
       S_ext_data = hypre_CSRMatrixData(S_ext);
    }
    
+   hypre_CSRMatrixHostOnly(S_ext)=1;
    if (debug_flag==4)
    {
       wall_time = time_getWallclockSeconds() - wall_time;
@@ -2067,6 +2074,8 @@ hypre_BoomerAMGBuildInterpGSMG( hypre_ParCSRMatrix   *A,
    hypre_CSRMatrixJ(P_offd) = P_offd_j;
    hypre_ParCSRMatrixOwnsRowStarts(P) = 0;
 
+   hypre_CSRMatrixHostOnly(P_diag)=1;
+   hypre_CSRMatrixHostOnly(P_offd)=1;
    /* Compress P, removing coefficients smaller than trunc_factor * Max */
                                                                                 
    if (trunc_factor != 0.0)

@@ -515,12 +515,14 @@ HYPRE_Int hypre_exchange_interp_data(
   HYPRE_Int *A_ext_j        = hypre_CSRMatrixJ(*A_ext);
   HYPRE_Int  A_ext_rows     = hypre_CSRMatrixNumRows(*A_ext);
 
+   hypre_CSRMatrixHostOnly(*A_ext)=1;
   hypre_ParCSRCommHandle *comm_handle_s_idx;
   *Sop           = hypre_ParCSRMatrixExtractBExt_Overlap(S,A,0,&comm_handle_s_idx,NULL,CF_marker,*CF_marker_offd,skip_fine_or_same_sign,0);
   HYPRE_Int *Sop_i          = hypre_CSRMatrixI(*Sop);
   HYPRE_Int *Sop_j          = hypre_CSRMatrixJ(*Sop);
   HYPRE_Int  Soprows        = hypre_CSRMatrixNumRows(*Sop);
 
+   hypre_CSRMatrixHostOnly(*Sop)=1;
   HYPRE_Int *send_idx = (HYPRE_Int *)comm_handle_s_idx->send_data;
   hypre_ParCSRCommHandleDestroy(comm_handle_s_idx);
   hypre_TFree(send_idx, HYPRE_MEMORY_HOST);

@@ -52,7 +52,7 @@ PUSH_RANGE_PAYLOAD("VECSCALE",1,num_rows);
   hypre_CheckErrorDevice(cudaPeekAtLastError());
   hypre_CheckErrorDevice(cudaDeviceSynchronize());
 #endif
-  hypre_CheckErrorDevice(cudaStreamSynchronize(s));
+//  hypre_CheckErrorDevice(cudaStreamSynchronize(s));
   POP_RANGE;
 #else
 
@@ -96,7 +96,7 @@ void VecSet(HYPRE_Complex* tgt, hypre_int size, HYPRE_Complex value, cudaStream_
   MemPrefetchSized(tgt,size*sizeof(HYPRE_Complex),HYPRE_DEVICE,s);
   hypre_int num_blocks=size/tpb+1;
   VecSetKernel<<<num_blocks,tpb,0,s>>>(tgt,value,size);
-  cudaStreamSynchronize(s);
+  //cudaStreamSynchronize(s);
   //cudaDeviceSynchronize();
 }
 }
@@ -183,7 +183,7 @@ hypre_int VecScaleScalar(HYPRE_Complex *u, const HYPRE_Complex alpha,  hypre_int
   hypre_CheckErrorDevice(cudaPeekAtLastError());
   hypre_CheckErrorDevice(cudaDeviceSynchronize());
 #endif
-  hypre_CheckErrorDevice(cudaStreamSynchronize(s));
+ // hypre_CheckErrorDevice(cudaStreamSynchronize(s));
   POP_RANGE;
   return 0;
 }

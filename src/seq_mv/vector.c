@@ -89,6 +89,10 @@ hypre_SeqVectorDestroy( hypre_Vector *vector )
     if ( hypre_VectorOwnsData(vector) )
     {
       hypre_TFree(hypre_VectorData(vector), HYPRE_MEMORY_SHARED);
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+//printf("destroying VECTOR DEVICE DATA \n");
+      hypre_TFree(hypre_VectorDeviceData(vector), HYPRE_MEMORY_DEVICE);
+#endif
     }
     hypre_TFree(vector, HYPRE_MEMORY_HOST);
   }
@@ -2528,7 +2532,7 @@ hypre_SeqVectorCopyDevice( hypre_Vector *x,
 #ifdef HYPRE_USING_GPU
   VecCopy(y_data,x_data,size,HYPRE_STREAM(4));
 #endif
-  cudaStreamSynchronize(HYPRE_STREAM(4));
+  //cudaStreamSynchronize(HYPRE_STREAM(4));
   POP_RANGE;
 #endif
   return ierr;
@@ -2558,7 +2562,7 @@ hypre_SeqVectorAxpyDevice( HYPRE_Complex alpha,
     firstcall=0;
   }
   cublasErrchk(cublasDaxpy(handle,(HYPRE_Int)size,&alpha,x_data,1,y_data,1));
-  hypre_CheckErrorDevice(cudaStreamSynchronize(HYPRE_STREAM(4)));
+//  hypre_CheckErrorDevice(cudaStreamSynchronize(HYPRE_STREAM(4)));
   POP_RANGE;
   return ierr;
 }
@@ -2589,7 +2593,7 @@ HYPRE_Real   hypre_SeqVectorInnerProdDevice( hypre_Vector *x,
       x_data, 1,
       y_data, 1,
       &result);
-  hypre_CheckErrorDevice(cudaStreamSynchronize(HYPRE_STREAM(4)));
+//  hypre_CheckErrorDevice(cudaStreamSynchronize(HYPRE_STREAM(4)));
   POP_RANGE;
   POP_RANGE;
   return result;

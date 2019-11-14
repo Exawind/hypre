@@ -51,6 +51,7 @@ typedef struct hypre_Vector_struct *HYPRE_Vector;
 /* HYPRE_csr_matrix.c */
 HYPRE_CSRMatrix HYPRE_CSRMatrixCreate( HYPRE_Int num_rows , HYPRE_Int num_cols , HYPRE_Int *row_sizes );
 HYPRE_Int HYPRE_CSRMatrixDestroy( HYPRE_CSRMatrix matrix );
+HYPRE_Int HYPRE_CSRMatrixDestroyHostOnly( HYPRE_CSRMatrix matrix );
 HYPRE_Int HYPRE_CSRMatrixInitialize( HYPRE_CSRMatrix matrix );
 HYPRE_CSRMatrix HYPRE_CSRMatrixRead( char *file_name );
 void HYPRE_CSRMatrixPrint( HYPRE_CSRMatrix matrix , char *file_name );

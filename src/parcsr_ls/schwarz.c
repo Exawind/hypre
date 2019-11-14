@@ -3351,6 +3351,8 @@ hypre_ParAMGCreateDomainDof(hypre_ParCSRMatrix   *A,
    else
       A_ext = NULL;
 
+
+   hypre_CSRMatrixHostOnly(A_ext)=1;
    i_local_to_global = hypre_CTAlloc(HYPRE_Int,  max_local_dof_counter, HYPRE_MEMORY_HOST);
 
    i_global_to_local = hypre_CTAlloc(HYPRE_Int,  num_variables+num_cols_offd, HYPRE_MEMORY_HOST);
@@ -3623,6 +3625,7 @@ hypre_ParGenerateHybridScale(hypre_ParCSRMatrix *A,
       hypre_ParCSRCommHandleDestroy(comm_handle);
       comm_handle = NULL;
       A_ext = hypre_ParCSRMatrixExtractBExt(A,A,1);
+   hypre_CSRMatrixHostOnly(A_ext)=1;
       A_ext_i = hypre_CSRMatrixI(A_ext);
       A_boundary_i = hypre_CTAlloc(HYPRE_Int, num_cols_offd+1, HYPRE_MEMORY_HOST);
       A_ext_j = hypre_CSRMatrixJ(A_ext);
@@ -3681,6 +3684,7 @@ hypre_ParGenerateHybridScale(hypre_ParCSRMatrix *A,
       hypre_CSRMatrixI(A_boundary) = A_boundary_i;
       hypre_CSRMatrixJ(A_boundary) = A_boundary_j;
       hypre_CSRMatrixData(A_boundary) = A_boundary_data;
+   hypre_CSRMatrixHostOnly(A_boundary)=1;
       hypre_CSRMatrixDestroy(A_ext);
    }
 

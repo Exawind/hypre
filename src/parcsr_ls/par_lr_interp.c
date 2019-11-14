@@ -916,7 +916,9 @@ hypre_BoomerAMGBuildStdInterp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker,
    hypre_CSRMatrixI(P_offd) = P_offd_i;
    hypre_CSRMatrixJ(P_offd) = P_offd_j;
    hypre_ParCSRMatrixOwnsRowStarts(P) = 0;
-
+//uncomment if you want SEG FAULT
+  // hypre_CSRMatrixHostOnly(P_diag)=1;
+  // hypre_CSRMatrixHostOnly(P_offd)=1;
    /* Compress P, removing coefficients smaller than trunc_factor * Max */
    if (trunc_factor != 0.0 || max_elmts > 0)
    {
@@ -960,8 +962,8 @@ hypre_BoomerAMGBuildStdInterp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker,
    }
    if (num_procs > 1)
    {
-      hypre_CSRMatrixDestroy(Sop);
-      hypre_CSRMatrixDestroy(A_ext);
+    //  hypre_CSRMatrixDestroy(Sop);
+    //  hypre_CSRMatrixDestroy(A_ext);
       hypre_TFree(fine_to_coarse_offd, HYPRE_MEMORY_HOST);
       hypre_TFree(P_marker_offd, HYPRE_MEMORY_HOST);
       hypre_TFree(CF_marker_offd, HYPRE_MEMORY_HOST);
@@ -1782,7 +1784,9 @@ hypre_BoomerAMGBuildExtPIInterp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker,
    hypre_CSRMatrixI(P_offd) = P_offd_i;
    hypre_CSRMatrixJ(P_offd) = P_offd_j;
    hypre_ParCSRMatrixOwnsRowStarts(P) = 0;
-
+//Uncomment if you want seg fault
+//   hypre_CSRMatrixHostOnly(P_diag)=1;
+ //  hypre_CSRMatrixHostOnly(P_offd)=1;
    /* Compress P, removing coefficients smaller than trunc_factor * Max */
    if (trunc_factor != 0.0 || max_elmts > 0)
    {
@@ -1830,7 +1834,9 @@ hypre_BoomerAMGBuildExtPIInterp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker,
 
    if (num_procs > 1)
    {
-      hypre_CSRMatrixDestroy(Sop);
+//hypre_CSRMatrixHostOnly(Sop)=1;
+//hypre_CSRMatrixHostOnly(A_ext)=1;
+     hypre_CSRMatrixDestroy(Sop);
       hypre_CSRMatrixDestroy(A_ext);
       hypre_TFree(fine_to_coarse_offd, HYPRE_MEMORY_HOST);
       hypre_TFree(CF_marker_offd, HYPRE_MEMORY_HOST);
@@ -2754,7 +2760,7 @@ hypre_BoomerAMGBuildExtPICCInterp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker,
    hypre_CSRMatrixI(P_offd) = P_offd_i;
    hypre_CSRMatrixJ(P_offd) = P_offd_j;
    hypre_ParCSRMatrixOwnsRowStarts(P) = 0;
-
+//DONT PUT HOST ONLY HERE OR SEG FAULT 
    /* Compress P, removing coefficients smaller than trunc_factor * Max */
    if (trunc_factor != 0.0 || max_elmts > 0)
    {
@@ -2791,8 +2797,8 @@ hypre_BoomerAMGBuildExtPICCInterp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker,
    if (num_procs > 1)
    {
       /*hypre_TFree(clist_offd);*/
-      hypre_CSRMatrixDestroy(Sop);
-      hypre_CSRMatrixDestroy(A_ext);
+   //   hypre_CSRMatrixDestroy(Sop);
+    //  hypre_CSRMatrixDestroy(A_ext);
       hypre_TFree(fine_to_coarse_offd, HYPRE_MEMORY_HOST);
       hypre_TFree(P_marker_offd, HYPRE_MEMORY_HOST);
       hypre_TFree(CF_marker_offd, HYPRE_MEMORY_HOST);
@@ -3642,7 +3648,9 @@ hypre_BoomerAMGBuildFFInterp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker,
    hypre_CSRMatrixI(P_offd) = P_offd_i;
    hypre_CSRMatrixJ(P_offd) = P_offd_j;
    hypre_ParCSRMatrixOwnsRowStarts(P) = 0;
-
+//this should be OK
+   hypre_CSRMatrixHostOnly(P_diag)=1;
+   hypre_CSRMatrixHostOnly(P_offd)=1;
    /* Compress P, removing coefficients smaller than trunc_factor * Max */
    if (trunc_factor != 0.0 || max_elmts > 0)
    {
@@ -3677,8 +3685,8 @@ hypre_BoomerAMGBuildFFInterp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker,
 
    if (num_procs > 1)
    {
-      hypre_CSRMatrixDestroy(Sop);
-      hypre_CSRMatrixDestroy(A_ext);
+  //    hypre_CSRMatrixDestroy(Sop);
+    //  hypre_CSRMatrixDestroy(A_ext);
       hypre_TFree(fine_to_coarse_offd, HYPRE_MEMORY_HOST);
       hypre_TFree(P_marker_offd, HYPRE_MEMORY_HOST);
       hypre_TFree(CF_marker_offd, HYPRE_MEMORY_HOST);
@@ -4539,7 +4547,9 @@ hypre_BoomerAMGBuildFF1Interp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker,
    hypre_CSRMatrixI(P_offd) = P_offd_i;
    hypre_CSRMatrixJ(P_offd) = P_offd_j;
    hypre_ParCSRMatrixOwnsRowStarts(P) = 0;
-
+//this should be ok
+   hypre_CSRMatrixHostOnly(P_diag)=1;
+   hypre_CSRMatrixHostOnly(P_offd)=1;
    /* Compress P, removing coefficients smaller than trunc_factor * Max */
    if (trunc_factor != 0.0 || max_elmts > 0)
    {
@@ -4577,8 +4587,8 @@ hypre_BoomerAMGBuildFF1Interp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker,
    {
 
       /*hypre_TFree(clist_offd);*/
-      hypre_CSRMatrixDestroy(Sop);
-      hypre_CSRMatrixDestroy(A_ext);
+   //   hypre_CSRMatrixDestroy(Sop);
+    //  hypre_CSRMatrixDestroy(A_ext);
       hypre_TFree(fine_to_coarse_offd, HYPRE_MEMORY_HOST);
       hypre_TFree(P_marker_offd, HYPRE_MEMORY_HOST);
       hypre_TFree(CF_marker_offd, HYPRE_MEMORY_HOST);
@@ -5257,7 +5267,9 @@ hypre_BoomerAMGBuildExtInterp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker,
    hypre_CSRMatrixI(P_offd) = P_offd_i;
    hypre_CSRMatrixJ(P_offd) = P_offd_j;
    hypre_ParCSRMatrixOwnsRowStarts(P) = 0;
-
+//this should be ok
+   hypre_CSRMatrixHostOnly(P_diag)=1;
+   hypre_CSRMatrixHostOnly(P_offd)=1;
    /* Compress P, removing coefficients smaller than trunc_factor * Max */
    if (trunc_factor != 0.0 || max_elmts > 0)
    {
@@ -5292,8 +5304,8 @@ hypre_BoomerAMGBuildExtInterp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker,
 
    if (num_procs > 1)
    {
-      hypre_CSRMatrixDestroy(Sop);
-      hypre_CSRMatrixDestroy(A_ext);
+    //  hypre_CSRMatrixDestroy(Sop);
+    //  hypre_CSRMatrixDestroy(A_ext);
       hypre_TFree(fine_to_coarse_offd, HYPRE_MEMORY_HOST);
       hypre_TFree(P_marker_offd, HYPRE_MEMORY_HOST);
       hypre_TFree(CF_marker_offd, HYPRE_MEMORY_HOST);

@@ -798,6 +798,8 @@ hypre_BoomerAMGBuildPartialExtPIInterp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_mark
    hypre_CSRMatrixJ(P_offd) = P_offd_j;
    hypre_ParCSRMatrixOwnsRowStarts(P) = 0;
 
+   hypre_CSRMatrixHostOnly(P_diag)=1;
+   hypre_CSRMatrixHostOnly(P_offd)=1;
    /* Compress P, removing coefficients smaller than trunc_factor * Max */
    if (trunc_factor != 0.0 || max_elmts > 0)
    {
@@ -1794,6 +1796,8 @@ hypre_BoomerAMGBuildPartialStdInterp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker
    hypre_CSRMatrixJ(P_offd) = P_offd_j;
    hypre_ParCSRMatrixOwnsRowStarts(P) = 0;
 
+   hypre_CSRMatrixHostOnly(P_diag)=1;
+   hypre_CSRMatrixHostOnly(P_offd)=1;
    /* Compress P, removing coefficients smaller than trunc_factor * Max */
    if (trunc_factor != 0.0 || max_elmts > 0)
    {
@@ -2557,6 +2561,8 @@ hypre_BoomerAMGBuildPartialExtInterp(hypre_ParCSRMatrix *A, HYPRE_Int *CF_marker
    hypre_CSRMatrixJ(P_offd) = P_offd_j;
    hypre_ParCSRMatrixOwnsRowStarts(P) = 0;
 
+   hypre_CSRMatrixHostOnly(P_diag)=1;
+   hypre_CSRMatrixHostOnly(P_offd)=1;
    /* Compress P, removing coefficients smaller than trunc_factor * Max */
    if (trunc_factor != 0.0 || max_elmts > 0)
    {

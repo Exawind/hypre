@@ -1622,6 +1622,8 @@ hypre_MGRBuildPDRS( hypre_ParCSRMatrix   *A,
    hypre_CSRMatrixJ(P_offd) = P_offd_j;
    hypre_ParCSRMatrixOwnsRowStarts(P) = 0;
 
+   hypre_CSRMatrixHostOnly(P_diag)=1;
+   hypre_CSRMatrixHostOnly(P_offd)=1;
    num_cols_P_offd = 0;
 
    if (P_offd_size)
@@ -2014,6 +2016,8 @@ HYPRE_Int hypre_block_jacobi_scaling(hypre_ParCSRMatrix *A, hypre_ParCSRMatrix *
    hypre_CSRMatrixJ(B_offd) = NULL;
    /* hypre_ParCSRMatrixOwnsRowStarts(B) = 0; */
 
+   hypre_CSRMatrixHostOnly(B_diag)=1;
+   hypre_CSRMatrixHostOnly(B_offd)=1;
    *B_ptr = B;
 
    return(block_scaling_error);

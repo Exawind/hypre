@@ -141,6 +141,10 @@ hypre_ParCSRMatrixCreate( MPI_Comm comm,
    hypre_ParCSRMatrixRowvalues(matrix) = NULL;
    hypre_ParCSRMatrixGetrowactive(matrix) = 0;
 
+//#if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU) 
+matrix->x_tmp = NULL;
+matrix->x_buf = NULL;
+//#endif
    return matrix;
 }
 
@@ -155,8 +159,10 @@ hypre_ParCSRMatrixDestroy( hypre_ParCSRMatrix *matrix )
    {
       if ( hypre_ParCSRMatrixOwnsData(matrix) )
       {
+//8 errors originate from here
          hypre_CSRMatrixDestroy(hypre_ParCSRMatrixDiag(matrix));
-         hypre_CSRMatrixDestroy(hypre_ParCSRMatrixOffd(matrix));
+//4 errors originate from here 
+        hypre_CSRMatrixDestroy(hypre_ParCSRMatrixOffd(matrix));
          if ( hypre_ParCSRMatrixDiagT(matrix) )
          {
             hypre_CSRMatrixDestroy(hypre_ParCSRMatrixDiagT(matrix));
@@ -186,6 +192,10 @@ hypre_ParCSRMatrixDestroy( hypre_ParCSRMatrix *matrix )
       if (hypre_ParCSRMatrixAssumedPartition(matrix))
          hypre_AssumedPartitionDestroy(hypre_ParCSRMatrixAssumedPartition(matrix));
 
+//#if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU) 
+if(matrix->x_tmp != NULL){hypre_SeqVectorDestroy(matrix->x_tmp);}
+if (matrix->x_buf!=NULL) { hypre_TFree(matrix->x_buf, HYPRE_MEMORY_DEVICE);}
+//#endif
       hypre_TFree(matrix, HYPRE_MEMORY_HOST);
    }
 

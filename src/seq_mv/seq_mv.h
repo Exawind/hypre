@@ -74,6 +74,7 @@ typedef struct
 
    HYPRE_Complex  *d_data;
 
+   HYPRE_Int hostOnly=0;
 
 } hypre_CSRMatrix;
 
@@ -96,6 +97,7 @@ typedef struct
 #define hypre_CSRMatrixDeviceData(matrix)         ((matrix) -> d_data)
 #define hypre_CSRMatrixDeviceI(matrix)            ((matrix) -> d_i)
 #define hypre_CSRMatrixDeviceJ(matrix)            ((matrix) -> d_j)
+#define hypre_CSRMatrixHostOnly(matrix)         ((matrix) -> hostOnly)
 HYPRE_Int hypre_CSRMatrixGetLoadBalancedPartitionBegin( hypre_CSRMatrix *A );
 HYPRE_Int hypre_CSRMatrixGetLoadBalancedPartitionEnd( hypre_CSRMatrix *A );
 
@@ -324,6 +326,7 @@ HYPRE_Complex hypre_CSRMatrixSumElts ( hypre_CSRMatrix *A );
 /* csr_matrix.c */
 hypre_CSRMatrix *hypre_CSRMatrixCreate ( HYPRE_Int num_rows , HYPRE_Int num_cols , HYPRE_Int num_nonzeros );
 HYPRE_Int hypre_CSRMatrixDestroy ( hypre_CSRMatrix *matrix );
+HYPRE_Int hypre_CSRMatrixDestroyHostOnly ( hypre_CSRMatrix *matrix );
 HYPRE_Int hypre_CSRMatrixInitialize ( hypre_CSRMatrix *matrix );
 HYPRE_Int hypre_CSRMatrixSetDataOwner ( hypre_CSRMatrix *matrix , HYPRE_Int owns_data );
 HYPRE_Int hypre_CSRMatrixSetRownnz ( hypre_CSRMatrix *matrix );
@@ -368,6 +371,7 @@ HYPRE_Int hypre_GenerateLocalPartitioning ( HYPRE_Int length , HYPRE_Int num_pro
 /* HYPRE_csr_matrix.c */
 HYPRE_CSRMatrix HYPRE_CSRMatrixCreate ( HYPRE_Int num_rows , HYPRE_Int num_cols , HYPRE_Int *row_sizes );
 HYPRE_Int HYPRE_CSRMatrixDestroy ( HYPRE_CSRMatrix matrix );
+HYPRE_Int HYPRE_CSRMatrixDestroyHostOnly ( HYPRE_CSRMatrix matrix );
 HYPRE_Int HYPRE_CSRMatrixInitialize ( HYPRE_CSRMatrix matrix );
   HYPRE_Int hypre_CSRMatrixCopyGPUtoCPU ( hypre_CSRMatrix *matrix );
   HYPRE_Int hypre_CSRMatrixCopyCPUtoGPU ( hypre_CSRMatrix *matrix );

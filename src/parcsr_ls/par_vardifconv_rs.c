@@ -463,6 +463,8 @@ GenerateRSVarDifConv( MPI_Comm comm,
       hypre_CSRMatrixData(offd) = offd_data;
    }
 
+   hypre_CSRMatrixHostOnly(diag)=1;
+   hypre_CSRMatrixHostOnly(offd)=1;
    hypre_TFree(nx_part, HYPRE_MEMORY_HOST);
    hypre_TFree(ny_part, HYPRE_MEMORY_HOST);
    hypre_TFree(nz_part, HYPRE_MEMORY_HOST);

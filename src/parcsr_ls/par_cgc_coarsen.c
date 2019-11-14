@@ -212,6 +212,8 @@ hypre_BoomerAMGCoarsenCGCb( hypre_ParCSRMatrix    *S,
          S_ext      = hypre_ParCSRMatrixExtractBExt(S,A,0);
       else
          S_ext      = hypre_ParCSRMatrixExtractBExt(S,S,0);
+   
+hypre_CSRMatrixHostOnly(S_ext)=1;
       S_ext_i    = hypre_CSRMatrixI(S_ext);
       S_ext_j    = hypre_CSRMatrixJ(S_ext);
       num_nonzeros = S_ext_i[num_cols_offd];

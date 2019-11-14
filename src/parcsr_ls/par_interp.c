@@ -221,6 +221,7 @@ hypre_BoomerAMGBuildInterp( hypre_ParCSRMatrix   *A,
       A_ext_data = hypre_CSRMatrixData(A_ext);
    }
 
+   hypre_CSRMatrixHostOnly(A_ext)=1;
    index = 0;
    for (i=0; i < num_cols_A_offd; i++)
    {
@@ -1225,6 +1226,7 @@ hypre_BoomerAMGBuildInterpHE( hypre_ParCSRMatrix   *A,
       A_ext_data = hypre_CSRMatrixData(A_ext);
    }
 
+   hypre_CSRMatrixHostOnly(A_ext)=1;
    index = 0;
    for (i=0; i < num_cols_A_offd; i++)
    {
@@ -3409,6 +3411,7 @@ hypre_BoomerAMGBuildInterpModUnk( hypre_ParCSRMatrix   *A,
       A_ext_data = hypre_CSRMatrixData(A_ext);
    }
 
+   hypre_CSRMatrixHostOnly(A_ext)=1;
    index = 0;
    for (i=0; i < num_cols_A_offd; i++)
    {

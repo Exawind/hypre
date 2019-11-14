@@ -430,6 +430,8 @@ hypre_ParCSRMatrix *hypre_ParMatmul( hypre_ParCSRMatrix  *A,
       Bs_ext_i    = hypre_CSRMatrixI(Bs_ext);
       Bs_ext_j    = hypre_CSRMatrixJ(Bs_ext);
    }
+
+   hypre_CSRMatrixHostOnly(Bs_ext)=1;
    B_ext_diag_i = hypre_CTAlloc(HYPRE_Int,  num_cols_offd_A+1, HYPRE_MEMORY_HOST);
    B_ext_offd_i = hypre_CTAlloc(HYPRE_Int,  num_cols_offd_A+1, HYPRE_MEMORY_HOST);
    B_ext_diag_size = 0;
@@ -1591,6 +1593,9 @@ hypre_ParCSRMatrixExtractBExt_Overlap( hypre_ParCSRMatrix *B,
 
    hypre_CSRMatrix *offd = hypre_ParCSRMatrixOffd(B);
 
+//DO NOT UNCOMMENT OR YOU WOULD HAVE SEG FAULT
+  // hypre_CSRMatrixHostOnly(diag)=1;
+  // hypre_CSRMatrixHostOnly(offd)=1;
    HYPRE_Int *offd_i = hypre_CSRMatrixI(offd);
    HYPRE_Int *offd_j = hypre_CSRMatrixJ(offd);
    HYPRE_Real *offd_data = hypre_CSRMatrixData(offd);
@@ -1642,6 +1647,7 @@ hypre_ParCSRMatrixExtractBExt_Overlap( hypre_ParCSRMatrix *B,
    B_ext = hypre_CSRMatrixCreate(num_rows_B_ext,num_cols_B,num_nonzeros);
    hypre_CSRMatrixI(B_ext) = B_ext_i;
    hypre_CSRMatrixJ(B_ext) = B_ext_j;
+   hypre_CSRMatrixHostOnly(B_ext)=1;
    if (data) hypre_CSRMatrixData(B_ext) = B_ext_data;
 
    return B_ext;

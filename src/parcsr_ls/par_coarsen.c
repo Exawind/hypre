@@ -347,6 +347,7 @@ hypre_BoomerAMGCoarsen( hypre_ParCSRMatrix    *S,
       S_ext_j    = hypre_CSRMatrixJ(S_ext);
    }
 
+   hypre_CSRMatrixHostOnly(S_ext)=1;
    /*  compress S_ext  and convert column numbers*/
 
    index = 0;
@@ -991,6 +992,7 @@ hypre_BoomerAMGCoarsenRuge( hypre_ParCSRMatrix    *S,
    hypre_CSRMatrixI(ST) = ST_i;
    hypre_CSRMatrixJ(ST) = ST_j;
 
+   hypre_CSRMatrixHostOnly(ST)=1;
    /*----------------------------------------------------------
     * generate transpose of S, ST
     *----------------------------------------------------------*/
@@ -1057,6 +1059,7 @@ hypre_BoomerAMGCoarsenRuge( hypre_ParCSRMatrix    *S,
          S_ext      = hypre_ParCSRMatrixExtractBExt(S,A,0);
       else
          S_ext      = hypre_ParCSRMatrixExtractBExt(S,S,0);
+   hypre_CSRMatrixHostOnly(S_ext)=1;
       S_ext_i    = hypre_CSRMatrixI(S_ext);
       S_ext_j    = hypre_CSRMatrixJ(S_ext);
       num_nonzeros = S_ext_i[num_cols_offd];
@@ -1989,7 +1992,7 @@ hypre_BoomerAMGCoarsenPMIS( hypre_ParCSRMatrix    *S,
    hypre_CSRMatrix    *S_offd          = hypre_ParCSRMatrixOffd(S);
    HYPRE_Int                *S_offd_i        = hypre_CSRMatrixI(S_offd);
    HYPRE_Int                *S_offd_j;
-
+//both S diag and S offdiag are HostOnly (REMEMBER)
    HYPRE_Int                 num_variables   = hypre_CSRMatrixNumRows(S_diag);
    HYPRE_Int 		       num_cols_offd = 0;
                   
