@@ -445,6 +445,8 @@ void MatvecTCSR(hypre_int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_i
 #endif
 
 }
+
+
 __global__ void massIPV7part1(const double * __restrict__ u,
     const double * __restrict__ v,
     double * result,
@@ -800,5 +802,56 @@ void GivensRotRight(int N,
 
 
 
+//new code
+
+extern "C"{
+
+__global__
+void CSRMatvecChaoticKernel_v1(HYPRE_Int num_rows, const HYPRE_Real * __restrict__ a, const HYPRE_Int * __restrict__ ia,const __restrict__  HYPRE_Int  * ja,const  HYPRE_Real * x, HYPRE_Real * y){
+
+  /*
+     i = 0; num_rows-1
+     for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+     {
+     j = A_j[jj];
+     y_data[j] += A_data[jj] * x_data[i];
+     }
+
+
+*/
+
+  int i = blockIdx.x*blockDim.x + threadIdx.x;
+  int j;
+
+  if (i<num_rows) {
+    const double xx = x[i];
+    for (j=ia[i]; j< ia[i+1]; j++){
+      //    y[ja[j]] += a[j]*xx;
+
+      if (abs(xx*a[j]) >  1e-16){
+	//  atomicAdd(&y[ja[j]], 0.1f); 
+
+	atomicAdd_system(&y[ja[j]], a[j]*xx);
+
+      }
+    }
+  }
+
+}
+
+
+
+
+
+void MatvecCSRChaotic(hypre_int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_int *ia, hypre_int *ja, HYPRE_Complex *x, HYPRE_Complex beta, HYPRE_Complex *y){
+  hypre_int num_threads=64;
+  hypre_int num_blocks=num_rows/num_threads+1;
+  //  printf("blocks: %d threads %d \n", num_blocks, num_threads);
+
+  CSRMatvecChaoticKernel_v1<<<num_blocks,num_threads>>>(num_rows, a, ia, ja, x, y);
+
+}
+}
+//end of new code
 
 #endif

@@ -47,6 +47,29 @@ hypre_CSRMatrixMatvecMultOutOfPlace( HYPRE_Complex    alpha,
   return ierr;
 }
 
+#if 1
+hypre_CSRMatrixMatvecMultChaotic( HYPRE_Complex    alpha,
+    hypre_CSRMatrix *A,
+    hypre_Vector    *x,
+    HYPRE_Int k1,
+    HYPRE_Complex    beta,
+    hypre_Vector    *b,
+    HYPRE_Int k3,
+    hypre_Vector    *y,
+    HYPRE_Int k2,
+    HYPRE_Int        offset     )
+{
+  HYPRE_Int ret, ierr = 101;
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)  
+  ret=hypre_CSRMatrixMatvecMultChaoticDevice( alpha,A,x,k1, beta,b,k3, y,k2, offset);
+  return ret;
+#else
+  printf("it does not work with MANAGED nor without GPU! change your parameters or write a proper function\n");
+#endif
+  return ierr;
+}
+
+#endif
   HYPRE_Int
 hypre_CSRMatrixMatvecMult( HYPRE_Complex    alpha,
     hypre_CSRMatrix *A,
@@ -898,6 +921,20 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
 
 
   HYPRE_Int
+hypre_CSRMatrixMatvecMultChaoticDevice( HYPRE_Complex    alpha,
+    hypre_CSRMatrix *A,
+    hypre_Vector    *x,
+    HYPRE_Int k1,
+    HYPRE_Complex    beta,
+    hypre_Vector    *b,
+    HYPRE_Int k3,
+    hypre_Vector    *y,
+    HYPRE_Int k2,
+    HYPRE_Int offset )
+{
+return 0;
+}
+  HYPRE_Int
 hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
     hypre_CSRMatrix *A,
     hypre_Vector    *x,
@@ -913,6 +950,7 @@ hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
   HYPRE_Int         y_size = hypre_VectorSize(y);
   HYPRE_Complex * xddata =  x->d_data;
   HYPRE_Complex * yddata =  y->d_data;
+
   //printf("TEST TEST TEST k1 = %d x_size = %d \n", k1, x_size);
   static cusparseHandle_t handle;
   static cusparseMatDescr_t descr;
@@ -955,11 +993,12 @@ hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
   PUSH_RANGE("PREFETCH+SPMV",2);
 
   if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
+ // printf("k1 = %d k2 = %d this is matvec. num rows in A %d , num cols in A %d  nnz in A %d alpha = %f beta = %f\n",k1, k2,A->num_rows, A->num_cols, A->num_nonzeros, alpha, beta );
 #if 1
-
-  //printf("k1 = %d k2 = %d this is matvec. num rows in A %d , num cols in A %d  nnz in A %d alpha = %f beta = %f\n",k1, k2,A->num_rows, A->num_cols, A->num_nonzeros, alpha, beta );
+if (A->num_nonzeros){
+ // printf("k1 = %d k2 = %d this is matvec. num rows in A %d , num cols in A %d  nnz in A %d alpha = %f beta = %f\n",k1, k2,A->num_rows, A->num_cols, A->num_nonzeros, alpha, beta );
   if ((A->d_data == NULL)) {
-    printf("A: d_data is NULL; updating!\n");
+//    printf("A: d_data is NULL; updating!\n");
     //hypre_SeqVectorPrefetchToDevice(A->data);
     //cudaMemPrefetchAsync(ptr,size,device,stream);
     // cudaError_t err; 
@@ -975,7 +1014,7 @@ hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
     cudaDeviceSynchronize();
   }
   if ((A->d_i == NULL)) {
-    printf("A d_i is NULL, updating!\n");
+  //  printf("A d_i is NULL, updating!\n");
 
     hypre_CSRMatrixDeviceI(A)    = hypre_CTAlloc(HYPRE_Int,  A->num_rows + 1, HYPRE_MEMORY_DEVICE);
 
@@ -988,7 +1027,7 @@ hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
     cudaDeviceSynchronize();
   }
   if ((A->d_j == NULL)) {
-    printf("A d_j is NULL, updating\n");
+   // printf("A d_j is NULL, updating\n");
 
     hypre_CSRMatrixDeviceJ(A)    = hypre_CTAlloc(HYPRE_Int,  A->num_nonzeros, HYPRE_MEMORY_DEVICE);
 
@@ -1010,6 +1049,7 @@ hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
       &alpha, descr,
       A->d_data ,A->d_i,A->d_j,
       &xddata[k1*x_size], &beta, &yddata[k2*y_size]);
+}
 #endif
   POP_RANGE;
 

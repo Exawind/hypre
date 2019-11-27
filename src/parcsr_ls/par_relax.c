@@ -52,6 +52,7 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
   HYPRE_Int             n_global= hypre_ParCSRMatrixGlobalNumRows(A);
   HYPRE_Int             n       = hypre_CSRMatrixNumRows(A_diag);
   HYPRE_Int             num_cols_offd = hypre_CSRMatrixNumCols(A_offd);
+  HYPRE_Int             num_cols_diag = hypre_CSRMatrixNumCols(A_diag);
   HYPRE_Int	      	   first_index = hypre_ParVectorFirstIndex(u);
 
   hypre_Vector   *u_local = hypre_ParVectorLocalVector(u);
@@ -99,29 +100,33 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
   HYPRE_Real      one_minus_omega;
   HYPRE_Real      prod;
 
-  hypre_ParVector    *r;
-  hypre_ParVector    *y;
+  //hypre_ParVector    *r;
+  //hypre_ParVector    *y;
   HYPRE_Real *r_data;
   HYPRE_Real *y_data;
 
-  r = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A),
+  /*r = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A),
       hypre_ParCSRMatrixGlobalNumRows(A),
       hypre_ParCSRMatrixRowStarts(A));
   hypre_ParVectorInitialize(r);
   hypre_ParVectorSetPartitioningOwner(r,0);
-
   hypre_Vector   *r_local = hypre_ParVectorLocalVector(r);
-  y = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A),
+*/
+
+  hypre_Vector   *r_local =hypre_SeqVectorCreate(n) ;//hypre_ParVectorLocalVector(y);
+hypre_SeqVectorInitialize(r_local); 
+ /* y = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A),
       hypre_ParCSRMatrixGlobalNumRows(A),
       hypre_ParCSRMatrixRowStarts(A));
   hypre_ParVectorInitialize(y);
   hypre_ParVectorSetPartitioningOwner(y,0);
-
-  hypre_Vector   *y_local = hypre_ParVectorLocalVector(y);
-  /* point to local data */
-  r_data = hypre_VectorData(hypre_ParVectorLocalVector(r));
-  y_data = hypre_VectorData(hypre_ParVectorLocalVector(y));
-
+*/
+  hypre_Vector   *y_local =hypre_SeqVectorCreate( num_cols_offd) ;//hypre_ParVectorLocalVector(y);
+hypre_SeqVectorInitialize(y_local); 
+ /* point to local data */
+  r_data = hypre_VectorData(r_local);
+//  y_data = hypre_VectorData(hypre_ParVectorLocalVector(y));
+y_data = hypre_VectorData(y_local);
   one_minus_weight = 1.0 - relax_weight;
   one_minus_omega = 1.0 - omega;
   hypre_MPI_Comm_size(comm,&num_procs);  
@@ -437,12 +442,10 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 	    v_buf_data[i - begin]
 	      = u_data[hypre_ParCSRCommPkgSendMapElmt(comm_pkg,i)];
 	  }
-
-#ifdef HYPRE_PROFILE
+#ifdef HYPRE_PROFILE 
 	  hypre_profile_times[HYPRE_TIMER_ID_PACK_UNPACK] += hypre_MPI_Wtime();
 	  hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] -= hypre_MPI_Wtime();
 #endif
-
 #ifdef HYPRE_USING_PERSISTENT_COMM
 	  hypre_ParCSRPersistentCommHandleStart(persistent_comm_handle);
 #else
@@ -534,36 +537,46 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 	    {
 	      //THIS GOES TO THE GPU 
 //#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
-#if 0
+	      #if 0
 	      //make sure f_data and u_data are updated i.e. copy them
 
 	      hypre_SeqVectorCopyDataCPUtoGPU( f_local );
 	      hypre_SeqVectorCopyDataCPUtoGPU( u_local );
-
 	      hypre_SeqVectorCopy( f_local,r_local );
+	      // DONT EVEN TRY OR SEG FAULT!!!!!
+	      //    y_data = Vext_data;
 
-	      y_data = Vext_data;
+	      HYPRE_Real * y_ddata = hypre_VectorDeviceData(y_local);
+	      //copy Vext_data to y_ddata
+//printf("num rows %d num cols diag %d num cols offd %d, y has %d entries u has %d entries and f has %d entries and r has %d entries\n",n, num_cols_diag, num_cols_offd, hypre_VectorSize(y_local),  hypre_VectorSize(u_local),  hypre_VectorSize(f_local), hypre_VectorSize(r_local));
+#if 0
+	      cudaMemcpy ( y_ddata,Vext_data,
+		  num_cols_offd *sizeof(HYPRE_Complex),
+		  cudaMemcpyHostToDevice );
 
-	      hypre_SeqVectorCopyDataCPUtoGPU( y_local );
-
-	      //call double MV kernel
-	      //r = r-Adiag*u
-	      hypre_CSRMatrixMatvecMultOutOfPlace( -1.0, A_diag, u_local,0, 1.0f, r_local,0, r_local, 0, 0);
 	      //r = r - Aoffd *V_extdata = r-Aoffd*y
 	      hypre_CSRMatrixMatvecMultOutOfPlace( -1.0, A_offd, y_local,0, 1.0f, r_local,0, r_local, 0, 0);
-	      hypre_SeqVectorCopy( r_local,y_local );
-	      hypre_SeqVectorCopyDataGPUtoCPU( y_local );
+	      
+
+//call double MV kernel
+	      //r = r-Adiag*u
+	      hypre_CSRMatrixMatvecMultOutOfPlace( -1.0, A_diag, u_local,0, 1.0f, r_local,0, r_local, 0, 0);
+
+
+
+
+	      hypre_SeqVectorCopyDataGPUtoCPU( r_local );
 	      //NOW scale
 	      //to be changed
-
 	      for (i = 0; i < n; i++)   // row index
 	      {
 		if ( A_diag_data[A_diag_i[i]] != zero)
 		{
-		  u_data[i] += y_data[i] / A_diag_data[A_diag_i[i]];  // x(i) = x(i) + r(i) / D(i)
+		  u_data[i] +=r_data[i] / A_diag_data[A_diag_i[i]];  // x(i) = x(i) + r(i) / D(i)
 		}
 
 	      }
+#endif
 #else   
 	      for (i = 0; i < n; i++)   // row index
 	      {
@@ -574,20 +587,25 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 		if ( A_diag_data[A_diag_i[i]] != zero)
 		{
 		  res = f_data[i];  // r(i) = b(i) - Ax
+//		 r_data[i] =  f_data[i]; 
+
 #pragma unroll
 		  for (jj = A_diag_i[i]; jj < A_diag_i[i+1]; jj++)
 		  {
-		    res -= A_diag_data[jj] * u_data[A_diag_j[jj]];  // r(i) = b(i) - Ax
+	    res -= A_diag_data[jj] * u_data[A_diag_j[jj]];  // r(i) = b(i) - Ax
+		    //r_data[i] -= A_diag_data[jj] * u_data[A_diag_j[jj]];  // r(i) = b(i) - Ax
 		  }
-
 #pragma unroll
 		  for (jj = A_offd_i[i]; jj < A_offd_i[i+1]; jj++)
 		  {
 		    res -= A_offd_data[jj] * Vext_data[A_offd_j[jj]];
+		  //  r_data[i] -= A_offd_data[jj] * Vext_data[A_offd_j[jj]];
 		  }
 		  u_data[i] += res / A_diag_data[A_diag_i[i]];  // x(i) = x(i) + r(i) / D(i)
+		 //u_data[i] += r_data[i] / A_diag_data[A_diag_i[i]];  // x(i) = x(i) + r(i) / D(i)
 		}
 	      }
+
 #endif
 	    }
 	  }
@@ -4216,8 +4234,9 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 	  break;   
 	}
 
-	hypre_ParVectorDestroy(r);
-	hypre_ParVectorDestroy(y);
+	hypre_SeqVectorDestroy(r_local);
+	hypre_SeqVectorDestroy(y_local);
+
 
 	return(relax_error); 
       }
@@ -4392,7 +4411,6 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 	hypre_profile_times[HYPRE_TIMER_ID_GS_ELIM_SOLVE] += hypre_MPI_Wtime();
 #endif
 
-	return hypre_error_flag;
       }
 
 #if 0

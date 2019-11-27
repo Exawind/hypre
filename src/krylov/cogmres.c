@@ -985,7 +985,7 @@ size_t mf, ma;
 }
       if (my_id == 0  ){
 	if (iter == 0){
-#if 0
+#if 1
 	  hypre_printf("Orthogonalization variant: %d \n", GSoption);
 	hypre_printf("L2 norm of b: %16.16f\n", b_norm);
 	hypre_printf("Initial L2 norm of (current) residual: %16.16f\n", r_norm);
@@ -1196,10 +1196,22 @@ POP_RANGE;
       }
 
 
+      if ((GSoption ==3)){
 
-      if ((GSoption >=3)){
+	GramSchmidt (GSoption, 
+	    i+1, 
+	    k_dim,
+	    p, 
+	    hh, 
+	    tempH,  
+	    rv, 
+	    tempRV, L, cogmres_functions );
 
-	GramSchmidt (4, 
+      }
+
+      if ((GSoption >3)){
+
+	GramSchmidt (GSoption, 
 	    i+1, 
 	    k_dim,
 	    p, 
