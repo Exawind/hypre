@@ -1653,6 +1653,8 @@ HYPRE_Int hypre_ParKrylovGivensRotRight(
     void  * q2,
     HYPRE_Real  a1, HYPRE_Real a2, HYPRE_Real a3,  HYPRE_Real a4);
 
+ HYPRE_Int hypre_CSRMatrixMatvecMultAsynch ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1,  HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
+ HYPRE_Int hypre_CSRMatrixMatvecMultAsynchTwoInOne ( HYPRE_Complex alpha , hypre_CSRMatrix *A1 , hypre_CSRMatrix *A2 , hypre_Vector *x1 ,HYPRE_Int k11,  hypre_Vector *x2 ,HYPRE_Int k12, HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
 void  hypre_ParKrylovMassInnerProdGPU ( void *x , void *y, int k, int n,  void *result );
 //void  hypre_ParKrylovMassInnerProdGPU (int k, int n,  void *result );
 //void hypre_ParKrylovMassAxpyGPU ( HYPRE_Real *alpha, void *x, void *y, HYPRE_Int k, int n);

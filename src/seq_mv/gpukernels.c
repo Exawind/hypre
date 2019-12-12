@@ -36,10 +36,10 @@ void VecScaleKernel(HYPRE_Complex *__restrict__ u, const HYPRE_Complex *__restri
 
 extern "C"{
 void VecScale(HYPRE_Complex *u, HYPRE_Complex *v, HYPRE_Complex *l1_norm, hypre_int num_rows,cudaStream_t s){
-  
+
 
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
-PUSH_RANGE_PAYLOAD("VECSCALE",1,num_rows);
+  PUSH_RANGE_PAYLOAD("VECSCALE",1,num_rows);
   const hypre_int tpb=64;
   hypre_int num_blocks=num_rows/tpb+1;
 #ifdef CATCH_LAUNCH_ERRORS
@@ -52,7 +52,7 @@ PUSH_RANGE_PAYLOAD("VECSCALE",1,num_rows);
   hypre_CheckErrorDevice(cudaPeekAtLastError());
   hypre_CheckErrorDevice(cudaDeviceSynchronize());
 #endif
-//  hypre_CheckErrorDevice(cudaStreamSynchronize(s));
+  //  hypre_CheckErrorDevice(cudaStreamSynchronize(s));
   POP_RANGE;
 #else
 
@@ -92,7 +92,7 @@ void VecSetKernel(HYPRE_Complex* __restrict__ tgt, const HYPRE_Complex value,hyp
 void VecSet(HYPRE_Complex* tgt, hypre_int size, HYPRE_Complex value, cudaStream_t s){
   hypre_int tpb=64;
   //cudaDeviceSynchronize();
-//printf("this is vec set, size %d \n", size);
+  //printf("this is vec set, size %d \n", size);
   MemPrefetchSized(tgt,size*sizeof(HYPRE_Complex),HYPRE_DEVICE,s);
   hypre_int num_blocks=size/tpb+1;
   VecSetKernel<<<num_blocks,tpb,0,s>>>(tgt,value,size);
@@ -183,7 +183,7 @@ hypre_int VecScaleScalar(HYPRE_Complex *u, const HYPRE_Complex alpha,  hypre_int
   hypre_CheckErrorDevice(cudaPeekAtLastError());
   hypre_CheckErrorDevice(cudaDeviceSynchronize());
 #endif
- // hypre_CheckErrorDevice(cudaStreamSynchronize(s));
+  // hypre_CheckErrorDevice(cudaStreamSynchronize(s));
   POP_RANGE;
   return 0;
 }
@@ -512,73 +512,73 @@ __global__ void massIPV7part1(const double * __restrict__ u,
 //for two vectorsi
 
 __global__ void MassIPTwoVec(const double * __restrict__ u1,const double * __restrict__ u2,   
-		const double * __restrict__ v, 
-		double * result,  
-		const int k, 
-		const int N){
+    const double * __restrict__ v, 
+    double * result,  
+    const int k, 
+    const int N){
 
-	int b = blockIdx.x;
-	int t = threadIdx.x;
-	int bsize = blockDim.x;
+  int b = blockIdx.x;
+  int t = threadIdx.x;
+  int bsize = blockDim.x;
 
-	// assume T threads per thread block (and k reductions to be performed)
-	volatile __shared__ HYPRE_Real s_tmp1[Tv5];
+  // assume T threads per thread block (and k reductions to be performed)
+  volatile __shared__ HYPRE_Real s_tmp1[Tv5];
 
-	volatile __shared__ HYPRE_Real s_tmp2[Tv5];
-	// map between thread index space and the problem index space
-	int j = blockIdx.x;
-	s_tmp1[t] = 0.0f;
-	s_tmp2[t] = 0.0f;
-	int nn =t;
-	double can1,can2, cbn;
-	//printf ("nn = %d bsize = %d N = %d gridDim = %d j = %d\n", nn, bsize, N, gridDim.x, j);      
-	while (nn<N){
-		can1 =  u1[nn];
-		can2 =  u2[nn];
+  volatile __shared__ HYPRE_Real s_tmp2[Tv5];
+  // map between thread index space and the problem index space
+  int j = blockIdx.x;
+  s_tmp1[t] = 0.0f;
+  s_tmp2[t] = 0.0f;
+  int nn =t;
+  double can1,can2, cbn;
+  //printf ("nn = %d bsize = %d N = %d gridDim = %d j = %d\n", nn, bsize, N, gridDim.x, j);      
+  while (nn<N){
+    can1 =  u1[nn];
+    can2 =  u2[nn];
 
-		cbn = v[N*j+nn];
-		s_tmp1[t] += can1*cbn;
-		s_tmp2[t] += can2*cbn;
-
-
-		nn+=bsize;
-	}
+    cbn = v[N*j+nn];
+    s_tmp1[t] += can1*cbn;
+    s_tmp2[t] += can2*cbn;
 
 
-	__syncthreads();
-	//if (j == 0)	printf("I am block %d, t=%d, s_tmp[%d] = %f\n", j, t,t, s_tmp[t]);
-	if(Tv5>=1024) {if (t<512)    { s_tmp1[t] += s_tmp1[t+512];    s_tmp2[t] += s_tmp2[t + 512];} __syncthreads(); }	
-	if (Tv5>=512) { if (t < 256) { s_tmp1[t] += s_tmp1[t + 256];  s_tmp2[t] += s_tmp2[t + 256];} __syncthreads(); }
-	{ if (t < 128)               { s_tmp1[t] += s_tmp1[t + 128];  s_tmp2[t] += s_tmp2[t + 128];} __syncthreads(); }
-	{ if (t < 64)                { s_tmp1[t] += s_tmp1[t + 64];   s_tmp2[t] += s_tmp2[t + 64];} __syncthreads(); }
+    nn+=bsize;
+  }
 
 
-	//if (t==0) printf("I am block %d, t=%d, s_tmp[%d] = %f\n", j, t,t, s_tmp[t]);
-	if (t < 32)
-	{
-		s_tmp1[t] += s_tmp1[t+32];
-		s_tmp2[t] += s_tmp2[t+32];
+  __syncthreads();
+  //if (j == 0)	printf("I am block %d, t=%d, s_tmp[%d] = %f\n", j, t,t, s_tmp[t]);
+  if(Tv5>=1024) {if (t<512)    { s_tmp1[t] += s_tmp1[t+512];    s_tmp2[t] += s_tmp2[t + 512];} __syncthreads(); }	
+  if (Tv5>=512) { if (t < 256) { s_tmp1[t] += s_tmp1[t + 256];  s_tmp2[t] += s_tmp2[t + 256];} __syncthreads(); }
+  { if (t < 128)               { s_tmp1[t] += s_tmp1[t + 128];  s_tmp2[t] += s_tmp2[t + 128];} __syncthreads(); }
+  { if (t < 64)                { s_tmp1[t] += s_tmp1[t + 64];   s_tmp2[t] += s_tmp2[t + 64];} __syncthreads(); }
 
-		s_tmp1[t] += s_tmp1[t+16];
-		s_tmp2[t] += s_tmp2[t+16];
 
-		s_tmp1[t] += s_tmp1[t+8];
-		s_tmp2[t] += s_tmp2[t+8];
+  //if (t==0) printf("I am block %d, t=%d, s_tmp[%d] = %f\n", j, t,t, s_tmp[t]);
+  if (t < 32)
+  {
+    s_tmp1[t] += s_tmp1[t+32];
+    s_tmp2[t] += s_tmp2[t+32];
 
-		s_tmp1[t] += s_tmp1[t+4];
-		s_tmp2[t] += s_tmp2[t+4];
+    s_tmp1[t] += s_tmp1[t+16];
+    s_tmp2[t] += s_tmp2[t+16];
 
-		s_tmp1[t] += s_tmp1[t+2];
-		s_tmp2[t] += s_tmp2[t+2];
+    s_tmp1[t] += s_tmp1[t+8];
+    s_tmp2[t] += s_tmp2[t+8];
 
-		s_tmp1[t] += s_tmp1[t+1];
-		s_tmp2[t] += s_tmp2[t+1];
-	}
-	if (t == 0) {
-		result[blockIdx.x] = s_tmp1[0];
-		result[blockIdx.x+k] = s_tmp2[0];
-		//printf("putting %f in place %d \n", s_tmp[0], blockIdx.x+j*gridDim.x);
-	} 
+    s_tmp1[t] += s_tmp1[t+4];
+    s_tmp2[t] += s_tmp2[t+4];
+
+    s_tmp1[t] += s_tmp1[t+2];
+    s_tmp2[t] += s_tmp2[t+2];
+
+    s_tmp1[t] += s_tmp1[t+1];
+    s_tmp2[t] += s_tmp2[t+1];
+  }
+  if (t == 0) {
+    result[blockIdx.x] = s_tmp1[0];
+    result[blockIdx.x+k] = s_tmp2[0];
+    //printf("putting %f in place %d \n", s_tmp[0], blockIdx.x+j*gridDim.x);
+  } 
 
 }
 //end of code for two vectors
@@ -744,7 +744,7 @@ void MassInnerProdTwoVectorsGPUonly(const double * __restrict__ u1,const double 
     double * result,
     const int k,
     const int N) {
- MassIPTwoVec<<<k, 1024>>>(u1,u2, v, result, k, N);
+  MassIPTwoVec<<<k, 1024>>>(u1,u2, v, result, k, N);
 
   //hypre_CheckErrorDevice(cudaDeviceSynchronize());
 }
@@ -764,14 +764,14 @@ void MassAxpyGPUonly(int N,
 }
 
 __global__ void  GivensRotRightKernel(int N,
-      int k1,int k2,
-      double * q_data1,
-      double * q_data2,
-      double a1, double a2,double a3, double a4){
+    int k1,int k2,
+    double * q_data1,
+    double * q_data2,
+    double a1, double a2,double a3, double a4){
 
   int i = blockIdx.x * blockDim.x + threadIdx.x;
   while (i<N){
-double q1 = q_data1[i];
+    double q1 = q_data1[i];
     q_data1[i] = q1*a1+q_data2[i]*a2;
     q_data2[i] = q1*a3+q_data2[i]*a4;
     i+= blockDim.x*gridDim.x;
@@ -805,9 +805,9 @@ void GivensRotRight(int N,
 //new code
 
 extern "C"{
-
+//y = alpha *A *x + beta*y;
 __global__
-void CSRMatvecChaoticKernel_v1(HYPRE_Int num_rows, const HYPRE_Real * __restrict__ a, const HYPRE_Int * __restrict__ ia,const __restrict__  HYPRE_Int  * ja,const  HYPRE_Real * x, HYPRE_Real * y){
+void CSRMatvecAsynchKernel_v1(HYPRE_Int num_rows, const HYPRE_Real alpha, const HYPRE_Real * __restrict__ a, const HYPRE_Int * __restrict__ ia,const __restrict__  HYPRE_Int  * ja, HYPRE_Real * x, const HYPRE_Real beta, HYPRE_Real * y){
 
   /*
      i = 0; num_rows-1
@@ -824,15 +824,21 @@ void CSRMatvecChaoticKernel_v1(HYPRE_Int num_rows, const HYPRE_Real * __restrict
   int j;
 
   if (i<num_rows) {
-    const double xx = x[i];
-    for (j=ia[i]; j< ia[i+1]; j++){
-      //    y[ja[j]] += a[j]*xx;
-
-      if (abs(xx*a[j]) >  1e-16){
-	//  atomicAdd(&y[ja[j]], 0.1f); 
-
-	atomicAdd_system(&y[ja[j]], a[j]*xx);
-
+    if (a[ia[i]]!=0.0){
+      HYPRE_Real sum = 0.0f;
+      for (j=ia[i]; j< ia[i+1]; j++){
+	//if (i<5)
+	//printf("I am thread %d, adding a[%d]*x[%d] =  %f *%f to the sum, result = %f \n", i,j, ja[j], a[j],x[ja[j]], sum+a[j]*x[ja[j]]);
+	sum += a[j]*x[ja[j]];
+      }
+      // u_data[i] = res / A_diag_data[A_diag_i[i]];
+      //if(i<5) printf("this is tread %d, sum is %f  dividing by %f and multiplying by %f \n", i,sum, a[ia[i]], alpha );
+      sum*=alpha;
+      sum/=a[ia[i]];
+      if (abs(sum) >  1e-16){
+	//if(i<5) printf("this is tread %d, sum is %f  adding to %f*%f+%f, result %f old: %f new %f \n", i,sum, beta,y[i],x[i],  sum+beta*y[i]+x[i], x[i], sum+beta*y[i]+x[i]);
+	atomicAdd_system(&x[i], sum+beta*y[i]);
+	//x[i] += sum+beta*y[i];
       }
     }
   }
@@ -843,12 +849,73 @@ void CSRMatvecChaoticKernel_v1(HYPRE_Int num_rows, const HYPRE_Real * __restrict
 
 
 
-void MatvecCSRChaotic(hypre_int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_int *ia, hypre_int *ja, HYPRE_Complex *x, HYPRE_Complex beta, HYPRE_Complex *y){
-  hypre_int num_threads=64;
+void MatvecCSRAsynch(hypre_int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_int *ia, hypre_int *ja, HYPRE_Complex *x, HYPRE_Complex beta, HYPRE_Complex *y){
+  hypre_int num_threads=1024;
   hypre_int num_blocks=num_rows/num_threads+1;
-  //  printf("blocks: %d threads %d \n", num_blocks, num_threads);
+  // printf("blocks: %d threads %d alpha %f beta %f \n", num_blocks, num_threads, alpha, beta);
 
-  CSRMatvecChaoticKernel_v1<<<num_blocks,num_threads>>>(num_rows, a, ia, ja, x, y);
+  CSRMatvecAsynchKernel_v1<<<num_blocks,num_threads>>>(num_rows,alpha, a, ia, ja, x,beta, y);
+
+}
+
+
+
+__global__
+void CSRMatvecAsynchTwoInOneKernel_v1(HYPRE_Int num_rows, const HYPRE_Real alpha, const HYPRE_Real * __restrict__ a1, const HYPRE_Int * __restrict__ ia1,const __restrict__  HYPRE_Int  * ja1, const HYPRE_Real * __restrict__ a2, const HYPRE_Int * __restrict__ ia2,const __restrict__  HYPRE_Int  * ja2,HYPRE_Real * x1,HYPRE_Real * x2, const HYPRE_Real beta, HYPRE_Real * y){
+
+  /*
+     i = 0; num_rows-1
+     for (jj = A_i[i]; jj < A_i[i+1]; jj++)
+     {
+     j = A_j[jj];
+     y_data[j] += A_data[jj] * x_data[i];
+     }
+
+
+*/
+
+  int i = blockIdx.x*blockDim.x + threadIdx.x;
+  int j;
+
+  if (i<num_rows) { 
+    HYPRE_Real sum = 0.0f;
+
+    if (a1!=NULL){
+
+      for (j=ia1[i]; j< ia1[i+1]; j++){
+	//if (i<5)
+	//printf("OFFD: I am thread %d, adding a[%d]*x[%d] =  %f *%f to the sum, result = %f \n", i,j, ja1[j], a1[j],x1[ja1[j]], sum+a1[j]*x1[ja1[j]]);
+	sum += a1[j]*x1[ja1[j]];
+      }
+
+    }
+    if (a2[ia2[i]]!=0.0){
+      for (j=ia2[i]; j< ia2[i+1]; j++){
+	//if (i<5)
+	//printf("DIAG: I am thread %d, adding a[%d]*x[%d] =  %f *%f to the sum, result = %f \n", i,j, ja2[j], a2[j],x2[ja2[j]], sum+a2[j]*x2[ja2[j]]);
+	sum += a2[j]*x2[ja2[j]];
+      }
+      // u_data[i] = res / A_diag_data[A_diag_i[i]];
+      //if(i<5) printf("this is tread %d, sum is %f  dividing by %f and multiplying by %f \n", i,sum, a2[ia2[i]], alpha );
+     sum*=alpha;
+       sum += beta*y[i];
+      sum/=a2[ia2[i]];
+      if (abs(sum) >  1e-16){
+	atomicAdd_system(&x2[i], sum);
+	//x2[i] += sum;
+//+beta*y[i];
+      }
+    }
+  }
+
+}
+
+void MatvecCSRAsynchTwoInOne(hypre_int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a1,hypre_int *ia1, hypre_int *ja1,  HYPRE_Complex *a2,hypre_int *ia2, hypre_int *ja2,HYPRE_Complex *x1,HYPRE_Complex *x2, HYPRE_Complex beta, HYPRE_Complex *y){
+  hypre_int num_threads=1024;
+  hypre_int num_blocks=num_rows/num_threads+1;
+  // printf("blocks: %d threads %d alpha %f beta %f \n", num_blocks, num_threads, alpha, beta);
+
+  CSRMatvecAsynchTwoInOneKernel_v1<<<num_blocks,num_threads>>>(num_rows,alpha, a1, ia1, ja1,a2,ia2,ja2, x1,x2,beta, y);
 
 }
 }

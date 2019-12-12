@@ -1,6 +1,7 @@
 #define solverTimers 1
 #define usePrecond 1
 #define leftPrecond 0
+#define flexiblePrecond 1 // for flexible
 /******************************************************************************
  *
  * COGMRES cogmres
@@ -117,7 +118,7 @@ hypre_COGMRESCreate( hypre_COGMRESFunctions *cogmres_functions )
   (cogmres_data -> norms)          = NULL;
   (cogmres_data -> log_file_name)  = NULL;
 
-  (cogmres_data -> GSoption)  = 2;
+  (cogmres_data -> GSoption)  = 4;
   return (void *) cogmres_data;
 }
 
@@ -161,6 +162,13 @@ size_t mf, ma;
 //printf("freeing p\n");
      // cudaFree(cogmres_data -> p);
       (*(cogmres_functions->DestroyVector))(cogmres_data -> p);
+    }
+
+    if ( (cogmres_data -> z) != NULL )
+    {
+//printf("freeing p\n");
+     // cudaFree(cogmres_data -> p);
+      (*(cogmres_functions->DestroyVector))(cogmres_data -> z);
     }
     hypre_TFreeF( cogmres_data, cogmres_functions );
     hypre_TFreeF( cogmres_functions, cogmres_functions );
@@ -467,6 +475,7 @@ void GramSchmidt (HYPRE_Int option,
     //scale 
     if ((i-2)>=0){
 Hcolumn[(i-2)*(k_dim+1) +i-1] = t ;
+//printf("putting %f in H(%d,%d) \n", i-1, i-2 );
 }    
     for (int j=0; j<i; ++j){
       rv[j] = rv[j]/t;
@@ -483,9 +492,21 @@ Hcolumn[(i-2)*(k_dim+1) +i-1] = t ;
     }
    t=1.0/t;
     if(i-1>0){
+#if 0
+printf("scaling V(%d) by %16.16f where 1/t = %16.16f norm of V(%d) is %16.16f (before scaling)\n",i-1,t, 1/t, i-1,  (*(cf->InnerProd))(Vspace, 
+	  i-1, 
+	  Vspace, 
+	  i-1));
+#endif
 (*(cf->ScaleVector))(t,Vspace, i-1);
 
 }
+#if 0
+printf("scaling CURRENT vector %d; before scaling the norm is %16.16f, sclaing gfactor %f \n", i, (*(cf->InnerProd))(Vspace, 
+	  i, 
+	  Vspace, 
+	  i),t);
+#endif
     (*(cf->ScaleVector))(t,Vspace, i);
     //triangular solve
     for (int j=0; j<i; ++j){
@@ -558,6 +579,7 @@ size_t mf, ma;
   void         *w_2               = (cogmres_data -> w_2); 
 
   void        *p                 = (cogmres_data -> p);
+  void        *z                 = (cogmres_data -> z);
 
   HYPRE_Int (*precond)(void*,void*,void*,void*) = (cogmres_functions -> precond);
   HYPRE_Int  *precond_data                      = (HYPRE_Int*)(cogmres_data -> precond_data);
@@ -608,7 +630,11 @@ size_t mf, ma;
 
   (cogmres_data -> p) = (*(cogmres_functions->CreateMultiVector))(b, k_dim+1);
   p = (cogmres_data->p);
+if (flexiblePrecond) {
 
+  (cogmres_data -> z) = (*(cogmres_functions->CreateMultiVector))(b, k_dim+1);
+  z = (cogmres_data->z);
+}
   if (GSoption != 0){
     if (GSoption <3){   
       cudaMalloc ( &tempRV, sizeof(HYPRE_Real)*(k_dim+1)); 
@@ -698,7 +724,7 @@ size_t mf, ma;
      * *****************************************************************/    
 
     if ((usePrecond)&&(!leftPrecond)){
-
+if(!flexiblePrecond){
       if (solverTimers)
 	time1 = MPI_Wtime();
 
@@ -812,6 +838,7 @@ size_t mf, ma;
 	}
 	(*(cogmres_functions->CopyVector))(b, 0, p, 0);
 	(*(cogmres_functions->Axpy))(-1.0f, w_2, 0, p, 0);
+  //printf("Starting with NON FLEXIBLE  norm p(0) %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0)));
 	if (solverTimers){
 	  time2 = MPI_Wtime();
 	  remainingTime +=(time2-time1);
@@ -819,8 +846,47 @@ size_t mf, ma;
 
 
       }    
+}// not flexible precon
+else {//flexible precon
+//no Hegedus here
 
-    }// if RIGHT Precond
+      if (solverTimers)
+	time1 = MPI_Wtime();
+
+      (*(cogmres_functions->ClearVector))(w);
+	(*(cogmres_functions->CopyVector))(b, 0, p, 0);
+      if(iter!=0){
+	(*(cogmres_functions->UpdateVectorCPU))(x);
+      }	
+
+
+      if (solverTimers){
+	time4 = MPI_Wtime();
+	remainingTime +=(time1-time4);
+
+	time1 = MPI_Wtime();
+      }
+      //p(0) = 1*p(0)-A*x = b-Ax   
+
+      (*(cogmres_functions->Matvec))(matvec_data,
+	  minusone,
+	  A,
+	  x,
+	  0,
+	  one,
+	  p, 0);
+
+  //printf("Starting with FLEXIBLE  norm p(0) %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(p,0,p, 0)));
+      if (solverTimers){
+	time2 = MPI_Wtime();
+	mvTime +=(time2-time1);
+	matvecPreconTime += (time2-time1);
+	time1 = MPI_Wtime();      
+      }
+}//flexible    
+
+
+}// if RIGHT Precond
 
     /*******************************************************************
      * RESTART, PRECON IS LEFT
@@ -1010,11 +1076,22 @@ size_t mf, ma;
 
     if (solverTimers)
       time1 = MPI_Wtime();
-
-    t = 1.0f/r_norm;
+#if 0
+printf("BEFORE scaling by %f, the norm of the first vector is %f \n",1.0f/r_norm, (*(cogmres_functions->InnerProd))(p, 
+	  0, 
+	  p, 
+	  0));
+printf("residual norm %16.16f \n", r_norm);
+#endif   
+ t = 1.0f/r_norm;
 
     (*(cogmres_functions->ScaleVector))(t,p, 0);
-
+#if 0
+printf("after scaling by %f, the norm of the first vector is %f \n",1.0/r_norm, (*(cogmres_functions->InnerProd))(p, 
+	  0, 
+	  p, 
+	  0));
+#endif
     rs[0] = r_norm;
     rv[0] = 1.0;
     if (GSoption >=3){  
@@ -1055,7 +1132,13 @@ size_t mf, ma;
 	}
 
 	PUSH_RANGE("cogmres precon", 1);
+//printf("BEFORE PRECOND, norm w2(%d) %16.16f norm w (output) %16.16f \n",i, sqrt((*(cogmres_functions->InnerProd))(w_2,0,w_2, 0)),  sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
 	precond(precond_data, A, w_2, w);
+if (flexiblePrecond){ 
+	(*(cogmres_functions->CopyVector))(w, 0, z, i);
+//printf("FLEXIBLE  norm z(%d) %16.16f \n",i, sqrt((*(cogmres_functions->InnerProd))(z,i,z, i)));
+
+}
 	POP_RANGE;
 	if (solverTimers){
 	  time4 = MPI_Wtime();
@@ -1065,6 +1148,7 @@ size_t mf, ma;
 	  time1 = MPI_Wtime();
 	}
 
+//printf("iter %d, putting new stuff in  p %d \n", i, i+1);
 	(*(cogmres_functions->Matvec))(matvec_data,
 	    one,
 	    A,
@@ -1072,6 +1156,7 @@ size_t mf, ma;
 	    0,
 	    zero,
 	    p, i+1);
+//printf("FLEXIBLE  norm p(%d) %16.16f \n",i+1, sqrt((*(cogmres_functions->InnerProd))(p,i+1,p, i+1)));
 	if (solverTimers){
 
 	  time2 = MPI_Wtime();
@@ -1219,6 +1304,16 @@ POP_RANGE;
 	    tempH,  
 	    rv, 
 	    tempRV, L, cogmres_functions );
+if (flexiblePrecond) { 
+if (i>0){
+//printf("FLEXIBLE  norm z(%d) before scaling %16.16f scaling factor: 1/%16.16ff taken from h(%d) \n",i, sqrt((*(cogmres_functions->InnerProd))(z,i,z, i)), hh[(i-1)*(k_dim+1) +i], (i-1)*(k_dim+1) +i);
+
+	(*(cogmres_functions->ScaleVector))(1.0f/hh[(i-1)*(k_dim+1) +i],z, i);
+//printf("FLEXIBLE  norm z(%d) after scaling %16.16f \n",i, sqrt((*(cogmres_functions->InnerProd))(z,i,z, i)));
+}
+//divide i
+}
+
 	if(i==0) {doNotSolve=1;iter--;}
 	else doNotSolve = 0;
 
@@ -1300,17 +1395,38 @@ POP_RANGE;
 
       rs[k] = t / hh[idx(k,k,k_dim+1)];
     }
-
+if (!flexiblePrecond){
+//printf("normal: computing sol. will be going from %d to %d \n", 0, i);
     for (j = 0; j <=i; j++){
       (*(cogmres_functions->Axpy))(rs[j], p, j, x, 0);		
-    }	
+    }}	
+else{
+//printf("flexible: computing sol. will be going from %d to %d \n", 0, i);
+for (j = 0; j <=i; j++){
+      (*(cogmres_functions->Axpy))(rs[j], z, j, x, 0);		
+    }
+
+}	
     (*(cogmres_functions->UpdateVectorCPU))(x);
 
     if (solverTimers){
       time2 = MPI_Wtime();
       remainingTime += (time2-time1);
     }
-    /* debug mode */
+#if 0
+
+    (*(cogmres_functions->CopyVector))(b, 0, w_2, 0);
+    (*(cogmres_functions->Matvec))(matvec_data,
+	minusone,
+	A,
+	x,
+	0,
+	one,
+	w_2, 0);
+    printf("END of cycle: norm of residual: %16.16f \n",sqrt((*(cogmres_functions->InnerProd))(w_2,0,w_2, 0)));
+#endif 
+
+   /* debug mode */
 #if 0
     //  (*(cogmres_functions->CopyVector))(x, 0, w, 0);
     //    (*(cogmres_functions->ClearVector))(w_2);
@@ -1366,7 +1482,7 @@ POP_RANGE;
   }
   if ((usePrecond)&&(!leftPrecond)){
 
-
+if (!flexiblePrecond){
     if (solverTimers){
       time1 = MPI_Wtime();
     }
@@ -1379,7 +1495,7 @@ POP_RANGE;
     }
 
     PUSH_RANGE("cogmres precon", 2);
-    precond(precond_data, A, w_2, w);
+   precond(precond_data, A, w_2, w);
     POP_RANGE;
     if (solverTimers){
       time2 = MPI_Wtime();
@@ -1387,7 +1503,8 @@ POP_RANGE;
       preconTime += (time2-time1);
     }
     //debug code
-    (*(cogmres_functions->CopyVector))(w, 0, x, 0);
+     (*(cogmres_functions->CopyVector))(w, 0, x, 0);
+}
 #if 0
     (*(cogmres_functions->CopyVector))(b, 0, p, 0);
     (*(cogmres_functions->Matvec))(matvec_data,

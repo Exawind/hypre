@@ -19,6 +19,7 @@
 #include "seq_mv.h"
 #include <assert.h>
 
+#include "gpukernels.h"
 
 
 // for multivectors
@@ -48,7 +49,7 @@ hypre_CSRMatrixMatvecMultOutOfPlace( HYPRE_Complex    alpha,
 }
 
 #if 1
-hypre_CSRMatrixMatvecMultChaotic( HYPRE_Complex    alpha,
+HYPRE_Int hypre_CSRMatrixMatvecMultAsynch( HYPRE_Complex    alpha,
     hypre_CSRMatrix *A,
     hypre_Vector    *x,
     HYPRE_Int k1,
@@ -61,7 +62,32 @@ hypre_CSRMatrixMatvecMultChaotic( HYPRE_Complex    alpha,
 {
   HYPRE_Int ret, ierr = 101;
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)  
-  ret=hypre_CSRMatrixMatvecMultChaoticDevice( alpha,A,x,k1, beta,b,k3, y,k2, offset);
+  ret=hypre_CSRMatrixMatvecMultAsynchDevice( alpha,A,x,k1, beta,b,k3, y,k2, offset);
+  return ret;
+#else
+  printf("it does not work with MANAGED nor without GPU! change your parameters or write a proper function\n");
+#endif
+  return ierr;
+}
+//two matvecs in one, experimental kernel (two inputs)
+
+HYPRE_Int hypre_CSRMatrixMatvecMultAsynchTwoInOne( HYPRE_Complex    alpha,
+    hypre_CSRMatrix *A1,
+    hypre_CSRMatrix *A2,
+    hypre_Vector    *x1,
+    HYPRE_Int k11,
+    hypre_Vector    *x2,
+    HYPRE_Int k12,
+    HYPRE_Complex    beta,
+    hypre_Vector    *b,
+    HYPRE_Int k3,
+    hypre_Vector    *y,
+    HYPRE_Int k2,
+    HYPRE_Int        offset     )
+{
+  HYPRE_Int ret, ierr = 101;
+#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)  
+  ret=hypre_CSRMatrixMatvecMultAsynchTwoInOneDevice( alpha,A1,A2, x1,k11,x2, k12, beta,b,k3, y,k2, offset);
   return ret;
 #else
   printf("it does not work with MANAGED nor without GPU! change your parameters or write a proper function\n");
@@ -921,7 +947,7 @@ hypre_CSRMatrixMatvecDevice( HYPRE_Complex    alpha,
 
 
   HYPRE_Int
-hypre_CSRMatrixMatvecMultChaoticDevice( HYPRE_Complex    alpha,
+hypre_CSRMatrixMatvecMultAsynchDevice( HYPRE_Complex    alpha,
     hypre_CSRMatrix *A,
     hypre_Vector    *x,
     HYPRE_Int k1,
@@ -931,8 +957,210 @@ hypre_CSRMatrixMatvecMultChaoticDevice( HYPRE_Complex    alpha,
     hypre_Vector    *y,
     HYPRE_Int k2,
     HYPRE_Int offset )
-{
-return 0;
+{ 
+  HYPRE_Int         x_size = hypre_VectorSize(x);
+  HYPRE_Int         y_size = hypre_VectorSize(y);
+  HYPRE_Complex * xddata =  x->d_data;
+  HYPRE_Complex * yddata =  y->d_data;
+
+
+
+#if 1
+  if (A->num_nonzeros){
+    // printf("k1 = %d k2 = %d this is matvec. num rows in A %d , num cols in A %d  nnz in A %d alpha = %f beta = %f\n",k1, k2,A->num_rows, A->num_cols, A->num_nonzeros, alpha, beta );
+    if ((A->d_data == NULL)) {
+      //    printf("A: d_data is NULL; updating!\n");
+      //hypre_SeqVectorPrefetchToDevice(A->data);
+      //cudaMemPrefetchAsync(ptr,size,device,stream);
+      // cudaError_t err; 
+      cudaMemPrefetchAsync(A->data,A->num_nonzeros*sizeof(HYPRE_Complex),HYPRE_DEVICE,HYPRE_STREAM(4));
+      //printf("error code in prefetch %d string %s \n", err, cudaGetErrorString(err));
+
+      hypre_CSRMatrixDeviceData(A)    = hypre_CTAlloc(HYPRE_Complex,  A->num_nonzeros, HYPRE_MEMORY_DEVICE);
+      cudaDeviceSynchronize();
+
+      cudaMemcpy ( A->d_data,A->data,
+	  A->num_nonzeros*sizeof(HYPRE_Complex),
+	  cudaMemcpyDeviceToDevice );
+      cudaDeviceSynchronize();
+    }
+    if ((A->d_i == NULL)) {
+      //  printf("A d_i is NULL, updating!\n");
+
+      hypre_CSRMatrixDeviceI(A)    = hypre_CTAlloc(HYPRE_Int,  A->num_rows + 1, HYPRE_MEMORY_DEVICE);
+
+      cudaMemPrefetchAsync(A->i,(A->num_rows+1)*sizeof(HYPRE_Int),HYPRE_DEVICE,HYPRE_STREAM(4));
+      cudaDeviceSynchronize();
+
+      cudaMemcpy ( A->d_i,A->i,
+	  (A->num_rows+1)*sizeof(HYPRE_Int),
+	  cudaMemcpyDeviceToDevice );
+      cudaDeviceSynchronize();
+    }
+    if ((A->d_j == NULL)) {
+      // printf("A d_j is NULL, updating\n");
+
+      hypre_CSRMatrixDeviceJ(A)    = hypre_CTAlloc(HYPRE_Int,  A->num_nonzeros, HYPRE_MEMORY_DEVICE);
+
+      cudaMemPrefetchAsync(A->j,(A->num_nonzeros)*sizeof(HYPRE_Int),HYPRE_DEVICE,HYPRE_STREAM(4));
+      cudaDeviceSynchronize();
+
+      cudaMemcpy ( A->d_j,A->j,
+	  (A->num_nonzeros)*sizeof(HYPRE_Int),
+	  cudaMemcpyDeviceToDevice );
+      cudaDeviceSynchronize();
+
+    }
+    if ((xddata == NULL)) printf("x (input) data is NULL\n");
+    if ((yddata == NULL)) printf("y (output) data is NULL\n");
+    MatvecCSRAsynch(A->num_rows-offset,
+	alpha,
+	A->d_data ,
+	A->d_i,
+	A->d_j,
+	&xddata[k1*x_size], beta, &yddata[k2*y_size]);
+  }
+#endif
+
+
+  return 0;
+}
+
+
+// Two in One, experimental kernel
+  HYPRE_Int
+hypre_CSRMatrixMatvecMultAsynchTwoInOneDevice( HYPRE_Complex    alpha,
+    hypre_CSRMatrix *A1,
+    hypre_CSRMatrix *A2,
+    hypre_Vector    *x1,
+    HYPRE_Int k11,
+    hypre_Vector    *x2,
+    HYPRE_Int k12,
+    HYPRE_Complex    beta,
+    hypre_Vector    *b,
+    HYPRE_Int k3,
+    hypre_Vector    *y,
+    HYPRE_Int k2,
+    HYPRE_Int offset )
+{ 
+  HYPRE_Int         x_size = hypre_VectorSize(x1);
+  HYPRE_Int         y_size = hypre_VectorSize(y);
+  HYPRE_Complex * x1ddata =  x1->d_data;
+  HYPRE_Complex * x2ddata =  x2->d_data;
+  HYPRE_Complex * yddata =  y->d_data;
+
+
+
+#if 1
+  if (A1->num_nonzeros){
+    if ((A1->d_data == NULL)) {
+//printf("no offdiag data\n ");
+      cudaMemPrefetchAsync(A1->data,A1->num_nonzeros*sizeof(HYPRE_Complex),HYPRE_DEVICE,HYPRE_STREAM(4));
+
+      hypre_CSRMatrixDeviceData(A1)    = hypre_CTAlloc(HYPRE_Complex,  A1->num_nonzeros, HYPRE_MEMORY_DEVICE);
+      cudaDeviceSynchronize();
+
+      cudaMemcpy ( A1->d_data,A1->data,
+	  A1->num_nonzeros*sizeof(HYPRE_Complex),
+	  cudaMemcpyDeviceToDevice );
+      cudaDeviceSynchronize();
+    }
+    if ((A1->d_i == NULL)) {
+
+//printf("no offdiag i\n ");
+      hypre_CSRMatrixDeviceI(A1)    = hypre_CTAlloc(HYPRE_Int,  A1->num_rows + 1, HYPRE_MEMORY_DEVICE);
+
+      cudaMemPrefetchAsync(A1->i,(A1->num_rows+1)*sizeof(HYPRE_Int),HYPRE_DEVICE,HYPRE_STREAM(4));
+      cudaDeviceSynchronize();
+
+      cudaMemcpy ( A1->d_i,A1->i,
+	  (A1->num_rows+1)*sizeof(HYPRE_Int),
+	  cudaMemcpyDeviceToDevice );
+      cudaDeviceSynchronize();
+    }
+    if ((A1->d_j == NULL)) {
+//printf("no offdiag j\n ");
+      // printf("A d_j is NULL, updating\n");
+
+      hypre_CSRMatrixDeviceJ(A1)    = hypre_CTAlloc(HYPRE_Int,  A1->num_nonzeros, HYPRE_MEMORY_DEVICE);
+
+      cudaMemPrefetchAsync(A1->j,(A1->num_nonzeros)*sizeof(HYPRE_Int),HYPRE_DEVICE,HYPRE_STREAM(4));
+      cudaDeviceSynchronize();
+
+      cudaMemcpy ( A1->d_j,A1->j,
+	  (A1->num_nonzeros)*sizeof(HYPRE_Int),
+	  cudaMemcpyDeviceToDevice );
+      cudaDeviceSynchronize();
+
+    }
+}
+else{
+//printf("OFFDIAG EMPTY\n ");
+}
+  if (A2->num_nonzeros){
+    if ((A2->d_data == NULL)) {
+//printf("no diag data\n ");
+      cudaMemPrefetchAsync(A2->data,A2->num_nonzeros*sizeof(HYPRE_Complex),HYPRE_DEVICE,HYPRE_STREAM(4));
+
+      hypre_CSRMatrixDeviceData(A2)    = hypre_CTAlloc(HYPRE_Complex,  A2->num_nonzeros, HYPRE_MEMORY_DEVICE);
+      cudaDeviceSynchronize();
+
+      cudaMemcpy ( A2->d_data,A2->data,
+	  A2->num_nonzeros*sizeof(HYPRE_Complex),
+	  cudaMemcpyDeviceToDevice );
+      cudaDeviceSynchronize();
+    }
+    if ((A2->d_i == NULL)) {
+
+//printf("no diag i\n ");
+      hypre_CSRMatrixDeviceI(A2)    = hypre_CTAlloc(HYPRE_Int,  A2->num_rows + 1, HYPRE_MEMORY_DEVICE);
+
+      cudaMemPrefetchAsync(A2->i,(A2->num_rows+1)*sizeof(HYPRE_Int),HYPRE_DEVICE,HYPRE_STREAM(4));
+      cudaDeviceSynchronize();
+
+      cudaMemcpy ( A2->d_i,A2->i,
+	  (A2->num_rows+1)*sizeof(HYPRE_Int),
+	  cudaMemcpyDeviceToDevice );
+      cudaDeviceSynchronize();
+    }
+    if ((A2->d_j == NULL)) {
+//printf("no diag j\n ");
+      // printf("A d_j is NULL, updating\n");
+
+      hypre_CSRMatrixDeviceJ(A2)    = hypre_CTAlloc(HYPRE_Int,  A2->num_nonzeros, HYPRE_MEMORY_DEVICE);
+
+      cudaMemPrefetchAsync(A2->j,(A2->num_nonzeros)*sizeof(HYPRE_Int),HYPRE_DEVICE,HYPRE_STREAM(4));
+      cudaDeviceSynchronize();
+
+      cudaMemcpy ( A2->d_j,A2->j,
+	  (A2->num_nonzeros)*sizeof(HYPRE_Int),
+	  cudaMemcpyDeviceToDevice );
+      cudaDeviceSynchronize();
+
+    }
+}
+else{ 
+//printf("DIAG EMPTY\n ");
+}
+if ((A1->num_nonzeros) || (A2->num_nonzeros)){
+    MatvecCSRAsynchTwoInOne(A1->num_rows-offset,
+	alpha,
+	A1->d_data ,
+	A1->d_i,
+	A1->d_j,
+	A2->d_data ,
+	A2->d_i,
+	A2->d_j,
+	&x1ddata[k11*x_size], 	&x2ddata[k12*x_size],beta, &yddata[k2*y_size]);
+  }
+else{
+//printf("both diag and non diag EmPTY\n");
+}
+  
+#endif
+
+
+  return 0;
 }
   HYPRE_Int
 hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
@@ -993,63 +1221,63 @@ hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
   PUSH_RANGE("PREFETCH+SPMV",2);
 
   if (offset!=0) printf("WARNING:: Offset is not zero in hypre_CSRMatrixMatvecDevice :: %d \n",offset);
- // printf("k1 = %d k2 = %d this is matvec. num rows in A %d , num cols in A %d  nnz in A %d alpha = %f beta = %f\n",k1, k2,A->num_rows, A->num_cols, A->num_nonzeros, alpha, beta );
+  // printf("k1 = %d k2 = %d this is matvec. num rows in A %d , num cols in A %d  nnz in A %d alpha = %f beta = %f\n",k1, k2,A->num_rows, A->num_cols, A->num_nonzeros, alpha, beta );
 #if 1
-if (A->num_nonzeros){
- // printf("k1 = %d k2 = %d this is matvec. num rows in A %d , num cols in A %d  nnz in A %d alpha = %f beta = %f\n",k1, k2,A->num_rows, A->num_cols, A->num_nonzeros, alpha, beta );
-  if ((A->d_data == NULL)) {
-//    printf("A: d_data is NULL; updating!\n");
-    //hypre_SeqVectorPrefetchToDevice(A->data);
-    //cudaMemPrefetchAsync(ptr,size,device,stream);
-    // cudaError_t err; 
-    cudaMemPrefetchAsync(A->data,A->num_nonzeros*sizeof(HYPRE_Complex),HYPRE_DEVICE,HYPRE_STREAM(4));
-    //printf("error code in prefetch %d string %s \n", err, cudaGetErrorString(err));
+  if (A->num_nonzeros){
+    // printf("k1 = %d k2 = %d this is matvec. num rows in A %d , num cols in A %d  nnz in A %d alpha = %f beta = %f\n",k1, k2,A->num_rows, A->num_cols, A->num_nonzeros, alpha, beta );
+    if ((A->d_data == NULL)) {
+      //    printf("A: d_data is NULL; updating!\n");
+      //hypre_SeqVectorPrefetchToDevice(A->data);
+      //cudaMemPrefetchAsync(ptr,size,device,stream);
+      // cudaError_t err; 
+      cudaMemPrefetchAsync(A->data,A->num_nonzeros*sizeof(HYPRE_Complex),HYPRE_DEVICE,HYPRE_STREAM(4));
+      //printf("error code in prefetch %d string %s \n", err, cudaGetErrorString(err));
 
-    hypre_CSRMatrixDeviceData(A)    = hypre_CTAlloc(HYPRE_Complex,  A->num_nonzeros, HYPRE_MEMORY_DEVICE);
-    cudaDeviceSynchronize();
+      hypre_CSRMatrixDeviceData(A)    = hypre_CTAlloc(HYPRE_Complex,  A->num_nonzeros, HYPRE_MEMORY_DEVICE);
+      cudaDeviceSynchronize();
 
-    cudaMemcpy ( A->d_data,A->data,
-	A->num_nonzeros*sizeof(HYPRE_Complex),
-	cudaMemcpyDeviceToDevice );
-    cudaDeviceSynchronize();
+      cudaMemcpy ( A->d_data,A->data,
+	  A->num_nonzeros*sizeof(HYPRE_Complex),
+	  cudaMemcpyDeviceToDevice );
+      cudaDeviceSynchronize();
+    }
+    if ((A->d_i == NULL)) {
+      //  printf("A d_i is NULL, updating!\n");
+
+      hypre_CSRMatrixDeviceI(A)    = hypre_CTAlloc(HYPRE_Int,  A->num_rows + 1, HYPRE_MEMORY_DEVICE);
+
+      cudaMemPrefetchAsync(A->i,(A->num_rows+1)*sizeof(HYPRE_Int),HYPRE_DEVICE,HYPRE_STREAM(4));
+      cudaDeviceSynchronize();
+
+      cudaMemcpy ( A->d_i,A->i,
+	  (A->num_rows+1)*sizeof(HYPRE_Int),
+	  cudaMemcpyDeviceToDevice );
+      cudaDeviceSynchronize();
+    }
+    if ((A->d_j == NULL)) {
+      // printf("A d_j is NULL, updating\n");
+
+      hypre_CSRMatrixDeviceJ(A)    = hypre_CTAlloc(HYPRE_Int,  A->num_nonzeros, HYPRE_MEMORY_DEVICE);
+
+      cudaMemPrefetchAsync(A->j,(A->num_nonzeros)*sizeof(HYPRE_Int),HYPRE_DEVICE,HYPRE_STREAM(4));
+      cudaDeviceSynchronize();
+
+      cudaMemcpy ( A->d_j,A->j,
+	  (A->num_nonzeros)*sizeof(HYPRE_Int),
+	  cudaMemcpyDeviceToDevice );
+      cudaDeviceSynchronize();
+
+    }
+    if ((xddata == NULL)) printf("x (input) data is NULL\n");
+    if ((yddata == NULL)) printf("y (output) data is NULL\n");
+
+    status = cusparseDcsrmv(handle ,
+	CUSPARSE_OPERATION_NON_TRANSPOSE,
+	A->num_rows-offset, A->num_cols, A->num_nonzeros,
+	&alpha, descr,
+	A->d_data ,A->d_i,A->d_j,
+	&xddata[k1*x_size], &beta, &yddata[k2*y_size]);
   }
-  if ((A->d_i == NULL)) {
-  //  printf("A d_i is NULL, updating!\n");
-
-    hypre_CSRMatrixDeviceI(A)    = hypre_CTAlloc(HYPRE_Int,  A->num_rows + 1, HYPRE_MEMORY_DEVICE);
-
-    cudaMemPrefetchAsync(A->i,(A->num_rows+1)*sizeof(HYPRE_Int),HYPRE_DEVICE,HYPRE_STREAM(4));
-    cudaDeviceSynchronize();
-
-    cudaMemcpy ( A->d_i,A->i,
-	(A->num_rows+1)*sizeof(HYPRE_Int),
-	cudaMemcpyDeviceToDevice );
-    cudaDeviceSynchronize();
-  }
-  if ((A->d_j == NULL)) {
-   // printf("A d_j is NULL, updating\n");
-
-    hypre_CSRMatrixDeviceJ(A)    = hypre_CTAlloc(HYPRE_Int,  A->num_nonzeros, HYPRE_MEMORY_DEVICE);
-
-    cudaMemPrefetchAsync(A->j,(A->num_nonzeros)*sizeof(HYPRE_Int),HYPRE_DEVICE,HYPRE_STREAM(4));
-    cudaDeviceSynchronize();
-
-    cudaMemcpy ( A->d_j,A->j,
-	(A->num_nonzeros)*sizeof(HYPRE_Int),
-	cudaMemcpyDeviceToDevice );
-    cudaDeviceSynchronize();
-
-  }
-  if ((xddata == NULL)) printf("x (input) data is NULL\n");
-  if ((yddata == NULL)) printf("y (output) data is NULL\n");
-
-  status = cusparseDcsrmv(handle ,
-      CUSPARSE_OPERATION_NON_TRANSPOSE,
-      A->num_rows-offset, A->num_cols, A->num_nonzeros,
-      &alpha, descr,
-      A->d_data ,A->d_i,A->d_j,
-      &xddata[k1*x_size], &beta, &yddata[k2*y_size]);
-}
 #endif
   POP_RANGE;
 

@@ -9,6 +9,8 @@ void VecScale(double *u, double *v, double *l1_norm, int num_rows,cudaStream_t s
 void VecScaleSplit(double *u, double *v, double *l1_norm, int num_rows,cudaStream_t s);
 void CudaCompileFlagCheck();
 void MatvecTCSR(int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_int *ia, hypre_int *ja, HYPRE_Complex *x, HYPRE_Complex beta, HYPRE_Complex *y);
+void MatvecCSRAsynch(int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_int *ia, hypre_int *ja, HYPRE_Complex *x, HYPRE_Complex beta, HYPRE_Complex *y);
+void MatvecCSRAsynchTwoInOne(int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a1,hypre_int *ia1, hypre_int *ja1,  HYPRE_Complex *a2,hypre_int *ia2, hypre_int *ja2, HYPRE_Complex *x1,  HYPRE_Complex *x2,HYPRE_Complex beta, HYPRE_Complex *y);
 void MassInnerProd(HYPRE_Int n, HYPRE_Int k, HYPRE_Real **v, HYPRE_Real *u, HYPRE_Real *result);
 
 void MassInnerProdTwoVectorsGPUonly(const double * __restrict__ u1,const double * __restrict__ u2,

@@ -105,6 +105,7 @@ typedef struct
   void  *w_2;
   void  *p;
 
+void *z;
   void    *matvec_data;
   void    *precond_data;
 

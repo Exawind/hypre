@@ -306,6 +306,8 @@ void InnerProdGPUonly(const double * __restrict__ u,
     double *result,
     const int N);
 
+void MatvecCSRAsynch(int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a,hypre_int *ia, hypre_int *ja, HYPRE_Complex *x, HYPRE_Complex beta, HYPRE_Complex *y);
+void MatvecCSRAsynchTwoInOne(int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a1,hypre_int *ia1, hypre_int *ja1,  HYPRE_Complex *a2,hypre_int *ia2, hypre_int *ja2, HYPRE_Complex *x1,  HYPRE_Complex *x2,HYPRE_Complex beta, HYPRE_Complex *y);
 void GivensRotRight(int N,
      HYPRE_Int k1,
     HYPRE_Int k2,
@@ -351,6 +353,8 @@ void hypre_CSRMatrixUnMapFromDevice(hypre_CSRMatrix *A);
 HYPRE_Int hypre_CSRMatrixMatvecOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
 
  HYPRE_Int hypre_CSRMatrixMatvecMultOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1,  HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
+ HYPRE_Int hypre_CSRMatrixMatvecMultAsynch ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1,  HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
+ HYPRE_Int hypre_CSRMatrixMatvecMultAsynchTwoInOne ( HYPRE_Complex alpha , hypre_CSRMatrix *A1 , hypre_CSRMatrix *A2 , hypre_Vector *x1 ,HYPRE_Int k11,  hypre_Vector *x2 ,HYPRE_Int k12, HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
 
 HYPRE_Int hypre_CSRMatrixMatvecOutOfPlaceOOMP ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
 // y = alpha*A + beta*y
@@ -362,7 +366,9 @@ HYPRE_Int hypre_CSRMatrixMatvec_FF ( HYPRE_Complex alpha , hypre_CSRMatrix *A , 
 #ifdef HYPRE_USING_GPU
 HYPRE_Int hypre_CSRMatrixMatvecDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
 HYPRE_Int hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_Vector *b,HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
+HYPRE_Int hypre_CSRMatrixMatvecMultAsynchDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_Vector *b,HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
 
+HYPRE_Int hypre_CSRMatrixMatvecMultAsynchTwoInOneDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A1 , hypre_CSRMatrix *A2,  hypre_Vector *x1 , HYPRE_Int k11,  hypre_Vector *x2 , HYPRE_Int k12,HYPRE_Complex beta , hypre_Vector *b,HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
 #endif
 /* genpart.c */
 HYPRE_Int hypre_GeneratePartitioning ( HYPRE_Int length , HYPRE_Int num_procs , HYPRE_Int **part_ptr );

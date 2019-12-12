@@ -664,6 +664,7 @@ HYPRE_Int    (*DestroyVector) ( void *vector );
     void  *w;
     void  *w_2;
     void  *p;
+    void  *z;
 
     void    *matvec_data;
     void    *precond_data;
