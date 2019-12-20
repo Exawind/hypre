@@ -100,34 +100,38 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
   HYPRE_Real      one_minus_omega;
   HYPRE_Real      prod;
 
-  //hypre_ParVector    *r;
-  //hypre_ParVector    *y;
-  HYPRE_Real *r_data;
-  HYPRE_Real *y_data;
+  // hypre_ParVector    *r;
+  hypre_ParVector    *y;
+  //  HYPRE_Real *r_data;
+    HYPRE_Real *y_data;
+  /*
+     r = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A),
+     hypre_ParCSRMatrixGlobalNumRows(A),
+     hypre_ParCSRMatrixRowStarts(A));
+     hypre_ParVectorInitialize(r);
+     hypre_ParVectorSetPartitioningOwner(r,0);
+     hypre_Vector   *r_local = hypre_ParVectorLocalVector(r);
 
-  /*r = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A),
-    hypre_ParCSRMatrixGlobalNumRows(A),
-    hypre_ParCSRMatrixRowStarts(A));
-    hypre_ParVectorInitialize(r);
-    hypre_ParVectorSetPartitioningOwner(r,0);
-    hypre_Vector   *r_local = hypre_ParVectorLocalVector(r);
-    */
 
- // hypre_Vector   *r_local =hypre_SeqVectorCreate(n) ;//hypre_ParVectorLocalVector(y);
- // hypre_SeqVectorInitialize(r_local); 
-  /* y = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A),
+     r_local =hypre_SeqVectorCreate(n) ;//hypre_ParVectorLocalVector(y);
+     hypre_SeqVectorInitialize(r_local); 
+*/    
+
+ y = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A),
      hypre_ParCSRMatrixGlobalNumRows(A),
      hypre_ParCSRMatrixRowStarts(A));
      hypre_ParVectorInitialize(y);
      hypre_ParVectorSetPartitioningOwner(y,0);
-     */
-  hypre_Vector   *y_local =hypre_SeqVectorCreate( num_cols_offd) ;//hypre_ParVectorLocalVector(y);
-  hypre_SeqVectorInitialize(y_local); 
+
+     hypre_Vector   *y_local =hypre_SeqVectorCreate( num_cols_offd) ;//hypre_ParVectorLocalVector(y);
+     hypre_SeqVectorInitialize(y_local); 
+    
   /* point to local data */
   //r_data = hypre_VectorData(r_local);
   //  y_data = hypre_VectorData(hypre_ParVectorLocalVector(y));
   y_data = hypre_VectorData(y_local);
-  one_minus_weight = 1.0 - relax_weight;
+  
+one_minus_weight = 1.0 - relax_weight;
   one_minus_omega = 1.0 - omega;
   hypre_MPI_Comm_size(comm,&num_procs);  
   hypre_MPI_Comm_rank(comm,&my_id);  
@@ -536,7 +540,7 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 	    else
 	    {
 	      //THIS GOES TO THE GPU 
-	     #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+	      #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
 //#if 0
 	      //make sure f_data and u_data are updated i.e. copy them
 
@@ -572,41 +576,83 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 
 	      hypre_SeqVectorCopyDataGPUtoCPU( u_local );
 #else   
-	      hypre_SeqVectorCopyDataCPUtoGPU( u_local );
-	      hypre_SeqVectorCopy( f_local,r_local );
-	      printf("norm of u_local BEFORE %16.16f norm of r_local %16.16f \n", hypre_SeqVectorInnerProdOneOfMult( u_local,0,u_local, 0), hypre_SeqVectorInnerProdOneOfMult( r_local,0,r_local, 0));
-	      for (i = 0; i < n; i++)   // row index
-	      {
-		/*-----------------------------------------------------------
-		 * If diagonal is nonzero, relax point i; otherwise, skip it.
-		 *-----------------------------------------------------------*/
 
-		if ( A_diag_data[A_diag_i[i]] != zero)
+	      HYPRE_Real res_max;
+	      HYPRE_Int ii = 0; 
+	      for (HYPRE_Int kk = 0; kk < n; kk++) { 
+printf("k=%d \n", kk);
+
+		for (i = 0; i < n; i++)   // row index
 		{
-		  res = f_data[i];  // r(i) = b(i) - Ax
-		  //		 r_data[i] =  f_data[i]; 
+		  /*-----------------------------------------------------------
+		   * If diagonal is nonzero, relax point i; otherwise, skip it.
+		   *-----------------------------------------------------------*/
 
+		  res = f_data[i];  // r(i) = b(i) - Ax
+		  //r_data[i] = f_data[i];  // r(i) = b(i) - Ax
 #pragma unroll
 		  for (jj = A_diag_i[i]; jj < A_diag_i[i+1]; jj++)
 		  {
 		    res -= A_diag_data[jj] * u_data[A_diag_j[jj]];  // r(i) = b(i) - Ax
 		    //r_data[i] -= A_diag_data[jj] * u_data[A_diag_j[jj]];  // r(i) = b(i) - Ax
 		  }
+
 #pragma unroll
 		  for (jj = A_offd_i[i]; jj < A_offd_i[i+1]; jj++)
 		  {
 		    res -= A_offd_data[jj] * Vext_data[A_offd_j[jj]];
-		    //  r_data[i] -= A_offd_data[jj] * Vext_data[A_offd_j[jj]];
+		    //r_data[i] -= A_offd_data[jj] * Vext_data[A_offd_j[jj]];
+		  }
+		  //		u_data[i] += res / A_diag_data[A_diag_i[i]];
+		  if (i==0) {res_max = res; ii = 0;}
+		  else {
+		    if (fabs(res)>fabs(res_max)){
+		      res_max = res;
+		      ii = i;
+		    }
+		  }
+		}//i=0, n-1
+		if ( A_diag_data[A_diag_i[ii]] != zero)
+		{
+		  u_data[ii] += res_max / A_diag_data[A_diag_i[ii]];  // x(i) = x(i) + r(i) / D(i)
+		}
 
-//if (Vext_data[A_offd_j[jj]]!=0.0) printf("vextdata[%d] = %16.16f \n",A_offd_j[jj], Vext_data[A_offd_j[jj]] );		
-  }
-		  u_data[i] += res / A_diag_data[A_diag_i[i]];  // x(i) = x(i) + r(i) / D(i)
-		  //u_data[i] += r_data[i] / A_diag_data[A_diag_i[i]];  // x(i) = x(i) + r(i) / D(i)
+	      }//kk
+	      //HYPRE_Int l;
+	      //for (l = 0; l < 100; l++)
+	      //{
+
+	      //HYPRE_Int ii = 0; res = r_data[0];
+	      //for (i = 1; i < n; i++) {
+	      //   ii = ( fabs(r_data[i]) > fabs(res) ) ? i : ii;
+	      //}
+
+	      if ( A_diag_data[A_diag_i[ii]] != zero)
+	      {
+		//		u_data[ii] += res_max / A_diag_data[A_diag_i[ii]];
+		//res = 1.0 / A_diag_data[A_diag_i[ii]];
+		//u_data[ii] += r_data[ii] * res;
+		//u_data[ii] += r_data[ii] / A_diag_data[A_diag_i[ii]];  // x(i) = x(i) + r(i) / D(i)
+		for (i = 0; i < n; i++)   // row index
+		{
+
+		  //u_data[i] += res_max / A_diag_data[A_diag_i[ii]];
 		}
 	      }
 
-	      hypre_SeqVectorCopyDataCPUtoGPU( u_local );
-	      printf("norm of u_local AFTER %16.16f \n", hypre_SeqVectorInnerProdOneOfMult( u_local,0,u_local, 0));
+	      //for (i = 0; i < n; i++) {
+	      //if ( i != ii )
+	      //for (jj = A_diag_i[i]; jj < A_diag_i[i+1]; jj++)
+	      //{
+	      //if ( jj == ii ) {
+	      //r_data[i] -= A_diag_data[ii] * r_data[ii] * res;
+	      //r_data[i] -= A_diag_data[ii] * r_data[ii] / A_diag_data[A_diag_i[ii]];  
+	      //break;
+	      //}
+	      //}
+	      //}
+	      //r_data[ii] = 0.0;
+	      //}
 #endif
 	    }
 	  }
@@ -4235,8 +4281,8 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 	  break;   
 	}
 
-	//hypre_SeqVectorDestroy(r_local);
-	hypre_SeqVectorDestroy(y_local);
+	//	hypre_SeqVectorDestroy(r_local);
+	//	hypre_SeqVectorDestroy(y_local);
 
 
 	return(relax_error); 
