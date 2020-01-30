@@ -38,14 +38,26 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
     hypre_ParVector    *Ztemp )
 {
   MPI_Comm	   comm = hypre_ParCSRMatrixComm(A);
-  hypre_CSRMatrix *A_diag = hypre_ParCSRMatrixDiag(A);
+hypre_CSRMatrix *A_diag = hypre_ParCSRMatrixDiag(A);
+hypre_CSRMatrixCopyCPUtoGPU (A_diag);
   HYPRE_Real     *A_diag_data  = hypre_CSRMatrixData(A_diag);
   HYPRE_Int            *A_diag_i     = hypre_CSRMatrixI(A_diag);
   HYPRE_Int            *A_diag_j     = hypre_CSRMatrixJ(A_diag);
   hypre_CSRMatrix *A_offd = hypre_ParCSRMatrixOffd(A);
+hypre_CSRMatrixCopyCPUtoGPU (A_offd);  
   HYPRE_Int            *A_offd_i     = hypre_CSRMatrixI(A_offd);
   HYPRE_Real     *A_offd_data  = hypre_CSRMatrixData(A_offd);
   HYPRE_Int            *A_offd_j     = hypre_CSRMatrixJ(A_offd);
+
+
+  HYPRE_Real     *A_diag_ddata  = hypre_CSRMatrixDeviceData(A_diag);
+  HYPRE_Int            *A_diag_di     = hypre_CSRMatrixDeviceI(A_diag);
+  HYPRE_Int            *A_diag_dj     = hypre_CSRMatrixDeviceJ(A_diag);
+  HYPRE_Int            *A_offd_di     = hypre_CSRMatrixDeviceI(A_offd);
+  HYPRE_Real     *A_offd_ddata  = hypre_CSRMatrixDeviceData(A_offd);
+  HYPRE_Int            *A_offd_dj     = hypre_CSRMatrixDeviceJ(A_offd);
+
+
   hypre_ParCSRCommPkg  *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
   hypre_ParCSRCommHandle *comm_handle;
 
@@ -55,6 +67,8 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
   HYPRE_Int             num_cols_diag = hypre_CSRMatrixNumCols(A_diag);
   HYPRE_Int	      	   first_index = hypre_ParVectorFirstIndex(u);
 
+//if(A_diag_ddata==NULL) printf("DIAG ddata is null. n = %d, mum_cols_diag = %d\n", n, num_cols_diag);  
+//if(A_offd_ddata==NULL) printf("OFFD ddata is null. n = %d, mum_cols_diag = %d\n", n, num_cols_offd);  
   hypre_Vector   *u_local = hypre_ParVectorLocalVector(u);
   HYPRE_Real     *u_data  = hypre_VectorData(u_local);
 
@@ -100,38 +114,52 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
   HYPRE_Real      one_minus_omega;
   HYPRE_Real      prod;
 
-  // hypre_ParVector    *r;
-  hypre_ParVector    *y;
-  //  HYPRE_Real *r_data;
-    HYPRE_Real *y_data;
-  /*
-     r = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A),
-     hypre_ParCSRMatrixGlobalNumRows(A),
-     hypre_ParCSRMatrixRowStarts(A));
-     hypre_ParVectorInitialize(r);
-     hypre_ParVectorSetPartitioningOwner(r,0);
-     hypre_Vector   *r_local = hypre_ParVectorLocalVector(r);
+  //hypre_ParVector    *r;
+  //hypre_ParVector    *y;
+  //
+  hypre_ParVector    *v;
+  HYPRE_Real *r_data;
+  HYPRE_Real *y_data;
+ HYPRE_Real *v_data;
+/*
+ v = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A),
+                                hypre_ParCSRMatrixGlobalNumRows(A),
+                                hypre_ParCSRMatrixRowStarts(A));
+   hypre_ParVectorInitialize(v);
+   hypre_ParVectorSetPartitioningOwner(v,0);
+  */
 
+  //hypre_Vector   *v_local = hypre_ParVectorLocalVector(v);
+/*r = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A),
+      hypre_ParCSRMatrixGlobalNumRows(A),
+      hypre_ParCSRMatrixRowStarts(A));
+  hypre_ParVectorInitialize(r);
+  hypre_ParVectorSetPartitioningOwner(r,0);
+  hypre_Vector   *r_local = hypre_ParVectorLocalVector(r);
+*/
+HYPRE_Int vecl;
+if (n>num_cols_offd) vecl =n;
+else vecl = num_cols_offd;
+  hypre_Vector   *r_local =hypre_SeqVectorCreate(vecl) ;//hypre_ParVectorLocalVector(y);
+hypre_SeqVectorInitialize(r_local); 
+  hypre_Vector   *v_local =hypre_SeqVectorCreate(vecl) ;//hypre_ParVectorLocalVector(y);
+hypre_SeqVectorInitialize(v_local); 
+ /* y = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A),
+      hypre_ParCSRMatrixGlobalNumRows(A),
+      hypre_ParCSRMatrixRowStarts(A));
+  hypre_ParVectorInitialize(y);
+  hypre_ParVectorSetPartitioningOwner(y,0);
+*/
+  hypre_Vector   *y_local =hypre_SeqVectorCreate(vecl) ;//hypre_ParVectorLocalVector(y);
+//printf("initializing y n = %d and num col off diag = %d \n", n, num_cols_offd);
+hypre_SeqVectorInitialize(y_local); 
+ /* point to local data */
+  r_data = hypre_VectorData(r_local);
+//  y_data = hypre_VectorData(hypre_ParVectorLocalVector(y));
+y_data = hypre_VectorData(y_local);
 
-     r_local =hypre_SeqVectorCreate(n) ;//hypre_ParVectorLocalVector(y);
-     hypre_SeqVectorInitialize(r_local); 
-*/    
-
- y = hypre_ParVectorCreate(hypre_ParCSRMatrixComm(A),
-     hypre_ParCSRMatrixGlobalNumRows(A),
-     hypre_ParCSRMatrixRowStarts(A));
-     hypre_ParVectorInitialize(y);
-     hypre_ParVectorSetPartitioningOwner(y,0);
-
-     hypre_Vector   *y_local =hypre_SeqVectorCreate( num_cols_offd) ;//hypre_ParVectorLocalVector(y);
-     hypre_SeqVectorInitialize(y_local); 
-    
-  /* point to local data */
-  //r_data = hypre_VectorData(r_local);
-  //  y_data = hypre_VectorData(hypre_ParVectorLocalVector(y));
-  y_data = hypre_VectorData(y_local);
-  
-one_minus_weight = 1.0 - relax_weight;
+v_data = hypre_VectorData(v_local);
+  one_minus_weight = 1.0 - relax_weight;
   one_minus_omega = 1.0 - omega;
   hypre_MPI_Comm_size(comm,&num_procs);  
   hypre_MPI_Comm_rank(comm,&my_id);  
@@ -540,121 +568,165 @@ one_minus_weight = 1.0 - relax_weight;
 	    else
 	    {
 	      //THIS GOES TO THE GPU 
-	      #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
-//#if 0
+//#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+	      #if 0
 	      //make sure f_data and u_data are updated i.e. copy them
 
 	      hypre_SeqVectorCopyDataCPUtoGPU( f_local );
 	      hypre_SeqVectorCopyDataCPUtoGPU( u_local );
-	      //hypre_SeqVectorCopy( f_local,r_local );
+	      hypre_SeqVectorCopy( f_local,r_local );
 	      // DONT EVEN TRY OR SEG FAULT!!!!!
 	      //    y_data = Vext_data;
 
 	      HYPRE_Real * y_ddata = hypre_VectorDeviceData(y_local);
 	      //copy Vext_data to y_ddata
-	      //printf("num rows %d num cols diag %d num cols offd %d, y has %d entries u has %d entries and f has %d entries and r has %d entries\n",n, num_cols_diag, num_cols_offd, hypre_VectorSize(y_local),  hypre_VectorSize(u_local),  hypre_VectorSize(f_local), hypre_VectorSize(r_local));
+//printf("num rows %d num cols diag %d num cols offd %d, y has %d entries u has %d entries and f has %d entries and r has %d entries\n",n, num_cols_diag, num_cols_offd, hypre_VectorSize(y_local),  hypre_VectorSize(u_local),  hypre_VectorSize(f_local), hypre_VectorSize(r_local));
+#if 1
 	      cudaMemcpy ( y_ddata,Vext_data,
 		  num_cols_offd *sizeof(HYPRE_Complex),
 		  cudaMemcpyHostToDevice );
 
-
-
-	      //call double MV kernel
-	      //r = r-Adiag*u
-	      //	      hypre_CSRMatrixMatvecMultOutOfPlace( -1.0, A_diag, u_local,0, 1.0f, r_local,0, r_local, 0, 0);
-	      //HYPRE_Real norm_before = hypre_SeqVectorInnerProdOneOfMult( u_local,0,u_local, 0);	 
-	      //hypre_CSRMatrixMatvecMultOutOfPlace( -1.0, A_offd, y_local,0, 1.0f, r_local,0, r_local, 0, 0);
-	      //hypre_SeqVectorCopyDataGPUtoCPU( r_local );
-	      //printf("norm of u_local BEFORE is %f norm of r is %16.16f \n", hypre_SeqVectorInnerProdOneOfMult( u_local,0,u_local, 0),  hypre_SeqVectorInnerProdOneOfMult( r_local,0,r_local, 0));
-	      //hypre_CSRMatrixMatvecMultAsynch( -1.0, A_diag, u_local,0, 1.0f, r_local,0, r_local, 0, 0);
-	      hypre_CSRMatrixMatvecMultAsynchTwoInOne( -1.0, A_offd, A_diag, y_local,0, u_local,0, 1.0f, f_local,0, f_local, 0, 0);
-
 	      //r = r - Aoffd *V_extdata = r-Aoffd*y
-	      //printf("norm of u_local BEFORE %16.16f  AFTER is %16.16f norm of y %16.16f\n",norm_before,  hypre_SeqVectorInnerProdOneOfMult( u_local,0,u_local, 0), hypre_SeqVectorInnerProdOneOfMult( y_local,0,y_local, 0));
+	      hypre_CSRMatrixMatvecMultOutOfPlace( -1.0, A_offd, y_local,0, 1.0f, r_local,0, r_local, 0, 0);
+	      
 
-	      //printf("norm of u_local AFTER is %f \n", hypre_SeqVectorInnerProdOneOfMult( u_local,0,u_local, 0));
+//call double MV kernel
+	      //r = r-Adiag*u
+//	      hypre_CSRMatrixMatvecMultOutOfPlace( -1.0, A_diag, u_local,0, 1.0f, r_local,0, r_local, 0, 0);
+	 
+//printf("norm of u_local BEFORE is %f norm of r BEFORE %f \n", hypre_SeqVectorInnerProdOneOfMult( u_local,0,u_local, 0),  hypre_SeqVectorInnerProdOneOfMult( r_local,0,r_local, 0));
+     hypre_CSRMatrixMatvecMultAsynch( -1.0, A_diag, u_local,0, 1.0f, r_local,0, r_local, 0, 0);
 
-	      hypre_SeqVectorCopyDataGPUtoCPU( u_local );
-#else   
+//printf("norm of u_local AFTER is %f norm of r AFTER %f \n", hypre_SeqVectorInnerProdOneOfMult( u_local,0,u_local, 0),  hypre_SeqVectorInnerProdOneOfMult( r_local,0,r_local, 0));
 
-	      HYPRE_Real res_max;
-	      HYPRE_Int ii = 0; 
-	      for (HYPRE_Int kk = 0; kk < n; kk++) { 
-printf("k=%d \n", kk);
 
-		for (i = 0; i < n; i++)   // row index
+#if 0
+	      hypre_SeqVectorCopyDataGPUtoCPU( r_local );
+	      //NOW scale
+	      //to be changed
+	      for (i = 0; i < n; i++)   // row index
+	      {
+		if ( A_diag_data[A_diag_i[i]] != zero)
 		{
-		  /*-----------------------------------------------------------
-		   * If diagonal is nonzero, relax point i; otherwise, skip it.
-		   *-----------------------------------------------------------*/
+		  u_data[i] +=r_data[i] / A_diag_data[A_diag_i[i]];  // x(i) = x(i) + r(i) / D(i)
+		}
 
+	      }
+#endif
+#endif
+#else   
+//new GPU version
+#if 1
+	      hypre_SeqVectorCopyDataCPUtoGPU( f_local );
+//works
+	      hypre_SeqVectorCopyDataCPUtoGPU( u_local );
+//works
+
+	      hypre_SeqVectorCopy( f_local,r_local );
+//works
+	      HYPRE_Real * y_ddata = hypre_VectorDeviceData(v_local);
+	      //copy Vext_data to y_ddata
+//works - as long as we do not try to copy
+	      cudaMemcpy ( y_ddata,Vext_data,
+		  num_cols_offd *sizeof(HYPRE_Complex),
+		  cudaMemcpyHostToDevice );
+
+//first matvec:r -= Adiag*u_data
+ 
+//second matvec:r -= Aoffdig*Vextdata
+
+//scale finished r by the A_diag[i] and store in y
+/*if (A_offd_ddata == NULL) {
+printf("oups null \n");
+if (A_offd_data != NULL) printf ("so device data is null ubut non dev data is NOT\n");
+}*/
+//printf("Inside precon. Norm of u-local before kernel 1 %16.16f\n", hypre_SeqVectorInnerProd(u_local, u_local));
+MatvecCSRTwoInOne(n,-1.0f, A_offd_ddata ,A_offd_di, A_offd_dj,  A_diag_ddata,A_diag_di, A_diag_dj, y_ddata,  u_local->d_data,1.0f,r_local->d_data, y_local->d_data);
+
+//printf("Inside precon. Norm of u-local before kernel 2 %16.16f\n", hypre_SeqVectorInnerProd(u_local, u_local));
+	      //hypre_SeqVectorCopyDataGPUtoCPU( y_local );
+//	      hypre_SeqVectorCopyDataGPUtoCPU( r_local );
+
+//Next loop: 
+//one GPU kernl to rule them all
+
+
+ MatvecCSRAMG(n,-1.0f, A_diag_ddata,A_diag_di, A_diag_dj, y_local->d_data, r_local->d_data,1.0f, u_local->d_data);
+
+//printf("Inside precon. Norm of u-local after kernel 2 %16.16f\n", hypre_SeqVectorInnerProd(u_local, u_local));
+	      hypre_SeqVectorCopyDataGPUtoCPU( u_local );
+#else
+
+  
+
+
+         for (i = 0; i < n; i++)   // row index
+            {
+               /*-----------------------------------------------------------
+                * If diagonal is nonzero, relax point i; otherwise, skip it.
+                *-----------------------------------------------------------*/
+
+                  res = f_data[i];  // r(i) = b(i) - Ax
+                  for (jj = A_diag_i[i]; jj < A_diag_i[i+1]; jj++)
+                  {
+                     res -= A_diag_data[jj] * u_data[A_diag_j[jj]];  // r(i) = b(i) - Ax
+                  }
+
+                  for (jj = A_offd_i[i]; jj < A_offd_i[i+1]; jj++)
+                  {
+                     res -= A_offd_data[jj] * Vext_data[A_offd_j[jj]];
+                  }
+                  r_data[i] = res;
+                  y_data[i] = res / A_diag_data[A_diag_i[i]];  // y1(i) = r(i) / D(i)
+            }
+          
+  for (i = 0; i < n; i++)   // row index
+            {
+                  res = r_data[i];  // v(i) = r(i) - Ay
+                  for (jj = A_diag_i[i]; jj < A_diag_i[i+1]; jj++)
+                  {
+                     res -= A_diag_data[jj] * y_data[A_diag_j[jj]];
+                  }
+
+                  y_data[i] += res / A_diag_data[A_diag_i[i]];  // y3(i) = y2(i) + v(i) / D(i)
+            }
+
+            for (i = 0; i < n; i++)   // row index
+                  u_data[i] += y_data[i];                       // x(i) = x(i) + y3(i)
+
+#endif
+#if 0
+//OLD WORKING VERSION
+	      for (i = 0; i < n; i++)   // row index
+	      {
+		/*-----------------------------------------------------------
+		 * If diagonal is nonzero, relax point i; otherwise, skip it.
+		 *-----------------------------------------------------------*/
+
+		if ( A_diag_data[A_diag_i[i]] != zero)
+		{
 		  res = f_data[i];  // r(i) = b(i) - Ax
-		  //r_data[i] = f_data[i];  // r(i) = b(i) - Ax
+//		 r_data[i] =  f_data[i]; 
+
 #pragma unroll
 		  for (jj = A_diag_i[i]; jj < A_diag_i[i+1]; jj++)
 		  {
-		    res -= A_diag_data[jj] * u_data[A_diag_j[jj]];  // r(i) = b(i) - Ax
+	    res -= A_diag_data[jj] * u_data[A_diag_j[jj]];  // r(i) = b(i) - Ax
 		    //r_data[i] -= A_diag_data[jj] * u_data[A_diag_j[jj]];  // r(i) = b(i) - Ax
 		  }
-
 #pragma unroll
 		  for (jj = A_offd_i[i]; jj < A_offd_i[i+1]; jj++)
 		  {
 		    res -= A_offd_data[jj] * Vext_data[A_offd_j[jj]];
-		    //r_data[i] -= A_offd_data[jj] * Vext_data[A_offd_j[jj]];
+		  //  r_data[i] -= A_offd_data[jj] * Vext_data[A_offd_j[jj]];
 		  }
-		  //		u_data[i] += res / A_diag_data[A_diag_i[i]];
-		  if (i==0) {res_max = res; ii = 0;}
-		  else {
-		    if (fabs(res)>fabs(res_max)){
-		      res_max = res;
-		      ii = i;
-		    }
-		  }
-		}//i=0, n-1
-		if ( A_diag_data[A_diag_i[ii]] != zero)
-		{
-		  u_data[ii] += res_max / A_diag_data[A_diag_i[ii]];  // x(i) = x(i) + r(i) / D(i)
-		}
-
-	      }//kk
-	      //HYPRE_Int l;
-	      //for (l = 0; l < 100; l++)
-	      //{
-
-	      //HYPRE_Int ii = 0; res = r_data[0];
-	      //for (i = 1; i < n; i++) {
-	      //   ii = ( fabs(r_data[i]) > fabs(res) ) ? i : ii;
-	      //}
-
-	      if ( A_diag_data[A_diag_i[ii]] != zero)
-	      {
-		//		u_data[ii] += res_max / A_diag_data[A_diag_i[ii]];
-		//res = 1.0 / A_diag_data[A_diag_i[ii]];
-		//u_data[ii] += r_data[ii] * res;
-		//u_data[ii] += r_data[ii] / A_diag_data[A_diag_i[ii]];  // x(i) = x(i) + r(i) / D(i)
-		for (i = 0; i < n; i++)   // row index
-		{
-
-		  //u_data[i] += res_max / A_diag_data[A_diag_i[ii]];
+		  u_data[i] += res / A_diag_data[A_diag_i[i]];  // x(i) = x(i) + r(i) / D(i)
+		 //u_data[i] += r_data[i] / A_diag_data[A_diag_i[i]];  // x(i) = x(i) + r(i) / D(i)
 		}
 	      }
-
-	      //for (i = 0; i < n; i++) {
-	      //if ( i != ii )
-	      //for (jj = A_diag_i[i]; jj < A_diag_i[i+1]; jj++)
-	      //{
-	      //if ( jj == ii ) {
-	      //r_data[i] -= A_diag_data[ii] * r_data[ii] * res;
-	      //r_data[i] -= A_diag_data[ii] * r_data[ii] / A_diag_data[A_diag_i[ii]];  
-	      //break;
-	      //}
-	      //}
-	      //}
-	      //r_data[ii] = 0.0;
-	      //}
 #endif
-	    }
+#endif
+	    }//else
 	  }
 
 	  /*-----------------------------------------------------------------
@@ -4281,8 +4353,9 @@ printf("k=%d \n", kk);
 	  break;   
 	}
 
-	//	hypre_SeqVectorDestroy(r_local);
-	//	hypre_SeqVectorDestroy(y_local);
+	hypre_SeqVectorDestroy(r_local);
+	hypre_SeqVectorDestroy(y_local);
+	hypre_SeqVectorDestroy(v_local);
 
 
 	return(relax_error); 

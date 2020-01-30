@@ -1,7 +1,7 @@
 #define solverTimers 1
 #define usePrecond 1
 #define leftPrecond 0
-#define flexiblePrecond 1 // for flexible
+#define flexiblePrecond 0 // for flexible
 /******************************************************************************
  *
  * COGMRES cogmres
@@ -732,6 +732,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	  time1 = MPI_Wtime();
 
 	(*(cogmres_functions->ClearVector))(w);
+	//(*(cogmres_functions->ClearVector))(w_2);
 	//KS: if iter == 0, x has the right CPU data, no need to copy	
 	//not true if restarting
 	if(iter!=0){
@@ -739,6 +740,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	}	
 	//w = Mx
 	(*(cogmres_functions->CopyVector))(x, 0, w_2, 0);
+//	if (iter==0) printf("ITER 0, norm of x  (before precon) %16.16f\n ",sqrt((*(cogmres_functions->InnerProd))(w_2,0,w_2, 0)));
 	if (solverTimers){
 	  time2 = MPI_Wtime();
 	  remainingTime += (time2-time1);
@@ -749,6 +751,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	precond(precond_data, A, w_2,w );
 	POP_RANGE;
 
+//	if (iter==0) printf("ITER 0, norm after applying precon %16.16f\n ",sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
 
 	if (solverTimers){
 	  time4 = MPI_Wtime();
@@ -767,6 +770,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	    zero,
 	    w_2, 0);
 
+//	if (iter==0) printf("ITER 0, norm after applying matvec %16.16f\n ",sqrt((*(cogmres_functions->InnerProd))(w_2,0,w_2, 0)));
 	if (solverTimers){
 	  time2 = MPI_Wtime();
 	  mvTime +=(time2-time1);
@@ -1357,7 +1361,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	  time4 = MPI_Wtime();
 	  linSolveTime += (time4-time1);
 	}
-
+#if 1
 	if ( print_level>0 )
 	{
 	  norms[iter] = r_norm;
@@ -1371,6 +1375,19 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 		norms[iter]/sc);
 	  }
 	}// if (printing)
+#else
+
+	  norms[iter] = r_norm;
+	    HYPRE_Real sc;
+
+	    if (i == 0) {sc = 1.0;}
+	    else {sc = norms[iter-1];}
+	    
+if (my_id == 0 )hypre_printf("ITER: % 5d    %e    %f\n", iter, norms[iter],
+		norms[iter]/sc);
+
+
+#endif
 	//printf("r_norm = %16.16e epsilon = %16.16e\n", r_norm, epsilon);
 	if (r_norm <epsilon){
 
@@ -1567,7 +1584,10 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
     hypre_printf("gram-schmidt (total) = %16.16f \n", gsTime);
     hypre_printf("linear solve         = %16.16f \n", linSolveTime);
     hypre_printf("all other            = %16.16f \n", remainingTime);
-    hypre_printf("FINE times\n");
+ 
+    hypre_printf("TOTAL:               = %16.16f \n", initTime+matvecPreconTime+gsTime+linSolveTime+remainingTime);
+#if 0 
+   hypre_printf("FINE times\n");
     hypre_printf("mass Inner Product   = %16.16f \n", massIPTime);
     hypre_printf("mass Axpy            = %16.16f \n", massAxpyTime);
     hypre_printf("Gram-Schmidt: other  = %16.16f \n", gsOtherTime);
@@ -1576,7 +1596,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
     hypre_printf("MATLAB timers \n");
     hypre_printf("gsTime(%d) = %16.16f \n", k_dim/5, gsTime);	
     hypre_printf("timeAll(%d,%d)                =  \n\n",GSoption+1, k_dim/5);
-
+#endif
   }
 #endif
   if ((HegedusTrick == 0))
