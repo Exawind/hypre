@@ -12,7 +12,7 @@
 
 #include "krylov.h"
 #include "_hypre_utilities.h"
-#include "_hypre_parcsr_ls.h"
+//#include "_hypre_parcsr_ls.h"
 //#include "_hypre_parcsr_ls.h"
 
 #ifdef HYPRE_USING_GPU

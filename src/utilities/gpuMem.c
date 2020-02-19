@@ -46,17 +46,20 @@ void hypre_GPUInit(hypre_int use_device)
   printf("COGMRES SETUP: %d GPUs available!\n", numGPUs);      
 //  cudaDeviceGetAttribute (&modeK, cudaDevAttrConcurrentManagedAccess,iproc_%numGPUs);
  // printf("COGMRES SETUP: managed access on device %d? %d\n", iproc_ %numGPUs, modeK);
- 
- // HYPRE_DEVICE = iproc_%numGPUs;
- // HYPRE_DEVICE_COUNT = numGPUs;
-
+#if 0
+  HYPRE_DEVICE = iproc_%numGPUs;
+  HYPRE_DEVICE_COUNT = numGPUs;
+#endif
+HYPRE_DEVICE_COUNT =1; 
+  HYPRE_DEVICE = 0;
  //HYPRE_DEVICE = iproc_%numGPUs;
- hypre_printf("nproc_ = %d \n", nproc_);
-HYPRE_Int halfNum = (int) nproc_/numGPUs;
+ //hypre_printf("nproc_ = %d \n", nproc_);
+//HYPRE_Int halfNum = (int) nproc_/numGPUs;
 //EAGLE ONLY!!!
   //cudaDeviceGetAttribute (&modeK, cudaDevAttrConcurrentManagedAccess,gpuNum%numGPUs);
  // printf("COGMRES SETUP: managed access on device %d? %d\n", iproc_, gpuNum%numGPUs, modeK);
-  HYPRE_DEVICE_COUNT = numGPUs;
+#if 0  
+HYPRE_DEVICE_COUNT = numGPUs;
 cudaDeviceProp prop;
 
 if (iproc_<halfNum){
@@ -76,7 +79,8 @@ else
   printf("COGMRES SETUP Hi i am rank %d Setting my GPUs to %d !\n",
 iproc_, 1);      
 }
-// ierr = cudaSetDevice(iproc_ % numGPUs);
+#endif
+ierr = cudaSetDevice(0);
 //  printf("COGMRES SETUP Hi i am rank %d Setting my GPUs to %d !\n",iproc_, iproc_%numGPUs);      
 #else
 
