@@ -77,6 +77,9 @@ extern "C" {
     hypre_MPI_Datatype          *send_mpi_types;
     hypre_MPI_Datatype          *recv_mpi_types;
 
+//KS for testing
+ HYPRE_Real comm_time;
+//KS end
 #ifdef HYPRE_USING_PERSISTENT_COMM
     hypre_ParCSRPersistentCommHandle *persistent_comm_handles[NUM_OF_COMM_PKG_JOB_TYPE];
 #endif
@@ -110,6 +113,7 @@ extern "C" {
 #define hypre_ParCSRCommPkgSendMapStart(comm_pkg,i)(comm_pkg -> send_map_starts[i])
 #define hypre_ParCSRCommPkgSendMapElmts(comm_pkg)  (comm_pkg -> send_map_elmts)
 #define hypre_ParCSRCommPkgSendMapElmt(comm_pkg,i) (comm_pkg -> send_map_elmts[i])
+//#define hypre_ParCSRCommPkgTime(comm_pkg)          (comm_pkg -> comm_time)
 
 #define hypre_ParCSRCommPkgNumRecvs(comm_pkg)      (comm_pkg -> num_recvs)
 #define hypre_ParCSRCommPkgRecvProcs(comm_pkg)     (comm_pkg -> recv_procs)

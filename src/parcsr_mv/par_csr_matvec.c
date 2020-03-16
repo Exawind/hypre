@@ -1222,6 +1222,7 @@ hypre_ParCSRMatrixMatvec_FF( HYPRE_Complex       alpha,
     {
       hypre_MatvecCommPkgCreate(A);
       comm_pkg = hypre_ParCSRMatrixCommPkg(A);
+
     }
 
     num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);

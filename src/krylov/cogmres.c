@@ -1581,6 +1581,8 @@ if (my_id == 0 )hypre_printf("ITER: % 5d    %e    %f\n", iter, norms[iter],
     hypre_printf("TIME for CO-GMRES\n");
     hypre_printf("init cost            = %16.16f \n", initTime);
     hypre_printf("matvec+precon        = %16.16f \n", matvecPreconTime);
+    hypre_printf("mv time              = %16.16f \n", mvTime);
+    hypre_printf("precon multiply      = %16.16f \n", preconTime);
     hypre_printf("gram-schmidt (total) = %16.16f \n", gsTime);
     hypre_printf("linear solve         = %16.16f \n", linSolveTime);
     hypre_printf("all other            = %16.16f \n", remainingTime);

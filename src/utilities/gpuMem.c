@@ -30,7 +30,7 @@ struct hypre__global_struct hypre__global_handle = {0, 0, 1, 0};
 void hypre_GPUInit(hypre_int use_device)
 {
   //KS: this is an UGLY method but it works
-
+printf("starting GPU init...\n");
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
   MPI_Comm            comm = hypre_MPI_COMM_WORLD;
   HYPRE_Int iproc_, nproc_;
@@ -38,52 +38,24 @@ void hypre_GPUInit(hypre_int use_device)
 
   MPI_Comm_rank(comm, &iproc_);
   MPI_Comm_size(comm, &nproc_);
+//SUMMIT ONLY
 
-
-  cudaError_t ierr;
-  HYPRE_Int numGPUs, modeK;
-  ierr = cudaGetDeviceCount(&numGPUs);
-  printf("COGMRES SETUP: %d GPUs available!\n", numGPUs);      
-//  cudaDeviceGetAttribute (&modeK, cudaDevAttrConcurrentManagedAccess,iproc_%numGPUs);
- // printf("COGMRES SETUP: managed access on device %d? %d\n", iproc_ %numGPUs, modeK);
-#if 0
-  HYPRE_DEVICE = iproc_%numGPUs;
-  HYPRE_DEVICE_COUNT = numGPUs;
-#endif
-HYPRE_DEVICE_COUNT =1; 
-  HYPRE_DEVICE = 0;
- //HYPRE_DEVICE = iproc_%numGPUs;
- //hypre_printf("nproc_ = %d \n", nproc_);
-//HYPRE_Int halfNum = (int) nproc_/numGPUs;
-//EAGLE ONLY!!!
-  //cudaDeviceGetAttribute (&modeK, cudaDevAttrConcurrentManagedAccess,gpuNum%numGPUs);
- // printf("COGMRES SETUP: managed access on device %d? %d\n", iproc_, gpuNum%numGPUs, modeK);
-#if 0  
+      cudaError_t ierr;
+      int numGPUs;
+int modeK;
+      ierr = cudaGetDeviceCount(&numGPUs);
+printf("%d GPUs available!\n", numGPUs);      
+cudaDeviceGetAttribute (&modeK, cudaDevAttrConcurrentManagedAccess,iproc_%numGPUs);
+printf("managed access on device %d? %d\n", iproc_ %numGPUs, modeK);
+HYPRE_DEVICE = iproc_%numGPUs;
 HYPRE_DEVICE_COUNT = numGPUs;
-cudaDeviceProp prop;
+      ierr = cudaSetDevice(iproc_ % numGPUs);
+printf("Hi i am rank %d Setting my GPUs to %d !\n",iproc_, iproc_%numGPUs);      
+//END OF SUMMIT ONLY
 
-if (iproc_<halfNum){
-cudaGetDeviceProperties (&prop, 0);
-
- ierr = cudaSetDevice(0);
-  HYPRE_DEVICE =0;
-  printf("COGMRES SETUP Hi i am rank %d Setting my GPUs to %d!\n",
-iproc_, 0);      
- }
-else
-{
-//CUuuid uuid;
-//cuDeviceGetUuid ( &uuid,1  );
- ierr = cudaSetDevice(1);
-  HYPRE_DEVICE =1;
-  printf("COGMRES SETUP Hi i am rank %d Setting my GPUs to %d !\n",
-iproc_, 1);      
-}
-#endif
-ierr = cudaSetDevice(0);
 //  printf("COGMRES SETUP Hi i am rank %d Setting my GPUs to %d !\n",iproc_, iproc_%numGPUs);      
 #else
-
+prinf("init using uni memory\n");
   //end of KS code
   char pciBusId[80];
   hypre_int myid;

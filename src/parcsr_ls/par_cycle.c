@@ -27,7 +27,7 @@
 #ifdef HYPRE_USING_CALIPER
 #include <caliper/cali.h>
 #endif
-
+static double timeRelax, timeMatvec, timeMatvecT;
 /*--------------------------------------------------------------------------
  * hypre_BoomerAMGCycle
  *--------------------------------------------------------------------------*/
@@ -37,6 +37,7 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
                       hypre_ParVector  **F_array,
                       hypre_ParVector  **U_array   )
 {
+double t1, t2;
    hypre_ParAMGData *amg_data = (hypre_ParAMGData*) amg_vdata;
 
    HYPRE_Solver *smoother;
@@ -279,8 +280,17 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
            alpha = -1.0;
            beta = 1.0;
 
-           hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
+  t1 = hypre_MPI_Wtime();
+if (my_id==0) printf("mv 1\n");  
+         hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                                 U_array[level], beta, F_array[level], Rtemp);
+  
+  t2 = hypre_MPI_Wtime();
+ 
+if (my_id == 0)
+{
+timeMatvec+=(t2-t1);
+}
            cg_num_sweep = hypre_ParAMGDataSmoothNumSweeps(amg_data);
            num_sweep = num_grid_sweeps[cycle_param];
            Aux_U = Ztemp;
@@ -294,7 +304,7 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
            Aux_F = F_array[level];
         }
         relax_type = grid_relax_type[cycle_param];
-      }
+      }//num levels >1
       else /* AB: 4/08: removed the max_levels > 1 check - should do this when max-levels = 1 also */
       {
         /* If no coarsening occurred, apply a simple smoother once */
@@ -510,7 +520,10 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
               }
               else if (old_version)
               {
-                 Solve_err_flag = hypre_BoomerAMGRelax(A_array[level],
+              
+  t1 = hypre_MPI_Wtime();
+if (my_id==0) printf("relax 1\n");  
+   Solve_err_flag = hypre_BoomerAMGRelax(A_array[level],
                                                      Aux_F,
                                                      CF_marker_array[level],
                                                      relax_type,
@@ -521,7 +534,15 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                                                      Aux_U,
                                                      Vtemp,
                                                      Ztemp);
-              }
+             
+  t2 = hypre_MPI_Wtime();
+ 
+if (my_id == 0)
+{
+timeRelax+=(t2-t1);
+//printf("one Vcycle CALL took %16.16f secondsi, total cost (for now) is %16.16f \n", t2-t1, vcycleTime);
+}
+ }
               else
               {
                  /* smoother than can have CF ordering */
@@ -543,6 +564,8 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                  
 
 
+  t1 = hypre_MPI_Wtime();
+if (my_id==0) printf("relax 2 1\n");  
   Solve_err_flag = hypre_BoomerAMGRelaxIF(A_array[level],
                                                           Aux_F,
                                                           CF_marker_array[level],
@@ -555,7 +578,15 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                                                           Aux_U,
                                                           Vtemp,
                                                           Ztemp);
-                 }
+                 
+  t2 = hypre_MPI_Wtime();
+ 
+if (my_id == 0)
+{
+timeRelax+=(t2-t1);
+//printf("one Vcycle CALL took %16.16f secondsi, total cost (for now) is %16.16f \n", t2-t1, vcycleTime);
+}
+}
               }
 
               if (Solve_err_flag != 0)
@@ -574,13 +605,23 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                     Ptemp_data[i] = Ztemp_data[i] + beta*Ptemp_data[i];
               }
 
+  t1 = hypre_MPI_Wtime();
+
+if (my_id==0) printf("mv 2\n");  
               hypre_ParCSRMatrixMatvec(1.0,A_array[level],Ptemp,0.0,Vtemp);
-              alfa = gamma /hypre_ParVectorInnerProd(Ptemp,Vtemp);
+  
+  t2 = hypre_MPI_Wtime();
+ 
+if (my_id == 0)
+{
+timeMatvec+=(t2-t1);
+}
+            alfa = gamma /hypre_ParVectorInnerProd(Ptemp,Vtemp);
               hypre_ParVectorAxpy(alfa,Ptemp,U_array[level]);
               hypre_ParVectorAxpy(-alfa,Vtemp,Rtemp);
            }
-        }
-      }
+        }//for for relxrion
+      }//if num_levels>1, else part
 
       /*------------------------------------------------------------------
        * Decrement the control counter and determine which grid to visit next
@@ -614,9 +655,17 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
          else
          {
             // JSP: avoid unnecessary copy using out-of-place version of SpMV
+            //SyncVectorToHost(hypre_ParVectorLocalVector(Vtemp));
+  t1 = hypre_MPI_Wtime();
+  
+if (my_id==0) printf("mv 3\n");  
             hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[fine_grid], U_array[fine_grid],
                                                beta, F_array[fine_grid], Vtemp);
-            //SyncVectorToHost(hypre_ParVectorLocalVector(Vtemp));
+  t2 = hypre_MPI_Wtime();
+ if (my_id == 0)
+{
+timeMatvec+=(t2-t1);
+}
          }
 
          alpha = 1.0;
@@ -632,8 +681,17 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
             if (restri_type)
             {
                /* RL: no transpose for R */
+  t1 = hypre_MPI_Wtime();
+if (my_id==0) printf("mv 4\n");  
                hypre_ParCSRMatrixMatvec(alpha, R_array[fine_grid], Vtemp,
                                         beta, F_array[coarse_grid]);
+  
+  t2 = hypre_MPI_Wtime();
+ 
+if (my_id == 0)
+{
+timeMatvec+=(t2-t1);
+}
             }
             else
             {
@@ -641,10 +699,19 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                //SyncVectorToHost(hypre_ParVectorLocalVector(F_array[coarse_grid]));
               
 
- hypre_ParCSRMatrixMatvecT(alpha,R_array[fine_grid],Vtemp,
-                                         beta,F_array[coarse_grid]);
                //UpdateDRC(hypre_ParVectorLocalVector(F_array[coarse_grid]));
                //SyncVectorToHost(hypre_ParVectorLocalVector(F_array[coarse_grid]));
+  t1 = hypre_MPI_Wtime();
+if (my_id==0) printf("mvT 1\n");  
+ hypre_ParCSRMatrixMatvecT(alpha,R_array[fine_grid],Vtemp,
+                                         beta,F_array[coarse_grid]);
+  
+  t2 = hypre_MPI_Wtime();
+ 
+if (my_id == 0)
+{
+timeMatvecT+=(t2-t1);
+}
             }
          }
 
@@ -679,9 +746,18 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
          else
          {
 
+  t1 = hypre_MPI_Wtime();
+if (my_id==0) printf("mv 5\n");  
             hypre_ParCSRMatrixMatvec(alpha, P_array[fine_grid],
                                      U_array[coarse_grid],
                                      beta, U_array[fine_grid]);
+  
+  t2 = hypre_MPI_Wtime();
+ 
+if (my_id == 0)
+{
+timeMatvec+=(t2-t1);
+}
     }
 
          --level;
@@ -695,8 +771,12 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
       {
          Not_Finished = 0;
       }
-   }
+   }//while
 
+if (my_id == 0)
+{
+printf("inside Vcycle, all relax CALLs took %16.16f matvecs (prolongation, restriction) took %16.16f, matvecT took %16.16f \n", timeRelax, timeMatvec, timeMatvecT);
+}
 #ifdef HYPRE_USING_CALIPER
    cali_end(iter_attr);  /* unset "iter" */
 #endif
@@ -712,4 +792,4 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
         hypre_ParVectorDestroy(Utemp);
    }
    return(Solve_err_flag);
-}
+}//function

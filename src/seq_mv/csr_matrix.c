@@ -47,7 +47,8 @@ hypre_CSRMatrixCreate( HYPRE_Int num_rows,
   hypre_CSRMatrixNumRows(matrix) = num_rows;
   hypre_CSRMatrixNumCols(matrix) = num_cols;
   hypre_CSRMatrixNumNonzeros(matrix) = num_nonzeros;
-
+//default
+   hypre_CSRMatrixHasBeenCopied(matrix) = 0;
   /* set defaults */
   hypre_CSRMatrixOwnsData(matrix) = 1;
   hypre_CSRMatrixNumRownnz(matrix) = num_rows;
@@ -168,10 +169,12 @@ hypre_CSRMatrixCopyGPUtoCPU( hypre_CSRMatrix *matrix ){
 
 HYPRE_Int
 hypre_CSRMatrixCopyCPUtoGPU( hypre_CSRMatrix *matrix ){
-
+//printf("trying to copy the matrix. Has been copied? %d\n",hypre_CSRMatrixHasBeenCopied(matrix) );
   HYPRE_Int  num_rows     = hypre_CSRMatrixNumRows(matrix);
   HYPRE_Int  num_nonzeros = hypre_CSRMatrixNumNonzeros(matrix);
-
+if ((!hypre_CSRMatrixHasBeenCopied(matrix)) && num_nonzeros){
+//if (1){
+//printf("matrix NOT copied yet, copying: nnz %d and n=%d !, copy variable status %d\n", num_nonzeros, num_rows, hypre_CSRMatrixHasBeenCopied(matrix));
   //printf("\nabout to copy matrix data to the gpu, numnon zeros %d\n", num_nonzeros);
   hypre_CheckErrorDevice(cudaPeekAtLastError());
 #if (HYPRE_USING_GPU)
@@ -226,12 +229,16 @@ hypre_CSRMatrixCopyCPUtoGPU( hypre_CSRMatrix *matrix ){
 
   hypre_CheckErrorDevice(cudaPeekAtLastError());
   //printf("\ncopied matrix to the GPU\n");
-
+hypre_CSRMatrixHasBeenCopied(matrix) = 1;
 #else
   cudaMemcpy( hypre_CSRMatrixDeviceData(matrix),hypre_CSRMatrixData(matrix),   num_nonzeros*sizeof(HYPRE_Complex), cudaMemcpyHostToDevice);
   cudaMemcpy(hypre_CSRMatrixDeviceJ(matrix), hypre_CSRMatrixJ(matrix),   num_nonzeros*sizeof(HYPRE_Int), cudaMemcpyHostToDevice);
   cudaMemcpy(hypre_CSRMatrixDeviceI(matrix), hypre_CSRMatrixI(matrix),  ( num_rows+1)*sizeof(HYPRE_Int), cudaMemcpyHostToDevice);
+hypre_CSRMatrixHasBeenCopied(matrix) = 1;
 #endif
+
+
+}
   return 0;
 }
 
@@ -248,12 +255,12 @@ hypre_CSRMatrixInitialize( hypre_CSRMatrix *matrix )
   size_t mf, ma;
   HYPRE_Int  num_rows     = hypre_CSRMatrixNumRows(matrix);
   HYPRE_Int  num_nonzeros = hypre_CSRMatrixNumNonzeros(matrix);
-  /*   HYPRE_Int  num_rownnz = hypre_CSRMatrixNumRownnz(matrix); */
-  //printf("CSR INIT:  Inside matrix alloc! HYPRE_MEMORY SHARED is %d \n", HYPRE_MEMORY_SHARED);
+  ///*   HYPRE_Int  num_rownnz = hypre_CSRMatrixNumRownnz(matrix); */
+//  printf("CSR INIT:  Inside matrix alloc! HYPRE_MEMORY SHARED is %d, num rows %d, num non zeros %d  \n", HYPRE_MEMORY_SHARED, num_rows, num_nonzeros);
   HYPRE_Int  ierr=0;
   //  printf("CSR INIT: num_nonzeros = %d\n", num_nonzeros);
-//  cudaMemGetInfo(&mf, &ma);
-//  printf("starting allocation, free memory %zu total memory %zu percentage of allocated %f \n", mf, ma, (double)mf/ma);
+ // cudaMemGetInfo(&mf, &ma);
+ // printf("starting allocation, free memory %zu total memory %zu percentage of allocated %f \n", mf, ma, (double)mf/ma);
   if ( ! hypre_CSRMatrixData(matrix) && num_nonzeros ){
     //    printf("CSR INIT: before initializing UNI data\n");
 
@@ -276,14 +283,14 @@ hypre_CSRMatrixInitialize( hypre_CSRMatrix *matrix )
     hypre_CSRMatrixJ(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_nonzeros, HYPRE_MEMORY_SHARED);
     //printf("CSR INIT: after initializing UNI J\n");
   }
+
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
   //printf("num rows %d num non zeros %d \n", num_rows, num_nonzeros);  
   if (!hypre_CSRMatrixDeviceJ(matrix)){
-    //  printf("\nthere is NO J - initializing \n");
+  //   printf("\nthere is NO J - initializing \n");
     hypre_CSRMatrixDeviceJ(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_nonzeros, HYPRE_MEMORY_DEVICE);
-    //printf("\n Initializing J: exists? %d \n",hypre_CSRMatrixDeviceJ(matrix));  
+ //   printf("\n Initializing J: exists?, size %d, num_rows+1 = %d, %d \n",hypre_CSRMatrixDeviceJ(matrix), num_nonzeros, num_rows+1);  
   }
-
   if (!hypre_CSRMatrixDeviceI(matrix)){
     //  printf("\nthere is NO I - initializing \n");
     hypre_CSRMatrixDeviceI(matrix)    = hypre_CTAlloc(HYPRE_Int,  num_rows + 1, HYPRE_MEMORY_DEVICE);
@@ -297,11 +304,10 @@ hypre_CSRMatrixInitialize( hypre_CSRMatrix *matrix )
     //printf("device A data (diag)\n");
   }
 #endif
-
-
 //  cudaMemGetInfo(&mf, &ma);
   //printf("ending allocation, free memory %zu allocated memory %zu \n", mf, ma);
-
+  ////just in case!
+   hypre_CSRMatrixHasBeenCopied(matrix) = 0;
   //printf("ending allocation, free memory %zu total memory %zu percentage of allocated %f \n", mf, ma, (double)mf/ma);
   return ierr;
 }

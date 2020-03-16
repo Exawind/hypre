@@ -190,6 +190,7 @@ install: all
 	echo "Installing hypre ..."; \
 	${HYPRE_SRC_TOP_DIR}/config/mkinstalldirs ${HYPRE_LIB_INSTALL} ${HYPRE_INC_INSTALL}; \
 	HYPRE_PWD=`pwd`; \
+  echo ${HYPRE_BUILD_DIR}; \
 	cd ${HYPRE_BUILD_DIR}/lib; HYPRE_FROMDIR=`pwd`; \
 	cd $$HYPRE_PWD; \
 	cd ${HYPRE_LIB_INSTALL};   HYPRE_TODIR=`pwd`; \

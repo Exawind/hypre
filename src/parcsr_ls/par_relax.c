@@ -20,7 +20,7 @@
 #include "_hypre_lapack.h"
 #include "../sstruct_ls/gselim.h"
 #include "_hypre_parcsr_ls.h"
-
+//static double relaxCost;
 /*--------------------------------------------------------------------------
  * hypre_BoomerAMGRelax
  *--------------------------------------------------------------------------*/
@@ -182,7 +182,9 @@ v_data = hypre_VectorData(v_local);
    *     relax_type = 29-> Direct solve: use gaussian elimination & BLAS 
    *			    (with pivoting) (old version)
    *-----------------------------------------------------------------------*/
-  switch (relax_type)
+  
+//printf("relaxation type %d\n", relax_type);
+ switch (relax_type)
   {
     case 0: /* Weighted Jacobi */
       {
@@ -427,7 +429,11 @@ v_data = hypre_VectorData(v_local);
 	       Gauss-Seidel on-processor       
 	       (forward loop) */
       {
+//double t1, t2;
 
+//t1 = hypre_MPI_Wtime();
+//if (my_id == 0)
+//{printf("one MPI send/recv (GPU) took %16.16f seconds\n", t2-t1);}
 	if (num_threads > 1)
 	{
 	  Ztemp_local = hypre_ParVectorLocalVector(Ztemp);
@@ -641,6 +647,7 @@ printf("oups null \n");
 if (A_offd_data != NULL) printf ("so device data is null ubut non dev data is NOT\n");
 }*/
 //printf("Inside precon. Norm of u-local before kernel 1 %16.16f\n", hypre_SeqVectorInnerProd(u_local, u_local));
+//printf("inside precon. Matrix size %d nnz diag %d offdiag %d  \n", n, A_diag_i[n], A_offd_i[n]);
 MatvecCSRTwoInOne(n,-1.0f, A_offd_ddata ,A_offd_di, A_offd_dj,  A_diag_ddata,A_diag_di, A_diag_dj, y_ddata,  u_local->d_data,1.0f,r_local->d_data, y_local->d_data);
 
 //printf("Inside precon. Norm of u-local before kernel 2 %16.16f\n", hypre_SeqVectorInnerProd(u_local, u_local));
@@ -1053,6 +1060,13 @@ MatvecCSRTwoInOne(n,-1.0f, A_offd_ddata ,A_offd_di, A_offd_dj,  A_diag_ddata,A_d
 #ifdef HYPRE_PROFILE
 	hypre_profile_times[HYPRE_TIMER_ID_RELAX] += hypre_MPI_Wtime();
 #endif
+
+//t2 = hypre_MPI_Wtime();
+//if (my_id == 0)
+//{
+//relaxCost+=(t2-t1);
+//printf("one RELAX CALL took %16.16f secondsi, total cost (for now) is %16.16f \n", t2-t1, relaxCost);
+//}
       }
       break;
 

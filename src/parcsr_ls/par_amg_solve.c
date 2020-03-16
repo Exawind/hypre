@@ -22,7 +22,7 @@
 
 #include "_hypre_parcsr_ls.h"
 #include "par_amg.h"
-
+static double vcycleTime;
 /*--------------------------------------------------------------------
  * hypre_BoomerAMGSolve
  *--------------------------------------------------------------------*/
@@ -237,7 +237,9 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
    /*-----------------------------------------------------------------------
     *    Main V-cycle loop
     *-----------------------------------------------------------------------*/
-   
+double t1,t2, t3, t4;
+  t1 = hypre_MPI_Wtime();
+ 
    while ( (relative_resid >= tol || cycle_count < min_iter) && cycle_count < max_iter )
    {
       hypre_ParAMGDataCycleOpCount(amg_data) = 0;
@@ -307,6 +309,13 @@ hypre_BoomerAMGSolve( void               *amg_vdata,
       }
    }
 
+  t2 = hypre_MPI_Wtime();
+ 
+if (my_id == 0)
+{
+vcycleTime+=(t2-t1);
+printf("one Vcycle CALL took %16.16f secondsi, total cost (for now) is %16.16f \n", t2-t1, vcycleTime);
+}
    if (cycle_count == max_iter && tol > 0.)
    {
       Solve_err_flag = 1;

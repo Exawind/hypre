@@ -11,8 +11,8 @@ static cublasHandle_t myHandle;
 #define MaxSpace 100
 #define maxk 80
 #define Tv5 1024
-
-
+#define NB 1024
+#define MAX_SIZE 512
 
 extern "C"{
 __global__
@@ -937,88 +937,149 @@ void CSRMatvecTwoInOneKernel_v1(HYPRE_Int num_rows, const HYPRE_Real alpha, cons
 			}
 
 		}
-		//if (a2[ia2[i]]!=0.0){
 		if (a2!=NULL){      
 			for (j=ia2[i]; j< ia2[i+1]; j++){
 				sum += a2[j]*x2[ja2[j]];
 			}
 			sum*=alpha;
 			sum += beta*y[i];
-			//  if (abs(sum) >  1e-16){
 			y[i] = sum;
-			// }
 			if (a2[ia2[i]]!=0.0){sum/=a2[ia2[i]];}
-			//     if (abs(sum) >  1e-16){
 			z[i] = sum;
-			//   }
+		}//if
+	}//if num rows
+
+}
+//second version - one block processes multiple rows
+
+
+__global__
+void CSRMatvecTwoInOneKernel_v2(HYPRE_Int num_rows, const HYPRE_Real alpha, const HYPRE_Real * __restrict__ a1, const HYPRE_Int * __restrict__ ia1,const __restrict__  HYPRE_Int  * ja1, const HYPRE_Real * __restrict__ a2, const HYPRE_Int * __restrict__ ia2,const __restrict__  HYPRE_Int  * ja2,HYPRE_Real * x1,HYPRE_Real * x2, const HYPRE_Real beta, HYPRE_Real * y, HYPRE_Real *z){
+
+
+	int tid = threadIdx.x;
+	int bid = blockIdx.x;
+	int j;
+
+	int sz = floorf(num_rows/gridDim.x);
+	int rows_per_block = sz + (num_rows%gridDim.x > bid);
+	int first_row = bid*rows_per_block;
+	int last_row = (bid+1)*rows_per_block;
+
+	int block_start_diag = ia1[first_row]; 
+	int block_end_diag = ia1[last_row];
+	int nnz_diag = block_end_diag-block_start_diag;
+
+	int block_start_offd = ia2[first_row]; 
+	int block_end_offd = ia2[last_row];
+	int nnz_offd = block_end_offd-block_start_offd;
+
+	//load values to shared
+	__shared__ double s_partSums1[MAX_SIZE];
+	__shared__ double s_partSums2[MAX_SIZE];
+	int j1=tid;
+	//	int idx1 = ja1[tid];
+	while (j1<nnz_diag){
+		s_partSums1[j1] = a1[ia1[block_start_diag]+j1]*x1[ja1[block_start_diag+j1]];
+		j1+= blockDim.x;
+	}
+
+	int j2=tid;
+	//		int idx2 = ja2[i];
+	while (j2<nnz_offd){
+		s_partSums2[j2] = a2[ia2[block_start_offd]+j2]*x2[ja2[block_start_offd+j2]];
+		j2+= blockDim.x;
+	}
+	__syncthreads();
+	//reduction
+	//doesnt matter, the matrices have the same # of rows
+
+	if (tid<rows_per_block){
+		int myRowStart_diag = ia1[first_row+tid]-block_start_diag ;  
+		int myRowStart_offd = ia1[last_row+tid] - block_start_diag;
+		int myRowEnd_diag   = ia2[first_row+tid]-block_start_offd ;  
+		int myRowEnd_offd   = ia2[last_row+tid]-block_start_offd ;
+		double sum = 0.0f;
+		for (j=myRowStart_diag; j<= myRowEnd_diag; ++j)
+		{
+			sum += s_partSums1[j];
 		}
+		for (j=myRowStart_offd; j<= myRowEnd_offd; ++j)
+		{
+			sum += s_partSums2[j];
+		}
+
+		sum*=alpha;
+		sum += beta*y[first_row+tid];
+		y[first_row+tid] = sum;
+		if (a2[ia2[first_row+tid]]!=0.0){sum/=a2[ia2[first_row+tid]];}
+		z[first_row+tid] = sum;
 	}
+}
 
-	}
+void MatvecCSRTwoInOne(HYPRE_Int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a1,HYPRE_Int *ia1, HYPRE_Int *ja1,  HYPRE_Complex *a2,HYPRE_Int *ia2, HYPRE_Int *ja2,HYPRE_Complex *x1,HYPRE_Complex *x2, HYPRE_Complex beta, HYPRE_Complex *y, HYPRE_Complex *z){
+	HYPRE_Int num_threads=64;
+	HYPRE_Int num_blocks=num_rows/num_threads+1;
+	// printf("blocks: %d threads %d alpha %f beta %f \n", num_blocks, num_threads, alpha, beta);
+//printf("running v1\n");
+	CSRMatvecTwoInOneKernel_v1<<<num_blocks,num_threads>>>(num_rows,alpha, a1, ia1, ja1,a2,ia2,ja2, x1,x2,beta, y, z);
 
-	void MatvecCSRTwoInOne(HYPRE_Int num_rows,HYPRE_Complex alpha, HYPRE_Complex *a1,HYPRE_Int *ia1, HYPRE_Int *ja1,  HYPRE_Complex *a2,HYPRE_Int *ia2, HYPRE_Int *ja2,HYPRE_Complex *x1,HYPRE_Complex *x2, HYPRE_Complex beta, HYPRE_Complex *y, HYPRE_Complex *z){
-		HYPRE_Int num_threads=1024;
-		HYPRE_Int num_blocks=num_rows/num_threads+1;
-		// printf("blocks: %d threads %d alpha %f beta %f \n", num_blocks, num_threads, alpha, beta);
+}
 
-		CSRMatvecTwoInOneKernel_v1<<<num_blocks,num_threads>>>(num_rows,alpha, a1, ia1, ja1,a2,ia2,ja2, x1,x2,beta, y, z);
+//end of new code
 
-	}
+__global__
+void CSRMatvecAMGKernel_v1(HYPRE_Int num_rows, 
+		const HYPRE_Real alpha, 
+		const HYPRE_Real * __restrict__ a1, 
+		const HYPRE_Int * __restrict__ ia1,
+		const __restrict__  HYPRE_Int  * ja1,
+		HYPRE_Real * x1,HYPRE_Real * x2, 
+		const HYPRE_Real beta, 
+		HYPRE_Real * y){
+	//two inputs,one output
 
-	//end of new code
+	int i = blockIdx.x*blockDim.x + threadIdx.x;
+	int j;
 
-	__global__
-		void CSRMatvecAMGKernel_v1(HYPRE_Int num_rows, 
-				const HYPRE_Real alpha, 
-				const HYPRE_Real * __restrict__ a1, 
-				const HYPRE_Int * __restrict__ ia1,
-				const __restrict__  HYPRE_Int  * ja1,
-				HYPRE_Real * x1,HYPRE_Real * x2, 
-				const HYPRE_Real beta, 
-				HYPRE_Real * y){
-			//two inputs,one output
+	if (i<num_rows) { 
+		HYPRE_Real sum = 0.0f;
 
-			int i = blockIdx.x*blockDim.x + threadIdx.x;
-			int j;
+		if (a1!=NULL){
 
-			if (i<num_rows) { 
-				HYPRE_Real sum = 0.0f;
-
-				if (a1!=NULL){
-
-					for (j=ia1[i]; j< ia1[i+1]; j++){
-						sum += a1[j]*x1[ja1[j]];
-					}
-
-				}
-				sum*=alpha;
-				sum += beta*x2[i];
-				//y_data[i] += 0.4*res / A_diag_data[A_diag_i[i]]; 
-				sum = y[i] + x1[i]+0.8*sum/a1[ia1[i]]; 
-				//  if (abs(sum) >  1e-16){
-				y[i] = sum;
-				// }
+			for (j=ia1[i]; j< ia1[i+1]; j++){
+				sum += a1[j]*x1[ja1[j]];
 			}
+
 		}
-
-
-
-	void MatvecCSRAMG(HYPRE_Int num_rows,
-			HYPRE_Complex alpha, 
-			HYPRE_Complex *a1,
-			HYPRE_Int *ia1, 
-			HYPRE_Int *ja1,
-			HYPRE_Complex *x1,
-			HYPRE_Complex *x2, 
-			HYPRE_Complex beta, 
-			HYPRE_Complex *y){
-		HYPRE_Int num_threads=1024;
-		HYPRE_Int num_blocks=num_rows/num_threads+1;
-		// printf("blocks: %d threads %d alpha %f beta %f \n", num_blocks, num_threads, alpha, beta);
-
-		CSRMatvecAMGKernel_v1<<<num_blocks,num_threads>>>(num_rows,alpha, a1, ia1, ja1, x1,x2,beta, y);
-
+		sum*=alpha;
+		sum += beta*x2[i];
+		//y_data[i] += 0.4*res / A_diag_data[A_diag_i[i]]; 
+		sum = y[i] + x1[i]+0.8*sum/a1[ia1[i]]; 
+		//  if (abs(sum) >  1e-16){
+		y[i] = sum;
+		// }
 	}
+}
+
+
+
+void MatvecCSRAMG(HYPRE_Int num_rows,
+		HYPRE_Complex alpha, 
+		HYPRE_Complex *a1,
+		HYPRE_Int *ia1, 
+		HYPRE_Int *ja1,
+		HYPRE_Complex *x1,
+		HYPRE_Complex *x2, 
+		HYPRE_Complex beta, 
+		HYPRE_Complex *y){
+	HYPRE_Int num_threads=1024;
+	HYPRE_Int num_blocks=num_rows/num_threads+1;
+	// printf("blocks: %d threads %d alpha %f beta %f \n", num_blocks, num_threads, alpha, beta);
+
+	CSRMatvecAMGKernel_v1<<<num_blocks,num_threads>>>(num_rows,alpha, a1, ia1, ja1, x1,x2,beta, y);
+
+}
 }//extern C
 //end of new code
 

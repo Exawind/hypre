@@ -306,6 +306,8 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
     case  1:
       {
 
+//double t1, t2;
+//t1 = hypre_MPI_Wtime();
 	requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
 	HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
 	HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
@@ -325,11 +327,15 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 	  hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
 	      ip, 0, comm, &requests[j++]);
 	}
+//t2 = hypre_MPI_Wtime();
+//if (my_id == 0)
+//{printf("one MPI send/recv (CPU) took %16.16f seconds\n", t2-t1);}
 	break;
       }
     case  111:
       {
-
+//double t1, t2;
+//t1 = hypre_MPI_Wtime();
 	HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
 
 	HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
@@ -367,7 +373,9 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 	  //j++;       
 	}
 
-
+//t2 = hypre_MPI_Wtime();
+//if (my_id == 0)
+//{printf("one MPI send/recv (GPU) took %16.16f seconds\n", t2-t1);}
 	break;
       }
 
@@ -797,6 +805,7 @@ hypre_MatvecCommPkgCreate ( hypre_ParCSRMatrix *A )
       comm_pkg );
 #endif
 
+//  hypre_ParCSRCommPkgTime(comm) = 0.0; //communication time
   return hypre_error_flag;
 }
 
