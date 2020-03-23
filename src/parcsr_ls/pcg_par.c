@@ -163,9 +163,9 @@ hypre_ParKrylovMatvecCreate( void   *A,
   }
 
   HYPRE_Int num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
-  AA->x_tmp = hypre_SeqVectorCreate( num_cols_offd );
+  //AA->x_tmp = hypre_SeqVectorCreate( num_cols_offd );
 
-  hypre_SeqVectorInitialize(AA->x_tmp);
+  //hypre_SeqVectorInitialize(AA->x_tmp);
 
   AA->x_buf = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
       (comm_pkg,  num_sends), HYPRE_MEMORY_DEVICE);

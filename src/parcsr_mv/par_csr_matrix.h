@@ -82,6 +82,7 @@ typedef struct hypre_ParCSRMatrix_struct
 
 hypre_Vector      *x_tmp;
 HYPRE_Complex * x_buf;
+HYPRE_Int x_buf_size;
 HYPRE_Int * comm_d;
 } hypre_ParCSRMatrix;
 
@@ -118,6 +119,7 @@ hypre_CSRMatrixNumCols(hypre_ParCSRMatrixDiag(matrix))
 #define hypre_ParCSRMatrixRowvalues(matrix)       ((matrix) -> rowvalues)
 #define hypre_ParCSRMatrixGetrowactive(matrix)    ((matrix) -> getrowactive)
 #define hypre_ParCSRMatrixAssumedPartition(matrix) ((matrix) -> assumed_partition)
+#define hypre_ParCSRMatrixGetBufferSize(matrix) ((matrix) -> x_buf_size)
 
 /*--------------------------------------------------------------------------
  * Parallel CSR Boolean Matrix

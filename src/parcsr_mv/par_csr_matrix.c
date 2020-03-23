@@ -243,7 +243,16 @@ hypre_CSRMatrixHasBeenCopied(hypre_ParCSRMatrixOffd(matrix)) = 0;
    hypre_CSRMatrixCopyCPUtoGPU(hypre_ParCSRMatrixDiag(matrix));
 //printf("COPYING OFF DIAG PART ...............................................\n");
    hypre_CSRMatrixCopyCPUtoGPU(hypre_ParCSRMatrixOffd(matrix));
-   return hypre_error_flag;
+if (hypre_ParCSRMatrixDiagT(matrix)){
+
+   hypre_CSRMatrixCopyCPUtoGPU(hypre_ParCSRMatrixDiagT(matrix));
+}  
+
+if (hypre_ParCSRMatrixOffdT(matrix)){
+
+   hypre_CSRMatrixCopyCPUtoGPU(hypre_ParCSRMatrixOffdT(matrix));
+}  
+ return hypre_error_flag;
 }
 
 

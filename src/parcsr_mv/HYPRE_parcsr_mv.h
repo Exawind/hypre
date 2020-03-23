@@ -81,6 +81,8 @@ HYPRE_Int HYPRE_ParVectorGetValues( HYPRE_ParVector vector , HYPRE_Int num_value
 HYPRE_Int HYPRE_ParVectorCopyDataCPUtoGPU( HYPRE_ParVector vector );
 HYPRE_Int HYPRE_ParVectorCopyDataGPUtoCPU( HYPRE_ParVector vector );
 
+  HYPRE_Int HYPRE_ParCSRMatrixCopyGPUtoCPU ( HYPRE_ParCSRMatrix matrix );
+  HYPRE_Int HYPRE_ParCSRMatrixCopyCPUtoGPU ( HYPRE_ParCSRMatrix matrix );
 #ifdef __cplusplus
 }
 #endif
