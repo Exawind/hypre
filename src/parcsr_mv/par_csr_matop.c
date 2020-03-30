@@ -2995,6 +2995,9 @@ hypre_ParCSRMatrixAminvDB( hypre_ParCSRMatrix *A, hypre_ParCSRMatrix *B,
    C = hypre_ParCSRMatrixCompleteClone(B);
    /*hypre_ParCSRMatrixInitialize(C);*/
 
+C->x_tmp=NULL;
+C->x_buf=NULL;
+C->x_buf_size=0;
    C_diag = hypre_ParCSRMatrixDiag(C);
    C_diag_i = hypre_CSRMatrixI(C_diag);
    C_diag_j = hypre_CSRMatrixJ(C_diag);

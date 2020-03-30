@@ -132,10 +132,12 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
 	
 P_array           = hypre_ParAMGDataPArray(amg_data);
 	R_array           = hypre_ParAMGDataRArray(amg_data);
-printf("starting solve. R_array nul;l %d ? \n", R_array==NULL);
+//printf("starting solve. R_array nul;l %d ? \n", R_array==NULL);
 	CF_marker_array   = hypre_ParAMGDataCFMarkerArray(amg_data);
 	Vtemp             = hypre_ParAMGDataVtemp(amg_data);
-	Rtemp             = hypre_ParAMGDataRtemp(amg_data);
+	
+		//		hypre_ParVectorSetConstantValues(Vtemp,0.0f);
+ Rtemp             = hypre_ParAMGDataRtemp(amg_data);
 	Ptemp             = hypre_ParAMGDataPtemp(amg_data);
 	Ztemp             = hypre_ParAMGDataZtemp(amg_data);
 	num_levels        = hypre_ParAMGDataNumLevels(amg_data);
@@ -256,7 +258,7 @@ printf("starting solve. R_array nul;l %d ? \n", R_array==NULL);
 #ifdef HYPRE_USING_CALIPER
 	cali_set_int(iter_attr, level);
 #endif
-
+HYPRE_Int tag = 0;
 	while (Not_Finished)
 	{
 		if (num_levels > 1)
@@ -567,9 +569,21 @@ printf("starting solve. R_array nul;l %d ? \n", R_array==NULL);
 
 
 							t1 = hypre_MPI_Wtime();
-							if (my_id==0) printf("relax 2\n");  
-							//KS: executed  
-							Solve_err_flag = hypre_BoomerAMGRelaxIF(A_array[level],
+						//	if (my_id==0) printf("relax 2\n");  
+							//KS: executed 
+							#if 0 
+							//uncomment for debugging
+						HYPRE_Real ipF, ipU, ipFdev, ipUdev;
+ipF = hypre_ParVectorInnerProd( Aux_F, Aux_F);
+ipU = hypre_ParVectorInnerProd( Aux_U, Aux_U);
+ipUdev = hypre_ParVectorInnerProdOneOfMult( Aux_U,0, Aux_U,0);
+ipFdev = hypre_ParVectorInnerProdOneOfMult( Aux_F,0, Aux_F,0);
+if (my_id == 0) printf("norm of input/output before relax CPU: U %16.16f F %16.16f\nGPU: U %16.16f F %16.16f\n",ipU, ipF, ipUdev, ipFdev );
+#endif					
+hypre_ParVectorCopyDataCPUtoGPU(Aux_U); 
+hypre_ParVectorCopyDataCPUtoGPU(Aux_F); 
+
+		Solve_err_flag = hypre_BoomerAMGRelaxIF(A_array[level],
 									Aux_F,
 									CF_marker_array[level],
 									relax_type,
@@ -582,8 +596,18 @@ printf("starting solve. R_array nul;l %d ? \n", R_array==NULL);
 									Vtemp,
 									Ztemp);
 
+hypre_ParVectorCopyDataGPUtoCPU(Aux_U); 
+hypre_ParVectorCopyDataGPUtoCPU(Aux_F); 
+//hypre_ParVectorCopyDataCPUtoGPU(Aux_U); 
 							t2 = hypre_MPI_Wtime();
-
+#if 0
+//uncomment for debugging
+ipF = hypre_ParVectorInnerProd( Aux_F, Aux_F);
+ipU = hypre_ParVectorInnerProd( Aux_U, Aux_U);
+ipUdev = hypre_ParVectorInnerProdOneOfMult( Aux_U,0, Aux_U,0);
+ipFdev = hypre_ParVectorInnerProdOneOfMult( Aux_F,0, Aux_F,0);
+if (my_id ==0)printf("norm of input/output AFTER relax CPU: U %16.16f F %16.16f\nGPU: U %16.16f F %16.16f\n",ipU, ipF, ipUdev, ipFdev );
+#endif
 							if (my_id == 0)
 							{
 								timeRelax+=(t2-t1);
@@ -663,22 +687,37 @@ printf("starting solve. R_array nul;l %d ? \n", R_array==NULL);
 				t1 = hypre_MPI_Wtime();
 
 				//	if (my_id==0) printf("mv 3\n"); 
-				//KS: executed 
+				//KS: executed
+				tag++; 
 //no error here
+
+//#if 0
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
+#if 0
+HYPRE_Real nrmU, nrmF, nrmV;
+HYPRE_Real nrmUdev, nrmFdev, nrmVdev;
 
-				printf("inside V cycle (BEFORE mv 3), norm of input %16.16f, output 1  %16.16f output 2 %16.16f \n", 
-						hypre_ParVectorInnerProdOneOfMult( U_array[fine_grid], 0, U_array[fine_grid], 0),
-						hypre_ParVectorInnerProdOneOfMult( F_array[fine_grid], 0, F_array[fine_grid], 0),
-						hypre_ParVectorInnerProdOneOfMult( Vtemp, 0, Vtemp, 0));
-				hypre_ParCSRMatrixMatvecMultOutOfPlace(alpha, A_array[fine_grid], U_array[fine_grid], 0,
-						beta, F_array[fine_grid],0, Vtemp, 0);
-
-				printf("inside V cycle (AFTER mv 3), norm of input %16.16f, output 1  %16.16f output 2 %16.16f \n", 
-						hypre_ParVectorInnerProdOneOfMult( U_array[fine_grid], 0, U_array[fine_grid], 0),
-						hypre_ParVectorInnerProdOneOfMult( F_array[fine_grid], 0, F_array[fine_grid], 0),
-						hypre_ParVectorInnerProdOneOfMult( Vtemp, 0, Vtemp, 0));
-
+nrmU = hypre_ParVectorInnerProd( U_array[fine_grid], U_array[fine_grid]);
+nrmF = hypre_ParVectorInnerProd( F_array[fine_grid], F_array[fine_grid]);
+nrmV = hypre_ParVectorInnerProd( Vtemp, Vtemp);
+nrmUdev = hypre_ParVectorInnerProdOneOfMult( U_array[fine_grid],0, U_array[fine_grid], 0);
+nrmFdev = hypre_ParVectorInnerProdOneOfMult( F_array[fine_grid],0,  F_array[fine_grid],0);
+nrmVdev = hypre_ParVectorInnerProdOneOfMult( Vtemp, 0,Vtemp,0);
+if (my_id ==0) printf("before mv 3, norms of IO, CPU: U %16.16f F %16.16f, Vtemp %16.16f \n GPU: U %16.16f F %16.16f, Vtemp %16.16f\n",
+nrmU, nrmF, nrmV, nrmUdev, nrmFdev, nrmVdev);				
+#endif
+hypre_ParCSRMatrixMatvecMultOutOfPlace_mpiTag(alpha, A_array[fine_grid], U_array[fine_grid], 0,
+						beta, F_array[fine_grid],0, Vtemp, 0, tag);
+#if 0
+nrmU = hypre_ParVectorInnerProd( U_array[fine_grid], U_array[fine_grid]);
+nrmF = hypre_ParVectorInnerProd( F_array[fine_grid], F_array[fine_grid]);
+nrmV = hypre_ParVectorInnerProd( Vtemp, Vtemp);
+nrmUdev = hypre_ParVectorInnerProdOneOfMult( U_array[fine_grid],0, U_array[fine_grid], 0);
+nrmFdev = hypre_ParVectorInnerProdOneOfMult( F_array[fine_grid],0,  F_array[fine_grid],0);
+nrmVdev = hypre_ParVectorInnerProdOneOfMult( Vtemp, 0,Vtemp,0);
+if (my_id ==0) printf("after mv 3, norms of IO, CPU: U %16.16f F %16.16f, Vtemp %16.16f \nGPU: U %16.16f F %16.16f, Vtemp %16.16f\n",
+nrmU, nrmF, nrmV, nrmUdev, nrmFdev, nrmVdev);				
+#endif
 #else
 				hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[fine_grid], U_array[fine_grid],
 						beta, F_array[fine_grid], Vtemp);
@@ -706,7 +745,7 @@ printf("starting solve. R_array nul;l %d ? \n", R_array==NULL);
 				{
 					/* RL: no transpose for R */
 					t1 = hypre_MPI_Wtime();
-					if (my_id==0) printf("mv 4\n");  
+		//			if (my_id==0) printf("mv 4\n");  
 					hypre_ParCSRMatrixMatvec(alpha, R_array[fine_grid], Vtemp,
 							beta, F_array[coarse_grid]);
 
@@ -729,18 +768,23 @@ printf("starting solve. R_array nul;l %d ? \n", R_array==NULL);
 					//	if (my_id==0) printf("mvT 1\n");  
 					//KS executed 
 					//THIS NEEDS A DEEP DEEP CHANGE	
+#if 0				
 					if (R_array == NULL) {printf("R array NULL!");}
 					else { 
-						printf("R_array NOT NULL!!!\n");
+		printf("R_array NOT NULL!!!\n");
 						if (R_array[fine_grid]==NULL) printf("R_array[%d] is null\n", fine_grid);
 						else { 
 							printf("R_array[%d] is NOT null\n", fine_grid);
 
-						}  
+						}
 					}			
+#endif 
+//copy Vtemp to CPU
+hypre_ParVectorCopyDataGPUtoCPU(Vtemp); 
 					hypre_ParCSRMatrixMatvecT(alpha,R_array[fine_grid],Vtemp,
 							beta,F_array[coarse_grid]);
-
+//copy Farray to GPU
+hypre_ParVectorCopyDataCPUtoGPU(F_array[coarse_grid]); 
 					t2 = hypre_MPI_Wtime();
 
 					if (my_id == 0)
@@ -784,22 +828,35 @@ printf("starting solve. R_array nul;l %d ? \n", R_array==NULL);
 				t1 = hypre_MPI_Wtime();
 				//			if (my_id==0) printf("mv 5\n");  
 				//KS: executed
-
+tag++;
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
 //#if 0
-				printf("inside V cycle (BEFORE mv 5), norm of input %16.16f, output 1  %16.16f \n", 
-						hypre_ParVectorInnerProdOneOfMult( U_array[coarse_grid], 0, U_array[coarse_grid], 0),
-						hypre_ParVectorInnerProdOneOfMult( U_array[fine_grid], 0, U_array[fine_grid], 0));
-				hypre_ParCSRMatrixMatvecMultOutOfPlace(alpha, P_array[fine_grid],
+#if 0
+HYPRE_Real nrmUF, nrmUC;
+HYPRE_Real nrmUFdev, nrmUCdev;
+nrmUF = hypre_ParVectorInnerProd( U_array[fine_grid], U_array[fine_grid]);
+nrmUC = hypre_ParVectorInnerProd( U_array[coarse_grid], U_array[coarse_grid]);
+nrmUFdev = hypre_ParVectorInnerProdOneOfMult( U_array[fine_grid],0, U_array[fine_grid], 0);
+nrmUCdev = hypre_ParVectorInnerProdOneOfMult( F_array[coarse_grid],0,  U_array[coarse_grid],0);
+if (my_id ==0) printf("before mv 5, norms of IO, CPU: UC %16.16f UF %16.16f \nGPU: UC %16.16f UF %16.16f\n",
+nrmUC, nrmUF,nrmUCdev, nrmUFdev);				
+#endif
+				hypre_ParCSRMatrixMatvecMultOutOfPlace_mpiTag(alpha, P_array[fine_grid],
 						U_array[coarse_grid],0,
-						beta, U_array[fine_grid], 0,  U_array[fine_grid], 0);
+						beta, U_array[fine_grid], 0,  U_array[fine_grid], 0, tag);
 
-				hypre_ParCSRMatrixMatvec(alpha, P_array[fine_grid],
-						U_array[coarse_grid],
-						beta, U_array[fine_grid]);
-				printf("inside V cycle (AFTER  mv 5), norm of input %16.16f, output 1  %16.16f \n", 
-						hypre_ParVectorInnerProdOneOfMult( U_array[coarse_grid], 0, U_array[coarse_grid], 0),
-						hypre_ParVectorInnerProdOneOfMult( U_array[fine_grid], 0, U_array[fine_grid], 0));
+//				hypre_ParCSRMatrixMatvec(alpha, P_array[fine_grid],
+	//					U_array[coarse_grid],
+		//				beta, U_array[fine_grid]);
+
+#if 0
+nrmUF = hypre_ParVectorInnerProd( U_array[fine_grid], U_array[fine_grid]);
+nrmUC = hypre_ParVectorInnerProd( U_array[coarse_grid], U_array[coarse_grid]);
+nrmUFdev = hypre_ParVectorInnerProdOneOfMult( U_array[fine_grid],0, U_array[fine_grid], 0);
+nrmUCdev = hypre_ParVectorInnerProdOneOfMult( F_array[coarse_grid],0,  U_array[coarse_grid],0);
+if (my_id ==0) printf("after mv 5, norms of IO, CPU: UC %16.16f UF %16.16f \n GPU: UC %16.16f UF %16.16f\n",
+nrmUC, nrmUF,nrmUCdev, nrmUFdev);				
+#endif
 #else
 				hypre_ParCSRMatrixMatvec(alpha, P_array[fine_grid],
 						U_array[coarse_grid],

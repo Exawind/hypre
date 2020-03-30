@@ -47,7 +47,7 @@ typedef struct
    HYPRE_Complex *d_data;
  HYPRE_Int copied;
    HYPRE_Int hostOnly=0;
-
+HYPRE_Complex * r_local_data, *v_local_data, *y_local_data;  
 } hypre_CSRMatrix;
 
 /*--------------------------------------------------------------------------
@@ -72,6 +72,12 @@ typedef struct
 #define hypre_CSRMatrixHostOnly(matrix)         ((matrix) -> hostOnly)
 
 #define hypre_CSRMatrixHasBeenCopied(matrix)    ((matrix) -> copied)
+
+#define hypre_CSRMatrixRdata(matrix)            ((matrix) -> r_local_data)
+#define hypre_CSRMatrixYdata(matrix)            ((matrix) -> y_local_data)
+#define hypre_CSRMatrixVdata(matrix)            ((matrix) -> v_local_data)
+
+
 HYPRE_Int hypre_CSRMatrixGetLoadBalancedPartitionBegin( hypre_CSRMatrix *A );
 HYPRE_Int hypre_CSRMatrixGetLoadBalancedPartitionEnd( hypre_CSRMatrix *A );
 

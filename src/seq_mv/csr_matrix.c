@@ -52,7 +52,11 @@ hypre_CSRMatrixCreate( HYPRE_Int num_rows,
   /* set defaults */
   hypre_CSRMatrixOwnsData(matrix) = 1;
   hypre_CSRMatrixNumRownnz(matrix) = num_rows;
+//HYPRE_Complex * r_local_data, *v_local_data, *y_local_data;  
 
+hypre_CSRMatrixRdata(matrix) = NULL;
+hypre_CSRMatrixYdata(matrix) = NULL;
+hypre_CSRMatrixVdata(matrix) = NULL;    
 #ifdef HYPRE_USING_GPU
   matrix->on_device=0;
 #endif
@@ -126,6 +130,14 @@ hypre_CSRMatrixDestroy( hypre_CSRMatrix *matrix )
 	hypre_TFree(hypre_CSRMatrixDeviceData(matrix), HYPRE_MEMORY_DEVICE);
 	hypre_CSRMatrixDeviceData(matrix) = NULL;
 	hypre_CSRMatrixDeviceJ(matrix)    = NULL;
+
+	hypre_TFree(hypre_CSRMatrixRdata(matrix), HYPRE_MEMORY_DEVICE);
+	hypre_TFree(hypre_CSRMatrixYdata(matrix), HYPRE_MEMORY_DEVICE);
+	hypre_TFree(hypre_CSRMatrixVdata(matrix), HYPRE_MEMORY_DEVICE);
+   hypre_CSRMatrixRdata(matrix) = NULL;
+   hypre_CSRMatrixYdata(matrix) = NULL;
+   hypre_CSRMatrixVdata(matrix) = NULL;    
+
 #endif
 
 	hypre_CSRMatrixData(matrix) = NULL;

@@ -3121,15 +3121,17 @@ R_array = hypre_ParAMGDataRArray(amg_data);
 		if (P_array==NULL) noP=1;
 #if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU)
 		for (j=0; j<num_levels; j++){
-			if ((A_array[j] != NULL) && (j>0)) {printf("A[%d] is not NULL!\n", j); hypre_ParCSRMatrixCopyCPUtoGPU(A_array[j]);} 
+			if ((A_array[j] != NULL) && (j>0)) {
+//printf("A[%d] is not NULL!\n", j); 
+hypre_ParCSRMatrixCopyCPUtoGPU(A_array[j]);} 
 			if (U_array[j] != NULL)   hypre_ParVectorCopyDataCPUtoGPU(U_array[j]  );
 			if (F_array[j] != NULL)   hypre_ParVectorCopyDataCPUtoGPU(F_array[j]  );
 
 			if (j<max_levels-1){
 
-				if (!noR){ if (R_array[j] != NULL)  printf("R_array[%d] not null!\n ", j);
+				if (!noR){// if (R_array[j] != NULL)  printf("R_array[%d] not null!\n ", j);
 					hypre_ParCSRMatrixCopyCPUtoGPU(R_array[j]);} 
-				if(!noP) {if (P_array[j] != NULL)  printf("P_array[%d] not null!\n ", j);
+				if(!noP) {//if (P_array[j] != NULL)  printf("P_array[%d] not null!\n ", j);
 					hypre_ParCSRMatrixCopyCPUtoGPU(P_array[j]);}
 			}
 

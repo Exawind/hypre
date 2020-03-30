@@ -169,7 +169,7 @@ hypre_SeqVectorInitialize( hypre_Vector *vector )
 
   if ( ! hypre_VectorData(vector) ){
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
-  printf("seq vector, init dev data, size %d num vectors %d \n", size, num_vectors);
+//  printf("seq vector, init dev data, size %d num vectors %d \n", size, num_vectors);
 if (size!=0)    
 hypre_VectorDeviceData(vector) = hypre_CTAlloc(HYPRE_Complex,  num_vectors*size, HYPRE_MEMORY_DEVICE);
 else 

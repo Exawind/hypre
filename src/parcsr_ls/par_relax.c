@@ -20,7 +20,11 @@
 #include "_hypre_lapack.h"
 #include "../sstruct_ls/gselim.h"
 #include "_hypre_parcsr_ls.h"
-//static double relaxCost;
+static double exchTime;
+static double initTime;
+static double relTime;
+static double relFullTime;
+static double allocTime;
 /*--------------------------------------------------------------------------
  * hypre_BoomerAMGRelax
  *--------------------------------------------------------------------------*/
@@ -37,6 +41,8 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 		hypre_ParVector    *Vtemp,
 		hypre_ParVector    *Ztemp )
 {
+double t1,t2, t3, t4;
+t1=hypre_MPI_Wtime();
 	MPI_Comm	   comm = hypre_ParCSRMatrixComm(A);
 	hypre_CSRMatrix *A_diag = hypre_ParCSRMatrixDiag(A);
 	hypre_CSRMatrixCopyCPUtoGPU (A_diag);
@@ -140,6 +146,9 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 	HYPRE_Int vecl;
 	if (n>num_cols_offd) vecl =n;
 	else vecl = num_cols_offd;
+
+t3=hypre_MPI_Wtime();
+#if 0
 	hypre_Vector   *r_local =hypre_SeqVectorCreate(vecl) ;//hypre_ParVectorLocalVector(y);
 	hypre_SeqVectorInitialize(r_local); 
 	hypre_Vector   *v_local =hypre_SeqVectorCreate(vecl) ;//hypre_ParVectorLocalVector(y);
@@ -159,6 +168,20 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 	y_data = hypre_VectorData(y_local);
 
 	v_data = hypre_VectorData(v_local);
+#else
+if (hypre_CSRMatrixVdata(A_diag) == NULL)
+     hypre_CSRMatrixVdata(A_diag) = hypre_CTAlloc(HYPRE_Complex, vecl, HYPRE_MEMORY_DEVICE);
+if (hypre_CSRMatrixRdata(A_diag) == NULL)
+     hypre_CSRMatrixRdata(A_diag) = hypre_CTAlloc(HYPRE_Complex, vecl, HYPRE_MEMORY_DEVICE);
+if (hypre_CSRMatrixYdata(A_diag) == NULL)
+     hypre_CSRMatrixYdata(A_diag) = hypre_CTAlloc(HYPRE_Complex, vecl, HYPRE_MEMORY_DEVICE);
+r_data = hypre_CSRMatrixRdata(A_diag);
+y_data = hypre_CSRMatrixYdata(A_diag);
+v_data = hypre_CSRMatrixVdata(A_diag);
+#endif
+t4=hypre_MPI_Wtime();
+
+allocTime += (t4-t3);
 	one_minus_weight = 1.0 - relax_weight;
 	one_minus_omega = 1.0 - omega;
 	hypre_MPI_Comm_size(comm,&num_procs);  
@@ -184,6 +207,8 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 	 *-----------------------------------------------------------------------*/
 
 	//printf("relaxation type %d\n", relax_type);
+t2 = hypre_MPI_Wtime();
+initTime += (t2-t1);
 	switch (relax_type)
 	{
 		case 0: /* Weighted Jacobi */
@@ -444,8 +469,10 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 				// JSP: persistent comm can be similarly used for other smoothers
 				hypre_ParCSRPersistentCommHandle *persistent_comm_handle;
 #endif
-
-				if (num_procs > 1)
+//printf("num procs = %d \n", num_procs);
+		
+t3 = hypre_MPI_Wtime();
+		if (num_procs > 1)
 				{
 #ifdef HYPRE_PROFILE
 					hypre_profile_times[HYPRE_TIMER_ID_PACK_UNPACK] -= hypre_MPI_Wtime();
@@ -463,7 +490,8 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 
 					Vext_data = hypre_CTAlloc(HYPRE_Real, num_cols_offd, HYPRE_MEMORY_HOST);
 #endif
-
+#if 1
+//printf("v buf data size %d, vext data size  %d \n",hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends),  num_cols_offd );
 					if (num_cols_offd)
 					{
 						A_offd_j = hypre_CSRMatrixJ(A_offd);
@@ -475,6 +503,7 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for HYPRE_SMP_SCHEDULE
 #endif
+//printf("communication: will be going from %d to %d \n",begin, end );
 					for (i = begin; i < end; i++)
 					{
 						v_buf_data[i - begin]
@@ -504,8 +533,11 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 #ifdef HYPRE_PROFILE
 					hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] += hypre_MPI_Wtime();
 #endif
+#endif
 				}
 
+t2 = hypre_MPI_Wtime();
+exchTime += (t2-t1);
 				/*-----------------------------------------------------------------
 				 * Relax all points.
 				 *-----------------------------------------------------------------*/
@@ -513,10 +545,11 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 				hypre_profile_times[HYPRE_TIMER_ID_RELAX] -= hypre_MPI_Wtime();
 #endif
 
+t1 = hypre_MPI_Wtime();
 				if (relax_weight == 1 && omega == 1)
 				{
 //executed
-printf("relax: check 1\n");
+//printf("relax: check 1, num_threads %d \n", num_threads);
 					if (relax_points == 0)
 					{
 						if (num_threads > 1)
@@ -576,7 +609,7 @@ printf("relax: check 1\n");
 						else
 						{
 //executed
-printf("relax: check 2\n");
+//printf("relax: check 2\n");
 							//THIS GOES TO THE GPU 
 							//#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
 #if 0
@@ -627,14 +660,21 @@ printf("relax: check 2\n");
 #else   
 							//new GPU version
 #if 1
+t1 = hypre_MPI_Wtime();
+//removing HERE
 							hypre_SeqVectorCopyDataCPUtoGPU( f_local );
 							//works
 							hypre_SeqVectorCopyDataCPUtoGPU( u_local );
 							//works
+//end of removed
+					//		hypre_SeqVectorCopy( f_local,r_local );
+//printf("size f = %d and size r_data = %d \n",hypre_VectorSize(f_local), vecl);
 
-							hypre_SeqVectorCopy( f_local,r_local );
+							cudaMemcpy ( r_data,hypre_VectorDeviceData(f_local),
+									hypre_VectorSize(f_local) *sizeof(HYPRE_Complex),
+									cudaMemcpyDeviceToDevice );
 							//works
-							HYPRE_Real * y_ddata = hypre_VectorDeviceData(v_local);
+							HYPRE_Real * y_ddata = v_data;//hypre_VectorDeviceData(v_local);
 							//copy Vext_data to y_ddata
 							//works - as long as we do not try to copy
 							cudaMemcpy ( y_ddata,Vext_data,
@@ -652,7 +692,11 @@ printf("relax: check 2\n");
 								}*/
 							//printf("Inside precon. Norm of u-local before kernel 1 %16.16f\n", hypre_SeqVectorInnerProd(u_local, u_local));
 							//printf("inside precon. Matrix size %d nnz diag %d offdiag %d  \n", n, A_diag_i[n], A_offd_i[n]);
-							MatvecCSRTwoInOne(n,-1.0f, A_offd_ddata ,A_offd_di, A_offd_dj,  A_diag_ddata,A_diag_di, A_diag_dj, y_ddata,  u_local->d_data,1.0f,r_local->d_data, y_local->d_data);
+							MatvecCSRTwoInOne(n,-1.0f, A_offd_ddata ,A_offd_di, A_offd_dj,  A_diag_ddata,A_diag_di, A_diag_dj, y_ddata,  u_local->d_data,1.0f,
+r_data,
+y_data);
+//r_local->d_data, 
+//y_local->d_data);
 
 							//printf("Inside precon. Norm of u-local before kernel 2 %16.16f\n", hypre_SeqVectorInnerProd(u_local, u_local));
 							//hypre_SeqVectorCopyDataGPUtoCPU( y_local );
@@ -662,7 +706,14 @@ printf("relax: check 2\n");
 							//one GPU kernl to rule them all
 
 
-							MatvecCSRAMG(n,-1.0f, A_diag_ddata,A_diag_di, A_diag_dj, y_local->d_data, r_local->d_data,1.0f, u_local->d_data);
+							MatvecCSRAMG(n,-1.0f, A_diag_ddata,A_diag_di, 
+A_diag_dj, 
+y_data,
+r_data,
+1.0f, u_local->d_data);
+//y_local->d_data, 
+//r_local->d_data,
+//1.0f, u_local->d_data);
 
 							//printf("Inside precon. Norm of u-local after kernel 2 %16.16f\n", hypre_SeqVectorInnerProd(u_local, u_local));
 							hypre_SeqVectorCopyDataGPUtoCPU( u_local );
@@ -737,6 +788,9 @@ printf("relax: check 2\n");
 							}
 #endif
 #endif
+
+t2 = hypre_MPI_Wtime();
+relTime += (t2-t1);
 						}//else
 					}//if relax points = 0
 
@@ -747,7 +801,7 @@ printf("relax: check 2\n");
 					else
 					{
 
-printf("relax: check 3\n");
+//printf("relax: check 3\n");
 						if (num_threads > 1)
 						{
 							tmp_data = Ztemp_data;
@@ -807,7 +861,7 @@ printf("relax: check 3\n");
 						else
 						{
 
-printf("relax: check 4\n");
+//printf("relax: check 4\n");
 							for (i = 0; i < n; i++) /* relax interior points */
 							{
 
@@ -840,7 +894,7 @@ printf("relax: check 4\n");
 				else
 				{
 
-printf("relax: check 5\n");
+//printf("relax: check 5\n");
 #ifdef HYPRE_USING_OPENMP
 #pragma omp parallel for private(i) HYPRE_SMP_SCHEDULE
 #endif
@@ -852,7 +906,7 @@ printf("relax: check 5\n");
 					if (relax_points == 0)
 					{
 
-printf("relax: check 6\n");
+//printf("relax: check 6\n");
 						if (num_threads > 1)
 						{
 							tmp_data = Ztemp_data;
@@ -919,7 +973,7 @@ printf("relax: check 6\n");
 						else
 						{
 
-printf("relax: check 7\n");
+//printf("relax: check 7\n");
 							for (i = 0; i < n; i++)	/* interior points first */
 							{
 
@@ -960,7 +1014,7 @@ printf("relax: check 7\n");
 					else
 					{
 
-printf("relax: check 8\n");
+//printf("relax: check 8\n");
 						if (num_threads > 1)
 						{
 							tmp_data = Ztemp_data;
@@ -1031,7 +1085,7 @@ printf("relax: check 8\n");
 						else
 						{
 
-printf("relax: check 9\n");
+//printf("relax: check 9\n");
 							for (i = 0; i < n; i++) /* relax interior points */
 							{
 
@@ -1068,6 +1122,9 @@ printf("relax: check 9\n");
 						}
 					}
 				}
+
+t4 = hypre_MPI_Wtime();
+relFullTime += (t4-t3);
 #ifndef HYPRE_USING_PERSISTENT_COMM
 				if (num_procs > 1)
 				{
@@ -1079,14 +1136,15 @@ printf("relax: check 9\n");
 				hypre_profile_times[HYPRE_TIMER_ID_RELAX] += hypre_MPI_Wtime();
 #endif
 
-printf("relax: check 10\n");
+//printf("relax: check 10\n");
 				//t2 = hypre_MPI_Wtime();
 				//if (my_id == 0)
 				//{
 				//relaxCost+=(t2-t1);
 				//printf("one RELAX CALL took %16.16f secondsi, total cost (for now) is %16.16f \n", t2-t1, relaxCost);
 				//}
-			}
+if (my_id ==0) printf("INSIDE relax cost so far: Init %16.16f(alloc %16.16f) exch etc %16.16f,rela all %16.16f relax kernels %16.16f \n",initTime,allocTime,exchTime,relFullTime, relTime);		
+	}
 			break;
 
 		case 1: /* Gauss-Seidel VERY SLOW */
@@ -4386,9 +4444,9 @@ printf("relax: check 10\n");
 					break;   
 				}
 
-				hypre_SeqVectorDestroy(r_local);
-				hypre_SeqVectorDestroy(y_local);
-				hypre_SeqVectorDestroy(v_local);
+//				hypre_SeqVectorDestroy(r_local);
+	//			hypre_SeqVectorDestroy(y_local);
+		//		hypre_SeqVectorDestroy(v_local);
 
 
 				return(relax_error); 

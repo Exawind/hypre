@@ -539,6 +539,7 @@ hypre_BoomerAMGCreateS(hypre_ParCSRMatrix    *A,
 
 S->x_tmp = NULL;
 S->x_buf = NULL;
+S->x_buf_size = 0;
    *S_ptr        = S;
 
    hypre_TFree(prefix_sum_workspace, HYPRE_MEMORY_HOST);
@@ -2703,6 +2704,7 @@ HYPRE_Int hypre_BoomerAMGCreate2ndS( hypre_ParCSRMatrix *S, HYPRE_Int *CF_marker
 
 S2->x_tmp = NULL;
 S2->x_buf = NULL;
+S2->x_buf_size = 0;
    *C_ptr = S2;
 
 #ifdef HYPRE_PROFILE

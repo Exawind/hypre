@@ -250,7 +250,105 @@ void hypre_ParCSRPersistentCommHandleWait( hypre_ParCSRPersistentCommHandle *com
 	}
 }
 #endif // HYPRE_USING_PERSISTENT_COMM
+//KS code
+//in some cases an MPI TAG matters
 
+	hypre_ParCSRCommHandle *
+hypre_ParCSRCommHandleCreate_mpiTag ( HYPRE_Int            job,
+		hypre_ParCSRCommPkg *comm_pkg,
+		void                *send_data, 
+		void                *recv_data,
+		HYPRE_Int mpiTag )
+{
+	HYPRE_Int                  num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
+	HYPRE_Int                  num_recvs = hypre_ParCSRCommPkgNumRecvs(comm_pkg);
+	MPI_Comm                   comm      = hypre_ParCSRCommPkgComm(comm_pkg);
+
+	hypre_ParCSRCommHandle    *comm_handle;
+	HYPRE_Int                  num_requests;
+	hypre_MPI_Request         *requests;
+
+	HYPRE_Int                  i, j;
+	HYPRE_Int                  my_id, num_procs;
+	HYPRE_Int                  ip, vec_start, vec_len;
+
+	/*--------------------------------------------------------------------
+	 * 111: use with matvecMult 
+	 * 222: use with matvecMultT	 
+	 *--------------------------------------------------------------------*/
+
+	num_requests = num_sends + num_recvs;
+	//   requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+
+	hypre_MPI_Comm_size(comm,&num_procs);
+	hypre_MPI_Comm_rank(comm,&my_id);
+
+	j = 0;
+	switch (job)
+	{
+
+		case  111:
+			{
+				//double t1, t2;
+				//t1 = hypre_MPI_Wtime();
+				HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
+
+				HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
+				MPI_Request * requestR;
+
+				requestR = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+				j=0;
+
+				for (i = 0; i < num_sends; i++)
+				{
+					vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
+					vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1)-vec_start;
+					ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
+					//if(vec_len<100) printf("KASIA GPU COMM: I am rank %d trying to send message size %d to rank %d\n",my_id, vec_len, ip );
+#if 1
+					hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
+							ip, 
+							mpiTag, comm, &requestR[j]);
+		//			MPI_Barrier(comm);				
+					j++;
+#endif            
+				}
+				for (i = 0; i < num_recvs; i++)
+				{
+					ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
+					vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
+					vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
+					hypre_MPI_Status statusR;
+					//if(vec_len<100) printf("KASIA GPU COMM: I am rank %d trying to receive message size %d from rank %d\n",my_id, vec_len, ip );
+#if 1 
+					hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
+							ip, 
+							mpiTag, comm, &requestR[j]);
+					hypre_MPI_Wait(&requestR[j], &statusR);
+					j++;         
+#endif
+				}
+
+				break;
+			}
+		case 222:
+			{
+				break;
+			}
+	}
+	comm_handle = hypre_CTAlloc(hypre_ParCSRCommHandle,  1, HYPRE_MEMORY_HOST);
+
+	hypre_ParCSRCommHandleCommPkg(comm_handle)     = comm_pkg;
+	hypre_ParCSRCommHandleSendData(comm_handle)    = send_data;
+	hypre_ParCSRCommHandleRecvData(comm_handle)    = recv_data;
+	hypre_ParCSRCommHandleNumRequests(comm_handle) = num_requests;
+	if (job !=111)   hypre_ParCSRCommHandleRequests(comm_handle)    = requests;
+	else hypre_ParCSRCommHandleRequests(comm_handle)  = NULL;
+	return ( comm_handle );
+}
+
+
+//end of KS code
 	hypre_ParCSRCommHandle *
 hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 		hypre_ParCSRCommPkg *comm_pkg,
@@ -318,7 +416,7 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 					vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
 					//printf("Normal comm: trying to recv from %d, message size %d\n", ip, vec_len);	
 					//if (num_sends==0) printf("NORMAL COMMM I am process %d trying to receive vector size %d from process %d it starts at %d , requestR[%d] \n",my_id, vec_len, ip, vec_start, j+1);
-//if(vec_len<100) printf("NORMAL COMM: I am rank %d trying to receive message size %d from rank %d\n",my_id, vec_len, ip );
+					//if(vec_len<100) printf("NORMAL COMM: I am rank %d trying to receive message size %d from rank %d\n",my_id, vec_len, ip );
 					hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
 							ip, 0, comm, &requests[j++]);
 				}
@@ -327,7 +425,7 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 					vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
 					vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1)-vec_start;
 					ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
-//if(vec_len<100) printf("NORMAL COMM: I am rank %d trying to send message size %d to rank %d\n",my_id, vec_len, ip );
+					//if(vec_len<100) printf("NORMAL COMM: I am rank %d trying to send message size %d to rank %d\n",my_id, vec_len, ip );
 					//printf("Normal comm: trying to send to %d, message size %d\n", ip, vec_len);	
 					hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
 							ip, 0, comm, &requests[j++]);
@@ -354,11 +452,12 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 					vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
 					vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1)-vec_start;
 					ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
-//if(vec_len<100) printf("KASIA GPU COMM: I am rank %d trying to send message size %d to rank %d\n",my_id, vec_len, ip );
+					//if(vec_len<100) printf("KASIA GPU COMM: I am rank %d trying to send message size %d to rank %d\n",my_id, vec_len, ip );
 #if 1
 					hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
 							ip, 
-							14, comm, &requestR[j]);
+							0, comm, &requestR[j]);
+				//	MPI_Barrier(comm);				
 					j++;
 #endif            
 				}
@@ -368,15 +467,16 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 					vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
 					vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
 					hypre_MPI_Status statusR;
-//if(vec_len<100) printf("KASIA GPU COMM: I am rank %d trying to receive message size %d from rank %d\n",my_id, vec_len, ip );
+					//if(vec_len<100) printf("KASIA GPU COMM: I am rank %d trying to receive message size %d from rank %d\n",my_id, vec_len, ip );
 #if 1 
 					hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
 							ip, 
-							14, comm, &requestR[j]);
+							0, comm, &requestR[j]);
 					hypre_MPI_Wait(&requestR[j], &statusR);
 					j++;         
 #endif
 				}
+
 				break;
 			}
 

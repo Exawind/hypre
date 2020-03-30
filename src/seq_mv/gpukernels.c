@@ -140,6 +140,7 @@ void  PackOnDeviceKernelGPUonly(HYPRE_Complex* __restrict__ send_data,const HYPR
 	if (i<end){
 		// printf("putting %f in place %d \n",x_local_data[send_map[i]], i-begin);
 		send_data[i-begin]=x_local_data[send_map[i]];
+
 	}
 }
 void PackOnDeviceGPUonly(HYPRE_Complex *send_data,HYPRE_Complex *x_local_data, HYPRE_Int *send_map, HYPRE_Int begin,HYPRE_Int end){

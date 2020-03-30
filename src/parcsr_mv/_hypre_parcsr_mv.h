@@ -361,9 +361,9 @@ extern "C" {
     hypre_IJAssumedPart  *assumed_partition; /* only populated if
 						no_global_partition option is used
 						(compile-time option)*/
-hypre_Vector      *x_tmp;
-HYPRE_Complex * x_buf;
-HYPRE_Int x_buf_size;
+hypre_Vector      *x_tmp=NULL;
+HYPRE_Complex * x_buf=NULL;
+HYPRE_Int x_buf_size=0;
 HYPRE_Int * comm_d;
   } hypre_ParCSRMatrix;
 
@@ -690,6 +690,7 @@ HYPRE_Int * comm_d;
   HYPRE_Int HYPRE_ParCSRMatrixMatvecMult ( HYPRE_Complex alpha , HYPRE_ParCSRMatrix A , HYPRE_ParVector x ,HYPRE_Int k1,  HYPRE_Complex beta , HYPRE_ParVector y, HYPRE_Int k2 );
   HYPRE_Int hypre_ParCSRMatrixMatvecMult ( HYPRE_Complex alpha , hypre_ParCSRMatrix *A , hypre_ParVector *x ,HYPRE_Int k1, HYPRE_Complex beta , hypre_ParVector *y, HYPRE_Int k2 );
   HYPRE_Int hypre_ParCSRMatrixMatvecMultOutOfPlace ( HYPRE_Complex alpha , hypre_ParCSRMatrix *A , hypre_ParVector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_ParVector *b,HYPRE_Int k3, hypre_ParVector *y, HYPRE_Int k2 );
+  HYPRE_Int hypre_ParCSRMatrixMatvecMultOutOfPlace_mpiTag ( HYPRE_Complex alpha , hypre_ParCSRMatrix *A , hypre_ParVector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_ParVector *b,HYPRE_Int k3, hypre_ParVector *y, HYPRE_Int k2, HYPRE_Int mpiTag );
 
 
   /* HYPRE_parcsr_vector.c */
@@ -782,6 +783,7 @@ HYPRE_Int * comm_d;
 
   /* par_csr_communication.c */
   hypre_ParCSRCommHandle *hypre_ParCSRCommHandleCreate ( HYPRE_Int job , hypre_ParCSRCommPkg *comm_pkg , void *send_data , void *recv_data );
+  hypre_ParCSRCommHandle *hypre_ParCSRCommHandleCreate_mpiTag ( HYPRE_Int job , hypre_ParCSRCommPkg *comm_pkg , void *send_data , void *recv_data, HYPRE_Int mpiTag );
   HYPRE_Int hypre_ParCSRCommHandleDestroy ( hypre_ParCSRCommHandle *comm_handle );
   void hypre_ParCSRCommPkgCreate_core ( MPI_Comm comm , HYPRE_Int *col_map_offd , HYPRE_Int first_col_diag , HYPRE_Int *col_starts , HYPRE_Int num_cols_diag , HYPRE_Int num_cols_offd , HYPRE_Int *p_num_recvs , HYPRE_Int **p_recv_procs , HYPRE_Int **p_recv_vec_starts , HYPRE_Int *p_num_sends , HYPRE_Int **p_send_procs , HYPRE_Int **p_send_map_starts , HYPRE_Int **p_send_map_elmts );
   HYPRE_Int
