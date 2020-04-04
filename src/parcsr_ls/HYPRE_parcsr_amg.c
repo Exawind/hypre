@@ -90,6 +90,10 @@ sqrt(hypre_ParKrylovInnerProdOneOfMult(b, 0, b,0)));
 #endif
 hypre_ParVectorCopyDataCPUtoGPU(x);
 //printf("copying vector to GPU!\n");
+
+	hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
+		comm_pkg = hypre_ParCSRMatrixCommPkg(A);
+	hypre_MPI_Barrier(comm_pkg->comm);
 return ret;
 }
 

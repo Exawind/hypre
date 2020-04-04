@@ -20,11 +20,13 @@
 #include "_hypre_lapack.h"
 #include "../sstruct_ls/gselim.h"
 #include "_hypre_parcsr_ls.h"
+#if 0
 static double exchTime;
 static double initTime;
 static double relTime;
 static double relFullTime;
 static double allocTime;
+#endif
 /*--------------------------------------------------------------------------
  * hypre_BoomerAMGRelax
  *--------------------------------------------------------------------------*/
@@ -41,8 +43,10 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 		hypre_ParVector    *Vtemp,
 		hypre_ParVector    *Ztemp )
 {
+#if 0
 double t1,t2, t3, t4;
 t1=hypre_MPI_Wtime();
+#endif
 	MPI_Comm	   comm = hypre_ParCSRMatrixComm(A);
 	hypre_CSRMatrix *A_diag = hypre_ParCSRMatrixDiag(A);
 	hypre_CSRMatrixCopyCPUtoGPU (A_diag);
@@ -147,8 +151,8 @@ t1=hypre_MPI_Wtime();
 	if (n>num_cols_offd) vecl =n;
 	else vecl = num_cols_offd;
 
-t3=hypre_MPI_Wtime();
 #if 0
+t3=hypre_MPI_Wtime();
 	hypre_Vector   *r_local =hypre_SeqVectorCreate(vecl) ;//hypre_ParVectorLocalVector(y);
 	hypre_SeqVectorInitialize(r_local); 
 	hypre_Vector   *v_local =hypre_SeqVectorCreate(vecl) ;//hypre_ParVectorLocalVector(y);
@@ -179,9 +183,11 @@ r_data = hypre_CSRMatrixRdata(A_diag);
 y_data = hypre_CSRMatrixYdata(A_diag);
 v_data = hypre_CSRMatrixVdata(A_diag);
 #endif
+#if 0
 t4=hypre_MPI_Wtime();
 
 allocTime += (t4-t3);
+#endif
 	one_minus_weight = 1.0 - relax_weight;
 	one_minus_omega = 1.0 - omega;
 	hypre_MPI_Comm_size(comm,&num_procs);  
@@ -207,8 +213,10 @@ allocTime += (t4-t3);
 	 *-----------------------------------------------------------------------*/
 
 	//printf("relaxation type %d\n", relax_type);
+#if 0
 t2 = hypre_MPI_Wtime();
 initTime += (t2-t1);
+#endif
 	switch (relax_type)
 	{
 		case 0: /* Weighted Jacobi */
@@ -470,9 +478,10 @@ initTime += (t2-t1);
 				hypre_ParCSRPersistentCommHandle *persistent_comm_handle;
 #endif
 //printf("num procs = %d \n", num_procs);
-		
+#if 0	
 t3 = hypre_MPI_Wtime();
-		if (num_procs > 1)
+#endif	
+	if (num_procs > 1)
 				{
 #ifdef HYPRE_PROFILE
 					hypre_profile_times[HYPRE_TIMER_ID_PACK_UNPACK] -= hypre_MPI_Wtime();
@@ -535,18 +544,20 @@ t3 = hypre_MPI_Wtime();
 #endif
 #endif
 				}
-
+#if 0
 t2 = hypre_MPI_Wtime();
 exchTime += (t2-t1);
+#endif
 				/*-----------------------------------------------------------------
 				 * Relax all points.
 				 *-----------------------------------------------------------------*/
 #ifdef HYPRE_PROFILE
 				hypre_profile_times[HYPRE_TIMER_ID_RELAX] -= hypre_MPI_Wtime();
 #endif
-
+#if 0
 t1 = hypre_MPI_Wtime();
-				if (relax_weight == 1 && omega == 1)
+#endif		
+		if (relax_weight == 1 && omega == 1)
 				{
 //executed
 //printf("relax: check 1, num_threads %d \n", num_threads);
@@ -660,7 +671,7 @@ t1 = hypre_MPI_Wtime();
 #else   
 							//new GPU version
 #if 1
-t1 = hypre_MPI_Wtime();
+//t1 = hypre_MPI_Wtime();
 //removing HERE
 							hypre_SeqVectorCopyDataCPUtoGPU( f_local );
 							//works
@@ -788,10 +799,11 @@ r_data,
 							}
 #endif
 #endif
-
+#if 0
 t2 = hypre_MPI_Wtime();
 relTime += (t2-t1);
-						}//else
+#endif		
+				}//else
 					}//if relax points = 0
 
 					/*-----------------------------------------------------------------
@@ -1122,9 +1134,10 @@ relTime += (t2-t1);
 						}
 					}
 				}
-
+#if 0
 t4 = hypre_MPI_Wtime();
 relFullTime += (t4-t3);
+#endif
 #ifndef HYPRE_USING_PERSISTENT_COMM
 				if (num_procs > 1)
 				{
@@ -1143,7 +1156,7 @@ relFullTime += (t4-t3);
 				//relaxCost+=(t2-t1);
 				//printf("one RELAX CALL took %16.16f secondsi, total cost (for now) is %16.16f \n", t2-t1, relaxCost);
 				//}
-if (my_id ==0) printf("INSIDE relax cost so far: Init %16.16f(alloc %16.16f) exch etc %16.16f,rela all %16.16f relax kernels %16.16f \n",initTime,allocTime,exchTime,relFullTime, relTime);		
+//if (my_id ==0) printf("INSIDE relax cost so far: Init %16.16f(alloc %16.16f) exch etc %16.16f,rela all %16.16f relax kernels %16.16f \n",initTime,allocTime,exchTime,relFullTime, relTime);		
 	}
 			break;
 

@@ -15,7 +15,6 @@
 #include "_hypre_utilities.h"
 //#include "_hypre_parcsr_ls.h"
 //#include "_hypre_parcsr_ls.h"
-
 #ifdef HYPRE_USING_GPU
 #include "../seq_mv/gpukernels.h"
 #endif
@@ -1609,7 +1608,9 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	//cudaMemGetInfo(&mf, &ma);
 	//printf("starting de-allocation, free memory %zu allocated memory %zu \n", mf, ma);
 	//printf("\n ENDING COGMRES(solve), free memory %zu total memory %zu percentage of allocated %f \n", mf, ma, (double)mf/ma);
-	return 0;
+
+   return 0;
+
 }//Solve
 
 

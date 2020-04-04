@@ -363,6 +363,7 @@ extern "C" {
 						(compile-time option)*/
 hypre_Vector      *x_tmp=NULL;
 HYPRE_Complex * x_buf=NULL;
+HYPRE_Complex * x_buf_cpu=NULL;
 HYPRE_Int x_buf_size=0;
 HYPRE_Int * comm_d;
   } hypre_ParCSRMatrix;
@@ -691,6 +692,7 @@ HYPRE_Int * comm_d;
   HYPRE_Int hypre_ParCSRMatrixMatvecMult ( HYPRE_Complex alpha , hypre_ParCSRMatrix *A , hypre_ParVector *x ,HYPRE_Int k1, HYPRE_Complex beta , hypre_ParVector *y, HYPRE_Int k2 );
   HYPRE_Int hypre_ParCSRMatrixMatvecMultOutOfPlace ( HYPRE_Complex alpha , hypre_ParCSRMatrix *A , hypre_ParVector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_ParVector *b,HYPRE_Int k3, hypre_ParVector *y, HYPRE_Int k2 );
   HYPRE_Int hypre_ParCSRMatrixMatvecMultOutOfPlace_mpiTag ( HYPRE_Complex alpha , hypre_ParCSRMatrix *A , hypre_ParVector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_ParVector *b,HYPRE_Int k3, hypre_ParVector *y, HYPRE_Int k2, HYPRE_Int mpiTag );
+  HYPRE_Int hypre_ParCSRMatrixMatvecTMultOutOfPlace_mpiTag ( HYPRE_Complex alpha , hypre_ParCSRMatrix *A , hypre_ParVector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_ParVector *b,HYPRE_Int k3, hypre_ParVector *y, HYPRE_Int k2, HYPRE_Int mpiTag );
 
 
   /* HYPRE_parcsr_vector.c */

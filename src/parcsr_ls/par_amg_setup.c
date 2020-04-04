@@ -3117,7 +3117,8 @@ xxxxxxxxxxxxxxxxxxxxxxxxx change for min_coarse_size */
 			 */
 		HYPRE_Int noR=0, noP=0;
 R_array = hypre_ParAMGDataRArray(amg_data);
-		if (R_array==NULL) {noR=1;printf("after setup, R IS NULL\n");}
+		if (R_array==NULL) noR=1;
+//printf("after setup, R IS NULL\n");}
 		if (P_array==NULL) noP=1;
 #if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU)
 		for (j=0; j<num_levels; j++){

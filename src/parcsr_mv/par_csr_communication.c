@@ -328,11 +328,34 @@ hypre_ParCSRCommHandleCreate_mpiTag ( HYPRE_Int            job,
 					j++;         
 #endif
 				}
-
 				break;
 			}
 		case 222:
 			{
+
+
+				requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+
+				HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
+				HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
+				for (i = 0; i < num_recvs; i++)
+				{
+					ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
+					vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
+					vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
+					hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
+							ip, mpiTag, comm, &requests[j++]);
+				}
+
+				for (i = 0; i < num_sends; i++)
+				{
+					vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
+					vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1) - vec_start;
+					ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
+					hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
+							ip, mpiTag, comm, &requests[j++]);
+}
+
 				break;
 			}
 	}

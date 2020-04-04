@@ -17,6 +17,7 @@
 
 #include "_hypre_parcsr_mv.h"
 #include <assert.h>
+static HYPRE_Real commTime;
 //#ifdef HYPRE_USING_GPU
 //extern "C"
 //{
@@ -166,7 +167,7 @@ hypre_ParCSRMatrixMatvecOutOfPlace( HYPRE_Complex       alpha,
 
 
 	//printf("NORMAL HYPRE num_vectprs %d  x_buf data (send buffer) size is %d x_tmp data (rec buffer) size is %d \n",num_vectors, hypre_ParCSRCommPkgSendMapStart
-//			(comm_pkg,  num_sends), num_cols_offd);
+	//			(comm_pkg,  num_sends), num_cols_offd);
 
 	if ( num_vectors==1 )
 	{
@@ -396,9 +397,9 @@ hypre_ParCSRMatrixMatvecT( HYPRE_Complex       alpha,
 	hypre_Vector        *x_local = hypre_ParVectorLocalVector(x);
 	hypre_Vector        *y_local = hypre_ParVectorLocalVector(y);
 	hypre_Vector        *y_tmp;
-//hypre_Vector *c_test;
-//HYPRE_Complex *c_test_data;	
-HYPRE_Int            vecstride = hypre_VectorVectorStride( y_local );
+	//hypre_Vector *c_test;
+	//HYPRE_Complex *c_test_data;	
+	HYPRE_Int            vecstride = hypre_VectorVectorStride( y_local );
 	HYPRE_Int            idxstride = hypre_VectorIndexStride( y_local );
 	HYPRE_Complex       *y_tmp_data, **y_buf_data;
 	HYPRE_Complex       *y_local_data = hypre_VectorData(y_local);
@@ -414,6 +415,11 @@ HYPRE_Int            vecstride = hypre_VectorVectorStride( y_local );
 
 	HYPRE_Int         ierr  = 0;
 
+	HYPRE_Int my_id; 
+	HYPRE_Real t1, t2;   
+	MPI_Comm        comm_debug;
+	comm_debug = hypre_ParCSRMatrixComm(A);
+	hypre_MPI_Comm_rank(comm_debug,&my_id);
 	if (y==NULL) {
 		//printf("NULLY %p\b", (void*) y);
 		return 1;
@@ -443,8 +449,8 @@ HYPRE_Int            vecstride = hypre_VectorVectorStride( y_local );
 	if ( num_vectors==1 )
 	{
 		y_tmp = hypre_SeqVectorCreate(num_cols_offd);
-//c_test =  hypre_SeqVectorCreate(y_size);
- 
+		//c_test =  hypre_SeqVectorCreate(y_size);
+
 	}
 	else
 	{
@@ -492,9 +498,9 @@ HYPRE_Int            vecstride = hypre_VectorVectorStride( y_local );
 		comm_handle = hypre_CTAlloc(hypre_ParCSRCommHandle*, num_vectors, HYPRE_MEMORY_HOST);
 	}
 	hypre_SeqVectorInitialize(y_tmp);
-//	hypre_SeqVectorInitialize(c_test);
-//hypre_SeqVectorSetConstantValues(c_test, 0.0f);
-//c_test_data =  hypre_VectorData(c_test);
+	//	hypre_SeqVectorInitialize(c_test);
+	//hypre_SeqVectorSetConstantValues(c_test, 0.0f);
+	//c_test_data =  hypre_VectorData(c_test);
 	num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
 	if (!use_persistent_comm)
 	{
@@ -535,6 +541,7 @@ HYPRE_Int            vecstride = hypre_VectorVectorStride( y_local );
 	hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] -= hypre_MPI_Wtime();
 #endif
 
+	//if (my_id==0) printf("normal mvT: norm y_tmp CPU  %16.16f \n",hypre_SeqVectorInnerProd(y_tmp, y_tmp));
 	if (use_persistent_comm)
 	{
 #ifdef HYPRE_USING_PERSISTENT_COMM
@@ -568,7 +575,7 @@ HYPRE_Int            vecstride = hypre_VectorVectorStride( y_local );
 	{
 		hypre_CSRMatrixMatvecT(alpha, diag, x_local, beta, y_local);
 	}
-
+	//if (my_id==0) printf("normal mvT: after both mv, norm %16.16f \n",hypre_SeqVectorInnerProd(y_local, y_local));
 #ifdef HYPRE_PROFILE
 	hypre_profile_times[HYPRE_TIMER_ID_HALO_EXCHANGE] -= hypre_MPI_Wtime();
 #endif
@@ -601,21 +608,21 @@ HYPRE_Int            vecstride = hypre_VectorVectorStride( y_local );
 		{
 			start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
 
-//			printf("i=%d, started at %d will be going to %d, num_sends  %d \n ",i, start, hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1), num_sends);
+			//			printf("i=%d, started at %d will be going to %d, num_sends  %d \n ",i, start, hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1), num_sends);
 			for (j = start; j < hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1); j++)
-	{			y_local_data[hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j)]
+			{			y_local_data[hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j)]
 #ifdef HYPRE_USING_PERSISTENT_COMM
-					+= ((HYPRE_Complex *)persistent_comm_handle->recv_data)[index++];
+				+= ((HYPRE_Complex *)persistent_comm_handle->recv_data)[index++];
 #else
-			+= y_buf_data[0][index++];
-  //printf("adding x_buf[%d] to y_local_data[%d] \n", index,hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j) );
-//c_test_data[hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j)] += 1.0f;
-//if (c_test_data[hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j)]>1.0f){
-//printf("ALARM ALARM added again to y[%d], number of adds %f \n", hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j),
-//c_test_data[hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j)]);
-//}
+				+= y_buf_data[0][index++];
+				//if (my_id==1) printf("normal mvT: adding x_buf[%d]=%16.16f to y_local_data[%d]=\n", index,y_buf_data[0][index-1],hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j) );
+				//c_test_data[hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j)] += 1.0f;
+				//if (c_test_data[hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j)]>1.0f){
+				//printf("ALARM ALARM added again to y[%d], number of adds %f \n", hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j),
+				//c_test_data[hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j)]);
+				//}
 #endif
-	}	}
+			}	}
 	}
 	else
 		for ( jv=0; jv<num_vectors; ++jv )
@@ -650,16 +657,18 @@ HYPRE_Int            vecstride = hypre_VectorVectorStride( y_local );
 
 //written by KS to improve GPU efficiency
 //and it works for multivectors because why not
-#if 0
-hypre_ParCSRMatrixMatvecMultT_mpiTag( HYPRE_Complex       alpha,
+#if 1
+	HYPRE_Int
+hypre_ParCSRMatrixMatvecTMultOutOfPlace_mpiTag(HYPRE_Complex       alpha,
 		hypre_ParCSRMatrix *A,
 		hypre_ParVector    *x,
 		HYPRE_Int k1,
 		HYPRE_Complex       beta,
-		hypre_ParVector    *y, 
+		hypre_ParVector    *b,
+		HYPRE_Int k3,
+		hypre_ParVector    *y,
 		HYPRE_Int k2,
-HYPRE_Int mpiTag
-		)
+		HYPRE_Int mpiTag)// the only difference! 
 {
 	hypre_ParCSRCommHandle *comm_handle;
 	hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
@@ -667,130 +676,129 @@ HYPRE_Int mpiTag
 	hypre_CSRMatrix     *offd = hypre_ParCSRMatrixOffd(A);
 	hypre_Vector        *x_local = hypre_ParVectorLocalVector(x);
 	hypre_Vector        *y_local = hypre_ParVectorLocalVector(y);
-	hypre_Vector        *y_tmp;
-	//HYPRE_Int            vecstride = hypre_VectorVectorStride( y_local );
-	//HYPRE_Int            idxstride = hypre_VectorIndexStride( y_local );
-	HYPRE_Complex       *y_tmp_data, *y_buf_data;
-	//  HYPRE_Complex       *y_local_data;// = hypre_VectorData(y_local);
+	hypre_Vector        *y_tmp=A->x_tmp;
 
-#if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
-	HYPRE_Complex  *y_local_data = hypre_VectorDeviceData(y_local);
-#else
-	HYPRE_Complex     *y_local_data = hypre_VectorData(y_local);
-#endif
-	//HYPRE_Int         num_rows  = hypre_ParCSRMatrixGlobalNumRows(A);
-	//HYPRE_Int         num_cols  = hypre_ParCSRMatrixGlobalNumCols(A);
-	//HYPRE_Int         num_cols_offd = hypre_CSRMatrixNumCols(offd);
-	//HYPRE_Int         x_size = hypre_ParVectorGlobalSize(x);
-	//HYPRE_Int         y_size = hypre_ParVectorGlobalSize(y);
-	//HYPRE_Int         num_vectors = hypre_VectorNumVectors(y_local);
+
+	HYPRE_Complex       *y_tmp_data, *y_buf_data;
+	HYPRE_Complex       *y_local_data = hypre_VectorData(y_local);
+
+	HYPRE_Int         num_rows  = hypre_ParCSRMatrixGlobalNumRows(A);
+	HYPRE_Int         num_cols  = hypre_ParCSRMatrixGlobalNumCols(A);
+	HYPRE_Int         num_cols_offd = hypre_CSRMatrixNumCols(offd);
+	HYPRE_Int         x_size = hypre_ParVectorGlobalSize(x);
+	HYPRE_Int         y_size = hypre_ParVectorGlobalSize(y);
 
 	HYPRE_Int         i, j, jv, index, start, num_sends;
 
 	HYPRE_Int         ierr  = 0;
+	HYPRE_Int my_id;
+	HYPRE_Real t1, t2;   
+	MPI_Comm        comm_debug;
+	comm_debug = hypre_ParCSRMatrixComm(A);
+	hypre_MPI_Comm_rank(comm_debug,&my_id);
 
-	//hypre_SeqVectorCreate(num_cols_offd);
+	if (y==NULL) {
+		//printf("NULLY %p\b", (void*) y);
+		return 1;
+	}
 
+
+	if (y_tmp == NULL){
+		y_tmp = hypre_SeqVectorCreate(num_cols_offd );
+
+		hypre_SeqVectorInitialize(y_tmp);
+	}
+	else {
+		hypre_SeqVectorSetConstantValues(y_tmp, 0.0f);
+	}
+	//printf("y_tmp size %d, num_cols_offd %d \n", hypre_VectorSize(y_tmp), num_cols_offd);
+	//we actually want to have this ON THE CPU
+	y_tmp_data = hypre_VectorData(y_tmp); 
+	/*---------------------------------------------------------------------
+	 * If there exists no CommPkg for A, a CommPkg is generated using
+	 * equally load balanced partitionings
+	 *--------------------------------------------------------------------*/
 	if (!comm_pkg)
 	{
 		hypre_MatvecCommPkgCreate(A);
 		comm_pkg = hypre_ParCSRMatrixCommPkg(A);
 	}
-	comm_handle = hypre_CTAlloc(hypre_ParCSRCommHandle*, 1, HYPRE_MEMORY_HOST);
-	y_tmp = A->x_tmp;
-	if (y_tmp == NULL){
-		y_tmp = hypre_SeqVectorCreate( num_cols_offd );
-		hypre_SeqVectorInitialize(y_tmp);
-	}
 
-#if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU) 
-	y_tmp_data = hypre_VectorDeviceData(y_tmp);
-#else
-	y_tmp_data = hypre_VectorData(y_tmp);
-#endif
-
+	comm_handle = hypre_CTAlloc(hypre_ParCSRCommHandle, 1, HYPRE_MEMORY_HOST);
 
 	num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
 
-	if (A->x_buf == NULL){
+	if ((A->x_buf_cpu == NULL)){
 
-		A->x_buf = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
-				(comm_pkg,  num_sends), HYPRE_MEMORY_DEVICE);
+		A->x_buf_cpu = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends), HYPRE_MEMORY_SHARED);
+printf("okay actuall allocating bufferm size %d, is it null still? %d\n", hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends), A->x_buf_cpu == NULL );
 	}
-#if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU) 
-	y_buf_data = A->x_buf; 
-	//y_local_data = hypre_VectorData(y_local);
-#else
-	y_buf_data = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
-			(comm_pkg,  num_sends), HYPRE_MEMORY_SHARED);
-#endif
+	y_buf_data = A->x_buf_cpu;
 
-	if (num_cols_offd)
+if (my_id==0)printf("new mvT: y_tmp size %d SHOYKD BE %d y_local_size %d ybuf size %d \n", hypre_VectorSize(y_tmp),num_cols_offd,  hypre_VectorSize(y_local), hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends));
+if (num_cols_offd)
 	{
 		if (A->offdT)
 		{
-			HYPRE_Int transpose = 0;
-			//printf("yay off diagT exists! \n");
-			// offdT is optional. Used only if it's present.
-			hypre_CSRMatrixMatvecMultT(alpha, A->offdT, x_local,k1, 0.0, y_tmp, k2, transpose);
+	 hypre_CSRMatrix     *offdT = A->offdT;
+if (my_id == 0) printf("I have the transpose! has been copied? %d rows %d cols %d non zeros %d \n ", hypre_CSRMatrixHasBeenCopied(A->offdT), offdT->num_rows, offdT->num_cols, offdT->num_nonzeros); 
+
+		hypre_CSRMatrixMatvecMultOutOfPlace(alpha, A->offdT, x_local,0,  0.0, y_tmp,0, y_tmp, 0, 0);	
 		}
 		else
 		{
-			HYPRE_Int transpose = 1;
-			hypre_CSRMatrixMatvecMultT(alpha, A->offd, x_local,k1, 0.0, y_tmp, k2, transpose);
+if (my_id==0) printf("I DONT HAVE THE TRANPOSE will multiply A and TRANSPOSE size %d x %d by x_local size %d, ouput size, has been copied? %d %d \n ", hypre_CSRMatrixNumCols(A->offd), hypre_VectorSize(y_local), hypre_VectorSize(y_tmp), hypre_CSRMatrixHasBeenCopied(A->offd));
+	hypre_CSRMatrixCopyCPUtoGPU(A->offd);	
+hypre_CSRMatrixMatvecTMultOutOfPlace(alpha, offd, x_local,0, 0.0, y_tmp,0, y_tmp, 0, 0);
 		}
 	}
-	//KS GPU specific
 
-	HYPRE_Int *comm_d;
-	HYPRE_Int begin = hypre_ParCSRCommPkgSendMapStart(comm_pkg, 0);
-	HYPRE_Int end   = hypre_ParCSRCommPkgSendMapStart(comm_pkg, num_sends);
-	//printf("begin = %d end = %d \n", begin, end);
-	if (A->comm_d == NULL)
-	{
-		if ((end-begin) != 0)
-		{
 
-			A->comm_d =  hypre_CTAlloc(HYPRE_Int,  (end-begin), HYPRE_MEMORY_DEVICE);;
+#if 0	
+	//copy y_tmp_data to CPU
 
-			cudaMemcpy(A->comm_d,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),  (end-begin) * sizeof(HYPRE_Int),cudaMemcpyHostToDevice  );
-		}
+	hypre_MPI_Barrier(comm_pkg->comm);
+	hypre_SeqVectorCopyDataGPUtoCPU( y_tmp);
 
-	}
-	comm_d = A->comm_d;
-
-	if ((end-begin) !=0){
-		//printf("begin = %d end = %d \n", begin, end); 
-		PackOnDeviceGPUonly((HYPRE_Complex*)y_buf_data,
-				&x_local_data[k1*x_local_size],
-				comm_d,
-				begin,
-				end);
-	}
-	//end pf GPU specific
-	comm_handle = hypre_ParCSRCommHandleCreate
-		( 222, comm_pkg, y_tmp_data, y_buf_data );
-
+	/* this is where we assume multivectors are 'column' storage */
+	comm_handle = hypre_ParCSRCommHandleCreate_mpiTag
+		( 222, comm_pkg, y_tmp_data, y_buf_data, mpiTag );
+	hypre_MPI_Barrier(comm_pkg->comm);
 
 
 	if (A->diagT)
 	{
-		//		hypre_CSRMatrixMatvec(alpha, A->diagT, x_local, beta, y_local);
-
-		HYPRE_Int transpose = 0;
-		hypre_CSRMatrixMatvecMultT(alpha, A->diagT, x_local,k1,beta, y_local, k2, transpose);
+		//hypre_CSRMatrixMatvec(alpha, A->diagT, x_local, beta, y_local);
+		hypre_CSRMatrixMatvecMultOutOfPlace(alpha, A->diagT, x_local,0, beta, y_local,0, y_local, 0, 0);
 	}
 	else
 	{
-
 		//		hypre_CSRMatrixMatvecT(alpha, diag, x_local, beta, y_local);
-
-		HYPRE_Int transpose = 1;
-		hypre_CSRMatrixMatvecMultT(alpha, A->diag, x_local,k1,beta, y_local, k2, transpose);
+		hypre_CSRMatrixMatvecTMultOutOfPlace(alpha, diag, x_local,0, beta, y_local,0, y_local, 0, 0);
 	}
 
+	//if (my_id==0) printf("new mvT: after both mv, norm %16.16f \n",hypre_SeqVectorInnerProdOneOfMult(y_local,0, y_local,0));
+	hypre_ParCSRCommHandleDestroy(comm_handle);
+	comm_handle = NULL;
+	hypre_TFree(comm_handle, HYPRE_MEMORY_HOST);
 
+	hypre_SeqVectorCopyDataGPUtoCPU( y_local);
+	y_local_data = hypre_VectorData(y_local); 
+	index = 0;
+	for (i = 0; i < num_sends; i++)
+	{
+		start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
 
+		for (j = start; j < hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1); j++)
+		{			
+			y_local_data[hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j)] += y_buf_data[index++];
+			//			if (my_id==1) printf("new mvT: adding x_buf[%d]=%16.16f to y_local_data[%d]=\n", index,y_buf_data[index-1],hypre_ParCSRCommPkgSendMapElmt(comm_pkg,j) );
+		}	
+	}
+	//make sure you update y
+
+	hypre_SeqVectorCopyDataCPUtoGPU( y_local);
+#endif
 	return ierr;
 }
 #endif
@@ -807,7 +815,7 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace_mpiTag( HYPRE_Complex       alpha,
 		HYPRE_Int k3,
 		hypre_ParVector    *y,
 		HYPRE_Int k2,
-    HYPRE_Int mpiTag)// the only difference!
+		HYPRE_Int mpiTag)// the only difference!
 {
 	hypre_ParCSRCommHandle *comm_handle;
 	hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
@@ -824,6 +832,12 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace_mpiTag( HYPRE_Complex       alpha,
 	HYPRE_Int          num_sends;
 
 	HYPRE_Complex     *x_tmp_data, *x_buf_data;
+	HYPRE_Int my_id; 
+	HYPRE_Real t1, t2;   
+	MPI_Comm        comm_debug;
+	comm_debug = hypre_ParCSRMatrixComm(A);
+	hypre_MPI_Comm_rank(comm_debug,&my_id);
+
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
 	HYPRE_Complex     *x_local_data = hypre_VectorDeviceData(x_local);
 #else
@@ -844,7 +858,7 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace_mpiTag( HYPRE_Complex       alpha,
 	}
 	comm_handle = hypre_CTAlloc(hypre_ParCSRCommHandle, 1, HYPRE_MEMORY_HOST);
 	if (x_tmp == NULL){
-	//	printf("KASIA HYPRE x_tmp is NULL! and num_cols_offd = %d \n", num_cols_offd);
+		//printf("KASIA HYPRE x_tmp is NULL! and num_cols_offd = %d \n", num_cols_offd);
 		x_tmp = hypre_SeqVectorCreate(num_cols_offd );
 
 		hypre_SeqVectorInitialize(x_tmp);
@@ -858,86 +872,99 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace_mpiTag( HYPRE_Complex       alpha,
 #endif
 	num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
 	if ((A->x_buf == NULL)||(A->x_buf_size==0)){
-//		printf("KASIA HYPRE. x-buff is NULL %d? current size %d. Allocating x buf size %d, num sends = %d, num recv %d \n",A->x_buf==NULL, A->x_buf_size, hypre_ParCSRCommPkgSendMapStart
-//				(comm_pkg,  num_sends), num_sends, hypre_ParCSRCommPkgNumRecvs(comm_pkg));
 
 		A->x_buf_size=  hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends);
-		//	A->x_buf = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
-		//		(comm_pkg,  num_sends), HYPRE_MEMORY_DEVICE);}
+		A->x_buf = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends), HYPRE_MEMORY_DEVICE);
 
-		error = cudaMalloc(&A->x_buf,  hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends)*sizeof(HYPRE_Complex));
-}else{
-	//printf("exception. X buf is null? %d size %d \n", A->x_buf == NULL, A->x_buf_size);
-}
-//printf("x buf size %d need %d error %d \n",A->x_buf_size*sizeof(HYPRE_Complex), hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends)*sizeof(HYPRE_Complex), error );
-//for (int ii=0; ii<num_sends+1;++ii)
-//printf("hypre_ParCSRCommPkgSendMapStart( %d) =  %d \n",ii, hypre_ParCSRCommPkgSendMapStart(comm_pkg,  ii)); 
+		//	error = cudaMalloc(&A->x_buf,  hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends)*sizeof(HYPRE_Complex));
+	}else{
+		//printf("exception. X buf is null? %d size %d \n", A->x_buf == NULL, A->x_buf_size);
+	}
+	//printf("x buf size %d need %d error %d \n",A->x_buf_size*sizeof(HYPRE_Complex), hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends)*sizeof(HYPRE_Complex), error );
+	//for (int ii=0; ii<num_sends+1;++ii)
+	//printf("hypre_ParCSRCommPkgSendMapStart( %d) =  %d \n",ii, hypre_ParCSRCommPkgSendMapStart(comm_pkg,  ii)); 
 
 
 #if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU) 
-x_buf_data = A->x_buf;
+	x_buf_data = A->x_buf;
 #else
-x_buf_data = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
-		(comm_pkg,  num_sends), HYPRE_MEMORY_SHARED);
+	x_buf_data = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
+			(comm_pkg,  num_sends), HYPRE_MEMORY_SHARED);
 #endif
 
-//fails
-hypre_CSRMatrixMatvecMultOutOfPlace( alpha, diag, x_local,k1, beta, b_local,k3, y_local, k2, 0);
+	//fails
+	hypre_CSRMatrixMatvecMultOutOfPlace( alpha, diag, x_local,k1, beta, b_local,k3, y_local, k2, 0);
 
-HYPRE_Int *comm_d;
-HYPRE_Int begin = hypre_ParCSRCommPkgSendMapStart(comm_pkg, 0);
-HYPRE_Int end   = hypre_ParCSRCommPkgSendMapStart(comm_pkg, num_sends);
-if (A->comm_d == NULL)
-{
-	if ((end-begin) != 0)
+	HYPRE_Int *comm_d;
+	HYPRE_Int begin = hypre_ParCSRCommPkgSendMapStart(comm_pkg, 0);
+	HYPRE_Int end   = hypre_ParCSRCommPkgSendMapStart(comm_pkg, num_sends);
+	if (A->comm_d == NULL)
 	{
-		A->comm_d =  hypre_CTAlloc(HYPRE_Int,  (end-begin), HYPRE_MEMORY_DEVICE);;
-		//printf("allocating comm_d size %d \n", end-begin);
-		cudaMemcpy(A->comm_d,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),  (end-begin) * sizeof(HYPRE_Int),cudaMemcpyHostToDevice  );
+		if ((end-begin) != 0)
+		{
+			A->comm_d =  hypre_CTAlloc(HYPRE_Int,  (end-begin), HYPRE_MEMORY_DEVICE);;
+			//printf("allocating comm_d size %d \n", end-begin);
+			cudaMemcpy(A->comm_d,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),  (end-begin) * sizeof(HYPRE_Int),cudaMemcpyHostToDevice  );
+		}
+
+	}
+#if 1
+	comm_d = A->comm_d;
+#endif 
+	if ((end-begin) !=0){
+		PackOnDeviceGPUonly((HYPRE_Complex*)x_buf_data,
+				&x_local_data[k1*x_local_size],
+				comm_d,
+				begin,
+				end);
 	}
 
-}
-#if 1
-comm_d = A->comm_d;
-#endif 
-if ((end-begin) !=0){
-	PackOnDeviceGPUonly((HYPRE_Complex*)x_buf_data,
-			&x_local_data[k1*x_local_size],
-			comm_d,
-			begin,
-			end);
-}
+	t1=hypre_MPI_Wtime();
+	//experimental
+	HYPRE_Complex * x_buf_data_host = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends), HYPRE_MEMORY_HOST);
+	HYPRE_Complex * x_tmp_data_host = hypre_CTAlloc(HYPRE_Complex,  num_cols_offd  , HYPRE_MEMORY_HOST);
+	cudaMemcpy(x_buf_data_host,x_buf_data,   hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends) * sizeof(HYPRE_Complex),cudaMemcpyDeviceToHost  );
+	cudaMemcpy(x_tmp_data_host,x_tmp_data,  num_cols_offd  * sizeof(HYPRE_Complex),cudaMemcpyDeviceToHost  );
+	//end of experimental
 
-comm_handle = hypre_CTAlloc(hypre_ParCSRCommHandle, 1, HYPRE_MEMORY_HOST);
+	comm_handle = hypre_CTAlloc(hypre_ParCSRCommHandle, 1, HYPRE_MEMORY_HOST);
 
-//if (num_sends > 50)
-comm_handle = hypre_ParCSRCommHandleCreate_mpiTag
-( 111, comm_pkg, x_buf_data,x_tmp_data, mpiTag );
+	//if (num_sends > 50)
+	//leave this alone or will seg fault!!!
+	comm_handle = hypre_ParCSRCommHandleCreate_mpiTag
+		( 111, comm_pkg, x_buf_data_host,x_tmp_data_host, mpiTag );
 
-//WORKS!
+	//hypre_MPI_Barrier(hypre_ParCSRCommPkgComm(comm_pkg));
+	t2=hypre_MPI_Wtime();
+	cudaMemcpy(x_buf_data,x_buf_data_host,   hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends) * sizeof(HYPRE_Complex),cudaMemcpyHostToDevice  );
+	cudaMemcpy(x_tmp_data,x_tmp_data_host,  num_cols_offd  * sizeof(HYPRE_Complex),cudaMemcpyHostToDevice  );
+	//end of experimental
+	//WORKS!
+
+	commTime += (t2-t1);
 
 
-
-if (num_cols_offd) {hypre_CSRMatrixMatvecMult( alpha, offd, x_tmp, k1, 1.0, y_local, k2); }
+	if (num_cols_offd) {hypre_CSRMatrixMatvecMult( alpha, offd, x_tmp, k1, 1.0, y_local, k2); }
 
 	MPI_Comm  comm      = hypre_ParCSRCommPkgComm(comm_pkg);	
 	//hypre_MPI_Barrier(comm);
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
-//seg faults if next thing uncommented
-//	  hypre_TFree(x_buf_data, HYPRE_MEMORY_DEVICE);
- 
+	//seg faults if next thing uncommented
+	//	  hypre_TFree(x_buf_data, HYPRE_MEMORY_DEVICE);
 
-//hypre_TFree(A->x_buf, HYPRE_MEMORY_DEVICE);
-//error = cudaFree(x_buf_data);		
-//A->x_buf=NULL;
-//A->x_buf_size = 0;
-//printf("freeing, error %d \n ", error);
-//hypre_SeqVectorDestroy(x_tmp);
-//x_tmp=NULL;
+
+	//hypre_TFree(A->x_buf, HYPRE_MEMORY_DEVICE);
+	//error = cudaFree(x_buf_data);		
+	//A->x_buf=NULL;
+	//A->x_buf_size = 0;
+	//printf("freeing, error %d \n ", error);
+	//hypre_SeqVectorDestroy(x_tmp);
+	//x_tmp=NULL;
 #else
-//  hypre_TFree(x_buf_data, HYPRE_MEMORY_SHARED);
+	//  hypre_TFree(x_buf_data, HYPRE_MEMORY_SHARED);
 #endif
-return ierr;
+	//if (my_id ==0)printf("inside matvec, comm time so far %16.16f \n", commTime);
+	return ierr;
 }
 // end of KS code
 	HYPRE_Int
@@ -1000,14 +1027,14 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace( HYPRE_Complex       alpha,
 #endif
 	num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
 	if ((A->x_buf == NULL)||(A->x_buf_size==0)){
-	//	printf("KASIA HYPRE. x-buff is NULL %d? current size %d. Allocating x buf size %d, num sends = %d, num recv %d \n",A->x_buf==NULL, A->x_buf_size, hypre_ParCSRCommPkgSendMapStart
-			//	(comm_pkg,  num_sends), num_sends, hypre_ParCSRCommPkgNumRecvs(comm_pkg));
+		//	printf("KASIA HYPRE. x-buff is NULL %d? current size %d. Allocating x buf size %d, num sends = %d, num recv %d \n",A->x_buf==NULL, A->x_buf_size, hypre_ParCSRCommPkgSendMapStart
+		//	(comm_pkg,  num_sends), num_sends, hypre_ParCSRCommPkgNumRecvs(comm_pkg));
 
 		A->x_buf_size=  hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends);
 		//	A->x_buf = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
 		//		(comm_pkg,  num_sends), HYPRE_MEMORY_DEVICE);}
 
-		error = cudaMalloc(&A->x_buf,  hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends)*sizeof(HYPRE_Complex));
+	error = cudaMalloc(&A->x_buf,  hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends)*sizeof(HYPRE_Complex));
 }else{
 	//printf("exception. X buf is null? %d size %d \n", A->x_buf == NULL, A->x_buf_size);
 }
@@ -1062,20 +1089,20 @@ comm_handle = hypre_ParCSRCommHandleCreate
 
 if (num_cols_offd) {hypre_CSRMatrixMatvecMult( alpha, offd, x_tmp, k1, 1.0, y_local, k2); }
 
-	MPI_Comm  comm      = hypre_ParCSRCommPkgComm(comm_pkg);	
-	hypre_MPI_Barrier(comm);
+MPI_Comm  comm      = hypre_ParCSRCommPkgComm(comm_pkg);	
+//	hypre_MPI_Barrier(comm);
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
 //seg faults if next thing uncommented
 //	  hypre_TFree(x_buf_data, HYPRE_MEMORY_DEVICE);
- 
+
 
 //hypre_TFree(A->x_buf, HYPRE_MEMORY_DEVICE);
-error = cudaFree(x_buf_data);		
-A->x_buf=NULL;
-A->x_buf_size = 0;
+//error = cudaFree(x_buf_data);		
+//A->x_buf=NULL;
+//A->x_buf_size = 0;
 //printf("freeing, error %d \n ", error);
-hypre_SeqVectorDestroy(x_tmp);
-x_tmp=NULL;
+//hypre_SeqVectorDestroy(x_tmp);
+//x_tmp=NULL;
 #else
 //  hypre_TFree(x_buf_data, HYPRE_MEMORY_SHARED);
 #endif
@@ -1215,3 +1242,4 @@ hypre_ParCSRMatrixMatvec_FF( HYPRE_Complex       alpha,
 
 	return ierr;
 }
+

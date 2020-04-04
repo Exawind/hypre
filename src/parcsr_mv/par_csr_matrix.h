@@ -81,8 +81,9 @@ typedef struct hypre_ParCSRMatrix_struct
                                               (compile-time option)*/
 
 hypre_Vector      *x_tmp;
-HYPRE_Complex * x_buf;
-HYPRE_Int x_buf_size;
+HYPRE_Complex * x_buf=NULL;
+HYPRE_Complex * x_buf_cpu=NULL;
+HYPRE_Int x_buf_size=0;
 HYPRE_Int * comm_d;
 } hypre_ParCSRMatrix;
 

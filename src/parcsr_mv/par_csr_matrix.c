@@ -159,9 +159,9 @@ hypre_ParCSRMatrixDestroy( hypre_ParCSRMatrix *matrix )
    {
       if ( hypre_ParCSRMatrixOwnsData(matrix) )
       {
-//8 errors originate from here
+//still seg faults when this if off
+#if 1
          hypre_CSRMatrixDestroy(hypre_ParCSRMatrixDiag(matrix));
-//4 errors originate from here 
         hypre_CSRMatrixDestroy(hypre_ParCSRMatrixOffd(matrix));
          if ( hypre_ParCSRMatrixDiagT(matrix) )
          {
@@ -180,7 +180,8 @@ hypre_ParCSRMatrixDestroy( hypre_ParCSRMatrix *matrix )
             hypre_MatvecCommPkgDestroy(hypre_ParCSRMatrixCommPkg(matrix));
          if (hypre_ParCSRMatrixCommPkgT(matrix))
             hypre_MatvecCommPkgDestroy(hypre_ParCSRMatrixCommPkgT(matrix));
-      }
+#endif      
+}
       if ( hypre_ParCSRMatrixOwnsRowStarts(matrix) )
          hypre_TFree(hypre_ParCSRMatrixRowStarts(matrix), HYPRE_MEMORY_HOST);
       if ( hypre_ParCSRMatrixOwnsColStarts(matrix) )
@@ -194,11 +195,17 @@ hypre_ParCSRMatrixDestroy( hypre_ParCSRMatrix *matrix )
 
 //#if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU) 
 if(matrix->x_tmp != NULL){hypre_SeqVectorDestroy(matrix->x_tmp);}
-if (matrix->x_buf!=NULL) { hypre_TFree(matrix->x_buf, HYPRE_MEMORY_DEVICE);}
+//this fauls
+#if 1
+if (matrix->x_buf!=NULL) { 
+//printf("FREE: x buf is NOT null, size %d \n", matrix->x_buf_size);
+hypre_TFree(matrix->x_buf, HYPRE_MEMORY_DEVICE);
+//cudaFree(matrix->x_buf);
+}
 //#endif
       hypre_TFree(matrix, HYPRE_MEMORY_HOST);
+#endif
    }
-
    return hypre_error_flag;
 }
 

@@ -361,6 +361,7 @@ void hypre_CSRMatrixUnMapFromDevice(hypre_CSRMatrix *A);
 HYPRE_Int hypre_CSRMatrixMatvecOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
 
  HYPRE_Int hypre_CSRMatrixMatvecMultOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1,  HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
+ HYPRE_Int hypre_CSRMatrixMatvecTMultOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1,  HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
  HYPRE_Int hypre_CSRMatrixMatvecMultAsynch ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1,  HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
  HYPRE_Int hypre_CSRMatrixMatvecMultAsynchTwoInOne ( HYPRE_Complex alpha , hypre_CSRMatrix *A1 , hypre_CSRMatrix *A2 , hypre_Vector *x1 ,HYPRE_Int k11,  hypre_Vector *x2 ,HYPRE_Int k12, HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
 
@@ -374,6 +375,7 @@ HYPRE_Int hypre_CSRMatrixMatvec_FF ( HYPRE_Complex alpha , hypre_CSRMatrix *A , 
 #ifdef HYPRE_USING_GPU
 HYPRE_Int hypre_CSRMatrixMatvecDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Complex beta , hypre_Vector *b, hypre_Vector *y, HYPRE_Int offset );
 HYPRE_Int hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_Vector *b,HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
+HYPRE_Int hypre_CSRMatrixMatvecTMultDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_Vector *b,HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
 HYPRE_Int hypre_CSRMatrixMatvecMultAsynchDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x , HYPRE_Int k1, HYPRE_Complex beta , hypre_Vector *b,HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
 
 HYPRE_Int hypre_CSRMatrixMatvecMultAsynchTwoInOneDevice( HYPRE_Complex alpha , hypre_CSRMatrix *A1 , hypre_CSRMatrix *A2,  hypre_Vector *x1 , HYPRE_Int k11,  hypre_Vector *x2 , HYPRE_Int k12,HYPRE_Complex beta , hypre_Vector *b,HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
