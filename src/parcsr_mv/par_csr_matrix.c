@@ -194,13 +194,26 @@ hypre_ParCSRMatrixDestroy( hypre_ParCSRMatrix *matrix )
          hypre_AssumedPartitionDestroy(hypre_ParCSRMatrixAssumedPartition(matrix));
 
 //#if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU) 
-if(matrix->x_tmp != NULL){hypre_SeqVectorDestroy(matrix->x_tmp);}
+if(matrix->x_tmp != NULL){
+ printf("FREE: x tmp is NOT null. DELETING \n");
+ hypre_SeqVectorDestroy(matrix->x_tmp);}
 //this fauls
 #if 1
 if (matrix->x_buf!=NULL) { 
-//printf("FREE: x buf is NOT null, size %d \n", matrix->x_buf_size);
+printf("FREE: x buf is NOT null, size %d \n", matrix->x_buf_size);
 hypre_TFree(matrix->x_buf, HYPRE_MEMORY_DEVICE);
 //cudaFree(matrix->x_buf);
+}
+if (matrix->x_buf_cpu!=NULL)
+ { 
+printf("FREE: x buf_cpu is NOT null, size %d \n", matrix->x_buf_size);
+hypre_TFree(matrix->x_buf, HYPRE_MEMORY_HOST);
+}
+
+printf("FREE: about to check if commd is null \n");
+if (matrix->comm_d){
+printf("FREE: comm d  is NOT null");
+hypre_TFree(matrix->comm_d, HYPRE_MEMORY_DEVICE);
 }
 //#endif
       hypre_TFree(matrix, HYPRE_MEMORY_HOST);

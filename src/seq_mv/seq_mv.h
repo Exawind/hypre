@@ -362,6 +362,7 @@ HYPRE_Int hypre_CSRMatrixMatvecOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatri
 
  HYPRE_Int hypre_CSRMatrixMatvecMultOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1,  HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
  HYPRE_Int hypre_CSRMatrixMatvecTMultOutOfPlace ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1,  HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
+hypre_CSRMatrix *  hypre_CSRMatrixFormTranspose(hypre_CSRMatrix *A);
  HYPRE_Int hypre_CSRMatrixMatvecMultAsynch ( HYPRE_Complex alpha , hypre_CSRMatrix *A , hypre_Vector *x ,HYPRE_Int k1,  HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
  HYPRE_Int hypre_CSRMatrixMatvecMultAsynchTwoInOne ( HYPRE_Complex alpha , hypre_CSRMatrix *A1 , hypre_CSRMatrix *A2 , hypre_Vector *x1 ,HYPRE_Int k11,  hypre_Vector *x2 ,HYPRE_Int k12, HYPRE_Complex beta , hypre_Vector *b, HYPRE_Int k3,  hypre_Vector *y, HYPRE_Int k2, HYPRE_Int offset );
 

@@ -1308,6 +1308,49 @@ hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
 	return 0;
 }
 
+hypre_CSRMatrix * hypre_CSRMatrixFormTranspose(hypre_CSRMatrix *A){
+
+
+
+hypre_CSRMatrix *AT=NULL;
+//printf("no transpose exists, creating and initializing\n");
+	AT = hypre_CSRMatrixCreate( A->num_cols, A->num_rows, A->num_nonzeros );
+	hypre_CSRMatrixInitialize(AT);
+//printf("after: is AT null? %d ", AT==NULL);
+
+
+	static cusparseHandle_t handle;
+	static cusparseMatDescr_t descr;
+	static HYPRE_Int FirstCall=1;
+	cusparseStatus_t status;
+	static cudaStream_t s[10];
+	static HYPRE_Int myid;
+	if (FirstCall){
+
+		handle=getCusparseHandle();
+
+		status= cusparseCreateMatDescr(&descr);
+		if (status != CUSPARSE_STATUS_SUCCESS) {
+			exit(2);
+		}
+
+		cusparseSetMatType(descr,CUSPARSE_MATRIX_TYPE_GENERAL);
+		cusparseSetMatIndexBase(descr,CUSPARSE_INDEX_BASE_ZERO);
+		FirstCall=0;
+		hypre_int jj;
+		for(jj=0;jj<5;jj++)
+			s[jj]=HYPRE_STREAM(jj);
+		nvtxNameCudaStreamA(s[4], "HYPRE_COMPUTE_STREAM");
+		hypre_MPI_Comm_rank(hypre_MPI_COMM_WORLD, &myid );
+		myid++;
+	}
+      status = cusparseDcsr2csc(handle, A->num_rows, A->num_cols, A->num_nonzeros,
+                           A->d_data, A->d_i, A->d_j, AT->d_data, AT->d_j, AT->d_i,
+                           CUSPARSE_ACTION_NUMERIC, CUSPARSE_INDEX_BASE_ZERO); 
+
+//printf("after transposing status %d, is AT null? %d\n", status, AT == NULL);
+return AT;
+}
 	HYPRE_Int
 hypre_CSRMatrixMatvecTMultDevice( HYPRE_Complex    alpha,
 		hypre_CSRMatrix *A,
@@ -1420,6 +1463,22 @@ hypre_CSRMatrixMatvecTMultDevice( HYPRE_Complex    alpha,
 		if ((xddata == NULL)) printf("x (input) data is NULL\n");
 		if ((yddata == NULL)) printf("y (output) data is NULL\n");
 printf("inside matvecT, before GPU call, num rows %d num cols %d nnz %d size x %d size y %d \n",  A->num_rows,  A->num_cols,  A->num_nonzeros, x_size, y_size);
+ HYPRE_Complex *csc_a = hypre_TAlloc(HYPRE_Complex, A->num_nonzeros, HYPRE_MEMORY_DEVICE);
+      HYPRE_Int     *csc_j = hypre_TAlloc(HYPRE_Int,     A->num_nonzeros, HYPRE_MEMORY_DEVICE);
+      HYPRE_Int     *csc_i = hypre_TAlloc(HYPRE_Int,     A->num_cols+1,   HYPRE_MEMORY_DEVICE);
+status = cusparseDcsr2csc(handle, A->num_rows, A->num_cols, A->num_nonzeros,
+                           A->d_data, A->d_i, A->d_j, csc_a, csc_j, csc_i,
+                           CUSPARSE_ACTION_NUMERIC, CUSPARSE_INDEX_BASE_ZERO); 
+
+printf("after cusparse csc2csr Status is %d\n", status);
+		status = cusparseDcsrmv(handle ,
+				CUSPARSE_OPERATION_NON_TRANSPOSE,
+				A->num_cols, A->num_rows, A->num_nonzeros,
+				&alpha, descr,
+				csc_a ,csc_i,csc_j,
+				&xddata[k1*x_size], &beta, &yddata[k2*y_size]);
+
+printf("after cusparse mv. Stsaus is %d\n", status);
 #if 0
 		status = cusparseDcsrmv(handle ,
 				CUSPARSE_OPERATION_TRANSPOSE,

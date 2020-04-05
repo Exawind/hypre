@@ -84,7 +84,7 @@ hypre_Vector      *x_tmp;
 HYPRE_Complex * x_buf=NULL;
 HYPRE_Complex * x_buf_cpu=NULL;
 HYPRE_Int x_buf_size=0;
-HYPRE_Int * comm_d;
+HYPRE_Int * comm_d=NULL;
 } hypre_ParCSRMatrix;
 
 /*--------------------------------------------------------------------------

@@ -721,10 +721,10 @@ tag++;
 #if 0
 HYPRE_Complex  nrmVbeforeN =  hypre_ParVectorInnerProd( Vtemp, Vtemp); 
 HYPRE_Complex  nrmVbeforeGPUN =  hypre_ParVectorInnerProdOneOfMult( Vtemp,0, Vtemp,0); 
-#endif
  hypre_ParCSRMatrixMatvecT(alpha,R_array[fine_grid],Vtemp,
                                          beta,F_array[coarse_grid]);
 
+#endif
 hypre_ParCSRMatrixMatvecTMultOutOfPlace_mpiTag(alpha, R_array[fine_grid],
 						Vtemp,0,
 						beta, 
