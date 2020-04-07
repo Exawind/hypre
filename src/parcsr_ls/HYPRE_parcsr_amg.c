@@ -88,12 +88,12 @@ sqrt(hypre_ParVectorInnerProd(b,b)),
 sqrt(hypre_ParKrylovInnerProdOneOfMult(x,0, x, 0)), 
 sqrt(hypre_ParKrylovInnerProdOneOfMult(b, 0, b,0)));
 #endif
-hypre_ParVectorCopyDataCPUtoGPU(x);
+//hypre_ParVectorCopyDataCPUtoGPU(x);
 //printf("copying vector to GPU!\n");
 
-	hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
-		comm_pkg = hypre_ParCSRMatrixCommPkg(A);
-	hypre_MPI_Barrier(comm_pkg->comm);
+	//hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
+		//comm_pkg = hypre_ParCSRMatrixCommPkg(A);
+	//hypre_MPI_Barrier(comm_pkg->comm);
 return ret;
 }
 

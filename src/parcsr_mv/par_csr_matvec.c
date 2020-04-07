@@ -414,12 +414,13 @@ hypre_ParCSRMatrixMatvecT( HYPRE_Complex       alpha,
 	HYPRE_Int         i, j, jv, index, start, num_sends;
 
 	HYPRE_Int         ierr  = 0;
-
+#if 0
 	HYPRE_Int my_id; 
 	HYPRE_Real t1, t2;   
 	MPI_Comm        comm_debug;
 	comm_debug = hypre_ParCSRMatrixComm(A);
 	hypre_MPI_Comm_rank(comm_debug,&my_id);
+#endif
 	if (y==NULL) {
 		//printf("NULLY %p\b", (void*) y);
 		return 1;
@@ -691,12 +692,13 @@ hypre_ParCSRMatrixMatvecTMultOutOfPlace_mpiTag(HYPRE_Complex       alpha,
 	HYPRE_Int         i, j, jv, index, start, num_sends;
 
 	HYPRE_Int         ierr  = 0;
+#if 0
 	HYPRE_Int my_id;
 	HYPRE_Real t1, t2;   
 	MPI_Comm        comm_debug;
 	comm_debug = hypre_ParCSRMatrixComm(A);
 	hypre_MPI_Comm_rank(comm_debug,&my_id);
-
+#endif
 	if (y==NULL) {
 		//printf("NULLY %p\b", (void*) y);
 		return 1;
@@ -747,7 +749,7 @@ if (num_cols_offd)
 		}
 		else
 		{
-if(my_id == 0) printf("forming transpose!\n");
+//if(my_id == 0) printf("forming transpose!\n");
 
 
 A->offdT = hypre_CSRMatrixFormTranspose( A->offd);
@@ -779,7 +781,7 @@ hypre_CSRMatrixMatvecMultOutOfPlace(alpha, A->offdT, x_local,0, 0.0, A->x_tmp,0,
 	}
 	else
 	{
-if (my_id ==0 ) printf("Forming transpose 2!\n");
+//if (my_id ==0 ) printf("Forming transpose 2!\n");
 A->diagT = hypre_CSRMatrixFormTranspose( A->diag);
 		//		hypre_CSRMatrixMatvecT(alpha, diag, x_local, beta, y_local);
 		//hypre_CSRMatrixMatvecTMultOutOfPlace(alpha, diag, x_local,0, beta, y_local,0, y_local, 0, 0);
@@ -841,12 +843,13 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace_mpiTag( HYPRE_Complex       alpha,
 	HYPRE_Int          num_sends;
 
 	HYPRE_Complex     *x_tmp_data,*x_tmp_data_cpu, *x_buf_data;
+#if 0
 	HYPRE_Int my_id; 
 	HYPRE_Real t1, t2;   
 	MPI_Comm        comm_debug;
 	comm_debug = hypre_ParCSRMatrixComm(A);
 	hypre_MPI_Comm_rank(comm_debug,&my_id);
-
+#endif
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
 	HYPRE_Complex     *x_local_data = hypre_VectorDeviceData(x_local);
 #else
@@ -869,7 +872,6 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace_mpiTag( HYPRE_Complex       alpha,
 	if (A->x_tmp == NULL){
 		//printf("KASIA HYPRE x_tmp is NULL! and num_cols_offd = %d \n", num_cols_offd);
 		A->x_tmp = hypre_SeqVectorCreate(num_cols_offd );
-printf("is x tmp null? %d what about A-> x tmp? %d \n", x_tmp == NULL, A->x_tmp == NULL);
 		hypre_SeqVectorInitialize(A->x_tmp);
 	}
 	//printf("x_tmp actual size %d need %d \n",hypre_VectorSize(x_tmp), num_cols_offd);
@@ -930,7 +932,7 @@ printf("is x tmp null? %d what about A-> x tmp? %d \n", x_tmp == NULL, A->x_tmp 
 				end);
 	}
 
-	t1=hypre_MPI_Wtime();
+	//t1=hypre_MPI_Wtime();
 	//experimental
 	#if 0
 	HYPRE_Complex * x_buf_data_host = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends), HYPRE_MEMORY_HOST);
@@ -949,7 +951,7 @@ printf("is x tmp null? %d what about A-> x tmp? %d \n", x_tmp == NULL, A->x_tmp 
 		( 111, comm_pkg, A->x_buf_cpu, x_tmp_data_cpu, mpiTag );
 
 	//hypre_MPI_Barrier(hypre_ParCSRCommPkgComm(comm_pkg));
-	t2=hypre_MPI_Wtime();
+	//t2=hypre_MPI_Wtime();
 #if 1
 	cudaMemcpy(x_buf_data,A->x_buf_cpu,   hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends) * sizeof(HYPRE_Complex),cudaMemcpyHostToDevice  );
 	cudaMemcpy(x_tmp_data,x_tmp_data_cpu,  num_cols_offd  * sizeof(HYPRE_Complex),cudaMemcpyHostToDevice  );
@@ -957,7 +959,7 @@ printf("is x tmp null? %d what about A-> x tmp? %d \n", x_tmp == NULL, A->x_tmp 
 	//end of experimental
 	//WORKS!
 
-	commTime += (t2-t1);
+//	commTime += (t2-t1);
 
 
 	if (num_cols_offd) {hypre_CSRMatrixMatvecMult( alpha, offd, A->x_tmp, k1, 1.0, y_local, k2); }

@@ -27,7 +27,7 @@
 #ifdef HYPRE_USING_CALIPER
 #include <caliper/cali.h>
 #endif
-static HYPRE_Complex timeMV, timeMVT, timeCopy, timeRelax;
+//static HYPRE_Complex timeMV, timeMVT, timeCopy, timeRelax;
 /*--------------------------------------------------------------------------
  * hypre_BoomerAMGCycle
  *--------------------------------------------------------------------------*/
@@ -544,11 +544,12 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                  else
                  {
                  
-t1= hypre_MPI_Wtime();
-hypre_ParVectorCopyDataCPUtoGPU(Aux_U); 
-hypre_ParVectorCopyDataCPUtoGPU(Aux_F); 
-t3 =hypre_MPI_Wtime();
-timeCopy += (t3-t1);
+//t1= hypre_MPI_Wtime();
+//copy NOT NEEDED HERE
+//hypre_ParVectorCopyDataCPUtoGPU(Aux_U); 
+//hypre_ParVectorCopyDataCPUtoGPU(Aux_F); 
+//t3 =hypre_MPI_Wtime();
+//timeCopy += (t3-t1);
   Solve_err_flag = hypre_BoomerAMGRelaxIF(A_array[level],
                                                           Aux_F,
                                                           CF_marker_array[level],
@@ -561,8 +562,8 @@ timeCopy += (t3-t1);
                                                           Aux_U,
                                                           Vtemp,
                                                           Ztemp);
-t2= hypre_MPI_Wtime();
-timeRelax += (t2-t1);
+//t2= hypre_MPI_Wtime();
+//timeRelax += (t2-t1);
                  }
               }
 
@@ -628,12 +629,13 @@ timeRelax += (t2-t1);
 //#if 0
 tag++; 
 
-t1= hypre_MPI_Wtime();
-hypre_ParVectorCopyDataCPUtoGPU(U_array[fine_grid]);
-hypre_ParVectorCopyDataCPUtoGPU(F_array[fine_grid]);
-hypre_ParVectorCopyDataCPUtoGPU(Vtemp);
-t3= hypre_MPI_Wtime();
-timeCopy +=(t3-t1);
+//t1= hypre_MPI_Wtime();
+//copy not needed here
+//hypre_ParVectorCopyDataCPUtoGPU(U_array[fine_grid]);
+//hypre_ParVectorCopyDataCPUtoGPU(F_array[fine_grid]);
+//hypre_ParVectorCopyDataCPUtoGPU(Vtemp);
+//t3= hypre_MPI_Wtime();
+//timeCopy +=(t3-t1);
 //hypre_ParCSRMatrixCopyCPUtoGPU(A_array[fine_grid]);
 #if 0
 HYPRE_Complex  nrmVbefore =  hypre_ParVectorInnerProd( Vtemp, Vtemp); 
@@ -664,11 +666,12 @@ hypre_ParCSRMatrixGlobalNumRows(A_array[fine_grid]),hypre_ParCSRMatrixGlobalNumC
 nrmUbefore, nrmUbeforeGPU, nrmFbefore, nrmFbeforeGPU,
 nrmUafter, nrmUafterGPU, nrmFafter, nrmFafterGPU);
 #endif
-t4 = hypre_MPI_Wtime();
-hypre_ParVectorCopyDataGPUtoCPU(Vtemp);
-t2= hypre_MPI_Wtime();
-timeMV += (t2-t1);
-timeCopy+=(t2-t4);
+//t4 = hypre_MPI_Wtime();
+//NOT NEEDED
+//hypre_ParVectorCopyDataGPUtoCPU(Vtemp);
+//t2= hypre_MPI_Wtime();
+//timeMV += (t2-t1);
+//timeCopy+=(t2-t4);
 #else
  hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[fine_grid], U_array[fine_grid],                                               beta, F_array[fine_grid], Vtemp);
             //SyncVectorToHost(hypre_ParVectorLocalVector(Vtemp));
@@ -696,7 +699,7 @@ timeCopy+=(t2-t4);
                //SyncVectorToHost(hypre_ParVectorLocalVector(Vtemp));
                //SyncVectorToHost(hypre_ParVectorLocalVector(F_array[coarse_grid]));
               
-t1= hypre_MPI_Wtime();
+//t1= hypre_MPI_Wtime();
 #if 0
 HYPRE_Complex  nrmVbefore =  hypre_ParVectorInnerProd( Vtemp, Vtemp); 
 HYPRE_Complex  nrmVbeforeGPU =  hypre_ParVectorInnerProdOneOfMult( Vtemp,0, Vtemp,0); 
@@ -735,8 +738,8 @@ HYPRE_Complex  nrmFafterGPUN =  hypre_ParVectorInnerProdOneOfMult( F_array[coars
 if (my_id == 0) printf("MatvecT normal: nrm input, %16.16f (CPU), %16.16f (GPU) AND output  %16.16f (CPU), %16.16f (GPU) AND MatvecT new: nrm input, %16.16f (CPU), %16.16f (GPU) AND output  %16.16f (CPU), %16.16f (GPU)\n",
 nrmVbefore, nrmVbeforeGPU, nrmFafter, nrmFafterGPU, nrmVbeforeN, nrmVbeforeGPUN, nrmFafterN, nrmFafterGPUN);
 #endif
-t2= hypre_MPI_Wtime();
-timeMVT += (t2-t1);
+//t2= hypre_MPI_Wtime();
+//timeMVT += (t2-t1);
                //UpdateDRC(hypre_ParVectorLocalVector(F_array[coarse_grid]));
                //SyncVectorToHost(hypre_ParVectorLocalVector(F_array[coarse_grid]));
             }
@@ -775,11 +778,13 @@ timeMVT += (t2-t1);
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
 //#if 0
 tag++; 
-t1 = hypre_MPI_Wtime();
+//t1 = hypre_MPI_Wtime();
+//leave this
 hypre_ParVectorCopyDataCPUtoGPU(U_array[coarse_grid]);
-hypre_ParVectorCopyDataCPUtoGPU(U_array[fine_grid]);
-t3 = hypre_MPI_Wtime();
-timeCopy+=(t3-t1);
+//not needed
+//hypre_ParVectorCopyDataCPUtoGPU(U_array[fine_grid]);
+//t3 = hypre_MPI_Wtime();
+//timeCopy+=(t3-t1);
 //HYPRE_Complex  nrmUbefore =  hypre_ParVectorInnerProd( U_array[fine_grid], U_array[fine_grid]); 
 //HYPRE_Complex  nrmUbeforeGPU =  hypre_ParVectorInnerProdOneOfMult( U_array[fine_grid],0, U_array[fine_grid],0); 
 
@@ -788,13 +793,13 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace_mpiTag(alpha, P_array[fine_grid],
 						beta, U_array[fine_grid], 0,  U_array[fine_grid], 0, tag);
 
 //HYPRE_Complex  nrmUafterGPU =  hypre_ParVectorInnerProdOneOfMult( U_array[fine_grid],0, U_array[fine_grid],0); 
-
+//leave this alone
 hypre_ParVectorCopyDataGPUtoCPU(U_array[fine_grid]);
 //HYPRE_Complex  nrmUafter =  hypre_ParVectorInnerProd( U_array[fine_grid], U_array[fine_grid]); 
 //if (my_id == 0) printf("Norm of Vtemp before %16.16f (CPU), %16.16f(GPU) and after  %16.16f (STD), %16.16f(GPU)\n ",
 //nrmUbefore, nrmUbeforeGPU, nrmUafter, nrmUafterGPU);
-t2= hypre_MPI_Wtime();
-timeMV += (t2-t1);
+//t2= hypre_MPI_Wtime();
+//timeMV += (t2-t1);
 #else
             hypre_ParCSRMatrixMatvec(alpha, P_array[fine_grid],
                                      U_array[coarse_grid],
@@ -814,10 +819,12 @@ timeMV += (t2-t1);
          Not_Finished = 0;
       }
    }
+#if 0
 if (my_id == 0)
 	{
 		printf("inside Vcycle, all relax CALLs took %16.16f matvecs (prolongation, restriction) took %16.16f, matvecT took %16.16f copying %16.16f \n", timeRelax, timeMV, timeMVT, timeCopy);
 	}
+#endif
 #ifdef HYPRE_USING_CALIPER
    cali_end(iter_attr);  /* unset "iter" */
 #endif
