@@ -1,4 +1,4 @@
-#define solverTimers 1
+#define solverTimers 0
 #define usePrecond 1
 #define leftPrecond 0
 #define flexiblePrecond 0 // for flexible
@@ -6,7 +6,7 @@
 /******************************************************************************
  *
  * COGMRES cogmres
- *
+ * AUthor: KS. Updated April 18th 2020 fox performance on summit.
  *****************************************************************************/
 
 
@@ -14,7 +14,7 @@
 #include "krylov.h"
 #include "_hypre_utilities.h"
 //#include "_hypre_parcsr_ls.h"
-//#include "_hypre_parcsr_ls.h"
+//#include "../parcsr_ls/_hypre_parcsr_ls.h"
 #ifdef HYPRE_USING_GPU
 #include "../seq_mv/gpukernels.h"
 #endif
@@ -47,6 +47,7 @@ static HYPRE_Int HegedusTrick=0;
 			HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x, HYPRE_Int i1 ),
 			HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, HYPRE_Int k1, void *y, HYPRE_Int k2 ),      
 			HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex *alpha, void *x, HYPRE_Int k1, void *y, HYPRE_Int k2),   
+			void *        (*GetAuxVector)  (void *A, HYPRE_Int id),
 			HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
 			HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
 	)
@@ -75,6 +76,7 @@ static HYPRE_Int HegedusTrick=0;
 	cogmres_functions->ScaleVector       = ScaleVector;
 	cogmres_functions->Axpy              = Axpy;
 	cogmres_functions->MassAxpy          = MassAxpy;
+	cogmres_functions->GetAuxVector      = GetAuxVector;
 	/* default preconditioner must be set here but can be changed later... */
 	cogmres_functions->precond_setup     = PrecondSetup;
 	cogmres_functions->precond           = Precond;
@@ -130,10 +132,6 @@ hypre_COGMRESCreate( hypre_COGMRESFunctions *cogmres_functions )
 hypre_COGMRESDestroy( void *cogmres_vdata )
 {
 
-	size_t mf, ma;
-	//cudaMemGetInfo(&mf, &ma);
-	//printf("starting de-allocation, free memory %zu allocated memory %zu \n", mf, ma);
-	//printf("DESTROYING COGMRES, free memory %zu total memory %zu percentage of allocated %f \n", mf, ma, (double)mf/ma);
 
 	hypre_COGMRESData *cogmres_data = (hypre_COGMRESData *)cogmres_vdata;
 
@@ -148,35 +146,38 @@ hypre_COGMRESDestroy( void *cogmres_vdata )
 
 		if ( (cogmres_data -> matvec_data) != NULL )
 			(*(cogmres_functions->MatvecDestroy))(cogmres_data -> matvec_data);
-
-		if ( (cogmres_data -> r) != NULL )
+		//works if commented here
+		if ( (cogmres_data -> r) != NULL ){
 			(*(cogmres_functions->DestroyVector))(cogmres_data -> r);
-		if ( (cogmres_data -> w) != NULL )
+			cogmres_data -> r = NULL;
+		}
+		if ( (cogmres_data -> w) != NULL ){
 			(*(cogmres_functions->DestroyVector))(cogmres_data -> w);
-		if ( (cogmres_data -> w_2) != NULL )
+			cogmres_data -> w = NULL;
+		}
+		if ( (cogmres_data -> w_2) != NULL ){
 			(*(cogmres_functions->DestroyVector))(cogmres_data -> w_2);
 
+			cogmres_data -> w_2 = NULL;
+		}
 
 		if ( (cogmres_data -> p) != NULL )
 		{
-			//printf("freeing p\n");
-			// cudaFree(cogmres_data -> p);
 			(*(cogmres_functions->DestroyVector))(cogmres_data -> p);
 		}
-
 		if ( (cogmres_data -> z) != NULL )
 		{
-			//printf("freeing p\n");
-			// cudaFree(cogmres_data -> p);
 			(*(cogmres_functions->DestroyVector))(cogmres_data -> z);
 		}
+#if 1
 		hypre_TFreeF( cogmres_data, cogmres_functions );
-		hypre_TFreeF( cogmres_functions, cogmres_functions );
-	}
 
-	//cudaMemGetInfo(&mf, &ma);
-	//printf("starting de-allocation, free memory %zu allocated memory %zu \n", mf, ma);
-	//printf("\n ENDED COGMRES, free memory %zu total memory %zu percentage of allocated %f \n", mf, ma, (double)mf/ma);
+		cogmres_data = NULL;
+		hypre_TFreeF( cogmres_functions, cogmres_functions );
+
+		cogmres_functions = NULL;
+#endif
+	}
 	return hypre_error_flag;
 }
 
@@ -306,7 +307,6 @@ void GramSchmidt (HYPRE_Int option,
 		t = sqrt((*(cf->InnerProd))(Vspace,i,Vspace, i));
 		Hcolumn[idx( i-1,i, k_dim+1)] = t;
 
-		//printf("H[%d, %d] =H[%d] =  %16.16f \n ",i-1,i,idx( i-1,i, k_dim+1), Hcolumn[idx( i-1,i, k_dim+1)]  ); 
 		if (t != 0){
 			t = 1/t;
 			(*(cf->ScaleVector))(t,Vspace, i);
@@ -554,10 +554,6 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 {
 
 
-	size_t mf, ma;
-	//cudaMemGetInfo(&mf, &ma);
-	//printf("starting de-allocation, free memory %zu allocated memory %zu \n", mf, ma);
-	//printf("STARTING COGMRES, free memory %zu total memory %zu percentage of allocated %f \n", mf, ma, (double)mf/ma);
 	HYPRE_Real time1, time2, time3, time4;
 	HYPRE_Real gsTime = 0.0, matvecPreconTime = 0.0, linSolveTime= 0.0, remainingTime = 0.0; 
 	HYPRE_Real massAxpyTime = 0.0; 
@@ -578,8 +574,11 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 
 	//printf("Starting VERY BEGINNING norm x %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
 	//printf("Starting VERY BEGINNING norm b %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0)));
-	void         *w                 = (cogmres_data -> w);
-	void         *w_2               = (cogmres_data -> w_2); 
+	//	void         *w                 = (cogmres_data -> w);
+	//	void         *w_2               = (cogmres_data -> w_2); 
+	//CHANGING APRIL 2020
+	void         *w                 =  (*(cogmres_functions->GetAuxVector))(A, 0);
+	void         *w_2               =   (*(cogmres_functions->GetAuxVector))(A, 1);
 
 	void        *p                 = (cogmres_data -> p);
 	void        *z                 = (cogmres_data -> z);
@@ -613,12 +612,17 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	}
 
 	//  if (usePrecond){
+#if 0
 	(cogmres_data -> w_2) = (*(cogmres_functions->CreateVector))(b);
 	w_2 = cogmres_data -> w_2;
 	// }
 
 	(cogmres_data -> w) = (*(cogmres_functions->CreateVector))(b);
 	w = cogmres_data -> w;
+#endif
+	//CHANGING APRIL 2020
+
+
 	//CreateVecrtie in this case will initialize it too  
 	//r = (*(cogmres_functions->CreateVector))(b);
 	rs = hypre_CTAllocF(HYPRE_Real,k_dim+1,cogmres_functions, HYPRE_MEMORY_HOST);
@@ -731,15 +735,16 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 				if (solverTimers)
 					time1 = MPI_Wtime();
 
+				//do not get rid of this or results are wrong			
 				(*(cogmres_functions->ClearVector))(w);
-				//(*(cogmres_functions->ClearVector))(w_2);
 				//KS: if iter == 0, x has the right CPU data, no need to copy	
 				//not true if restarting
 				if(iter!=0){
 					(*(cogmres_functions->UpdateVectorCPU))(x);
 				}	
 				//w = Mx
-				(*(cogmres_functions->CopyVector))(x, 0, w_2, 0);
+				//CHANGING April 17th 2020				
+				//(*(cogmres_functions->CopyVector))(x, 0, w_2, 0);
 				//	if (iter==0) printf("ITER 0, norm of x  (before precon) %16.16f\n ",sqrt((*(cogmres_functions->InnerProd))(w_2,0,w_2, 0)));
 				if (solverTimers){
 					time2 = MPI_Wtime();
@@ -748,7 +753,9 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 				}
 
 				PUSH_RANGE("cogmres precon", 0);
-				precond(precond_data, A, w_2,w );
+				//			precond(precond_data, A, w_2,w );
+				//CHANGING April 17th 2020				
+				precond(precond_data, A, x,w );
 				POP_RANGE;
 
 				//	if (iter==0) printf("ITER 0, norm after applying precon %16.16f\n ",sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
@@ -1058,10 +1065,12 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 		}
 		if (my_id == 0  ){
 			if (iter == 0){
-#if 1
-				hypre_printf("Orthogonalization variant: %d \n", GSoption);
-				hypre_printf("L2 norm of b: %16.16f\n", b_norm);
-				hypre_printf("Initial L2 norm of (current) residual: %16.16f\n", r_norm);
+#if 0
+				if ( logging>0 || print_level > 1){
+					hypre_printf("Orthogonalization variant: %d \n", GSoption);
+					hypre_printf("L2 norm of b: %16.16f\n", b_norm);
+					hypre_printf("Initial L2 norm of (current) residual: %16.16f\n", r_norm);
+				}
 #endif
 			}
 		}
@@ -1428,7 +1437,8 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 			}
 
 		}	
-		(*(cogmres_functions->UpdateVectorCPU))(x);
+		//CHANGING APRIL 2020
+		//		(*(cogmres_functions->UpdateVectorCPU))(x);
 
 		if (solverTimers){
 			time2 = MPI_Wtime();
@@ -1507,7 +1517,8 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 			if (solverTimers){
 				time1 = MPI_Wtime();
 			}
-			(*(cogmres_functions->CopyVector))(x, 0, w_2, 0);
+			//CHANGING APRIL 2020		
+			//	(*(cogmres_functions->CopyVector))(x, 0, w_2, 0);
 			(*(cogmres_functions->ClearVector))(w);
 			if (solverTimers){
 				time2 = MPI_Wtime();
@@ -1516,7 +1527,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 			}
 
 			PUSH_RANGE("cogmres precon", 2);
-			precond(precond_data, A, w_2, w);
+			precond(precond_data, A, x, w);
 			POP_RANGE;
 			if (solverTimers){
 				time2 = MPI_Wtime();
@@ -1609,7 +1620,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	//printf("starting de-allocation, free memory %zu allocated memory %zu \n", mf, ma);
 	//printf("\n ENDING COGMRES(solve), free memory %zu total memory %zu percentage of allocated %f \n", mf, ma, (double)mf/ma);
 
-   return 0;
+	return 0;
 
 }//Solve
 

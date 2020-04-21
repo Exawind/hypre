@@ -144,6 +144,8 @@ hypre_ParCSRMatrixCreate( MPI_Comm comm,
 	//#if !defined(HYPRE_USING_UNIFIED_MEMORY) && defined(HYPRE_USING_GPU) 
 	matrix->x_tmp = NULL;
 	matrix->x_buf = NULL;
+	matrix->w = NULL;
+	matrix->w_2 = NULL;
 	//#endif
 	return matrix;
 }
@@ -215,8 +217,20 @@ hypre_ParCSRMatrixDestroy( hypre_ParCSRMatrix *matrix )
 			//printf("FREE: comm d  is NOT null");
 			hypre_TFree(matrix->comm_d, HYPRE_MEMORY_DEVICE);
 		}
+		if (matrix->w != NULL) {
+			//printf("about to destroy w \n");
+	//		hypre_ParVectorDestroy(matrix->w);
+         hypre_SeqVectorDestroy(hypre_ParVectorLocalVector(matrix->w));
+			matrix->w = NULL;
+		}
+		if (matrix->w_2 != NULL) {
+
+			hypre_SeqVectorDestroy(hypre_ParVectorLocalVector(matrix->w_2));
+			//printf("about to destroy w2 \n");
+			//hypre_ParVectorDestroy(matrix->w_2);
+			matrix->w_2 = NULL;
+		} 
 		//#endif
-		hypre_TFree(matrix, HYPRE_MEMORY_HOST);
 #endif
 	}
 	return hypre_error_flag;
@@ -301,6 +315,8 @@ hypre_ParCSRMatrixInitialize( hypre_ParCSRMatrix *matrix )
 	matrix->x_tmp = NULL;
 	matrix->x_buf = NULL;
 	matrix->x_buf_size=0;
+	matrix->w = NULL;
+	matrix->w_2 = NULL;
 #endif
 	return hypre_error_flag;
 }

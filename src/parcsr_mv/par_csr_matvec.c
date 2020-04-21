@@ -939,17 +939,19 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace_mpiTag( HYPRE_Complex       alpha,
 	HYPRE_Complex * x_tmp_data_host = hypre_CTAlloc(HYPRE_Complex,  num_cols_offd  , HYPRE_MEMORY_HOST);
 
 #endif
-	cudaMemcpy(A->x_buf_cpu,x_buf_data,   hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends) * sizeof(HYPRE_Complex),cudaMemcpyDeviceToHost  );
+//KS experimental ABL
+#if 1	
+cudaMemcpy(A->x_buf_cpu,x_buf_data,   hypre_ParCSRCommPkgSendMapStart(comm_pkg,  num_sends) * sizeof(HYPRE_Complex),cudaMemcpyDeviceToHost  );
 	cudaMemcpy(x_tmp_data_cpu,x_tmp_data,  num_cols_offd  * sizeof(HYPRE_Complex),cudaMemcpyDeviceToHost  );
 	//end of experimental
-
 	comm_handle = hypre_CTAlloc(hypre_ParCSRCommHandle, 1, HYPRE_MEMORY_HOST);
 
 	//if (num_sends > 50)
 	//leave this alone or will seg fault!!!
 	comm_handle = hypre_ParCSRCommHandleCreate_mpiTag
 		( 111, comm_pkg, A->x_buf_cpu, x_tmp_data_cpu, mpiTag );
-
+//will DEADLOVK if you try without wait! dont do it!!!!
+	//hypre_MPI_Barrier(comm_pkg->comm);
 	//hypre_MPI_Barrier(hypre_ParCSRCommPkgComm(comm_pkg));
 	//t2=hypre_MPI_Wtime();
 #if 1
@@ -958,6 +960,9 @@ hypre_ParCSRMatrixMatvecMultOutOfPlace_mpiTag( HYPRE_Complex       alpha,
 #endif
 	//end of experimental
 	//WORKS!
+
+#endif
+
 
 //	commTime += (t2-t1);
 

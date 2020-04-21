@@ -1642,6 +1642,7 @@ HYPRE_Int hypre_ParKrylovMassInnerProd ( void *x , void **y, HYPRE_Int k, HYPRE_
 HYPRE_Int hypre_ParKrylovMassDotpTwo ( void *x , void *y , void **z, HYPRE_Int k, HYPRE_Int unroll, void *result_x, void *result_y );
 HYPRE_Int hypre_ParKrylovMassAxpy( HYPRE_Complex *alpha, void **x, void *y, HYPRE_Int k, HYPRE_Int unroll);
 
+void * hypre_ParKrylovGetAuxVector(void *A, HYPRE_Int id);
 HYPRE_Int  hypre_ParKrylovMassInnerProdMult ( void *x ,HYPRE_Int k, void *y, HYPRE_Int k2, void *result );
 HYPRE_Int  hypre_ParKrylovMassInnerProdTwoVectorsMult ( void *x ,HYPRE_Int k, void *y1, HYPRE_Int k2,void *y2, HYPRE_Int k3, void *result );
 HYPRE_Int  hypre_ParKrylovMassInnerProdWithScalingMult ( void *x ,HYPRE_Int k, void *y, HYPRE_Int k2,void *scaleFactors, void *result );

@@ -53,6 +53,7 @@ HYPRE_ParCSRCOGMRESCreate( MPI_Comm comm, HYPRE_Solver *solver )
 	hypre_ParKrylovScaleVectorOneOfMult, 
 	hypre_ParKrylovAxpyOneOfMult,
 	hypre_ParKrylovMassAxpyMult,
+  hypre_ParKrylovGetAuxVector,
 	hypre_ParKrylovIdentitySetup, 
 	hypre_ParKrylovIdentity );
   *solver = ( (HYPRE_Solver) hypre_COGMRESCreate( cogmres_functions ) );

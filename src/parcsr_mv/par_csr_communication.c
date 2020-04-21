@@ -291,7 +291,9 @@ hypre_ParCSRCommHandleCreate_mpiTag ( HYPRE_Int            job,
 			{
 				//double t1, t2;
 				//t1 = hypre_MPI_Wtime();
-				HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
+//DO NOT CHANGE
+#if 1	
+	HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
 
 				HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
 				MPI_Request * requestR;
@@ -324,11 +326,13 @@ hypre_ParCSRCommHandleCreate_mpiTag ( HYPRE_Int            job,
 					hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
 							ip, 
 							mpiTag, comm, &requestR[j]);
-					hypre_MPI_Wait(&requestR[j], &statusR);
+//THIS WAIT IS NEEDED DO NOT DELETE		
+			hypre_MPI_Wait(&requestR[j], &statusR);
 					j++;         
 #endif
 				}
 				break;
+#endif
 			}
 		case 222:
 			{

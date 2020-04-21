@@ -631,6 +631,7 @@ HYPRE_Int    (*DestroyVector) ( void *vector );
     HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x, HYPRE_Int i1 );
     HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x, HYPRE_Int i1, void *y, HYPRE_Int i2 );
     HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex * alpha, void *x, HYPRE_Int k1, void *y, HYPRE_Int k2);
+    void *       (*GetAuxVector)  (void *A, HYPRE_Int id);
     HYPRE_Int    (*precond)       (void *vdata , void *A , void *b , void *x);
     HYPRE_Int    (*precond_setup) (void *vdata , void *A , void *b , void *x);
 
@@ -722,6 +723,7 @@ HYPRE_Int    (*DestroyVector) ( void *vector ),
 	  HYPRE_Int    (*ScaleVector)   ( HYPRE_Complex alpha, void *x, HYPRE_Int k1 ),
 	  HYPRE_Int    (*Axpy)          ( HYPRE_Complex alpha, void *x,HYPRE_Int k1, void *y, HYPRE_Int k2 ),
 	  HYPRE_Int    (*MassAxpy)      ( HYPRE_Complex *alpha, void *x,HYPRE_Int i1, void *y, HYPRE_Int i2),
+    void *       (*GetAuxVector)  (void *A, HYPRE_Int id),
 	  HYPRE_Int    (*PrecondSetup)  ( void *vdata, void *A, void *b, void *x ),
 	  HYPRE_Int    (*Precond)       ( void *vdata, void *A, void *b, void *x )
 	    );

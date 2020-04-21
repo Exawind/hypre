@@ -132,6 +132,19 @@ hypre_ParKrylovDestroyVector( void *vvector )
   return( hypre_ParVectorDestroy( vector ) );
 }
 
+
+
+  void *
+hypre_ParKrylovGetAuxVector( void   *A,HYPRE_Int id )
+{
+  
+  hypre_ParCSRMatrix * AA = (hypre_ParCSRMatrix *) A;
+if (id ==0)
+return AA->w;
+else return AA->w_2;
+}
+
+
 /*--------------------------------------------------------------------------
  * hypre_ParKrylovMatvecCreate
  *--------------------------------------------------------------------------*/
@@ -163,9 +176,9 @@ hypre_ParKrylovMatvecCreate( void   *A,
   }
 
   HYPRE_Int num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
-  //AA->x_tmp = hypre_SeqVectorCreate( num_cols_offd );
+  AA->x_tmp = hypre_SeqVectorCreate( num_cols_offd );
 
-  //hypre_SeqVectorInitialize(AA->x_tmp);
+  hypre_SeqVectorInitialize(AA->x_tmp);
 
   AA->x_buf = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
       (comm_pkg,  num_sends), HYPRE_MEMORY_DEVICE);
@@ -179,6 +192,18 @@ if ((end-begin) != 0)
 {
   cudaMemcpy(AA->comm_d,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),  (end-begin) * sizeof(HYPRE_Int),cudaMemcpyHostToDevice  );
 }
+if (AA->w == NULL) {
+AA->w =  hypre_ParVectorCreate(hypre_ParCSRMatrixComm(AA),
+      hypre_ParCSRMatrixGlobalNumRows(AA),
+      hypre_ParCSRMatrixRowStarts(AA));
+hypre_ParVectorInitialize(AA->w);
+} 
+if (AA->w_2 == NULL) {
+AA->w_2 =  hypre_ParVectorCreate(hypre_ParCSRMatrixComm(AA),
+      hypre_ParCSRMatrixGlobalNumRows(AA),
+      hypre_ParCSRMatrixRowStarts(AA));
+hypre_ParVectorInitialize(AA->w_2);
+} 
 #endif
 
 

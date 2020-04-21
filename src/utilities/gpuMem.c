@@ -30,7 +30,7 @@ struct hypre__global_struct hypre__global_handle = {0, 0, 1, 0};
 void hypre_GPUInit(hypre_int use_device)
 {
   //KS: this is an UGLY method but it works
-printf("starting GPU init...\n");
+//printf("starting GPU init...\n");
 #if defined(HYPRE_USING_GPU) && !defined(HYPRE_USING_UNIFIED_MEMORY)
   MPI_Comm            comm = hypre_MPI_COMM_WORLD;
   HYPRE_Int iproc_, nproc_;
@@ -44,18 +44,18 @@ printf("starting GPU init...\n");
       int numGPUs;
 int modeK;
       ierr = cudaGetDeviceCount(&numGPUs);
-printf("%d GPUs available!\n", numGPUs);      
+//printf("%d GPUs available!\n", numGPUs);      
 cudaDeviceGetAttribute (&modeK, cudaDevAttrConcurrentManagedAccess,iproc_%numGPUs);
-printf("managed access on device %d? %d\n", iproc_ %numGPUs, modeK);
+//printf("managed access on device %d? %d\n", iproc_ %numGPUs, modeK);
 HYPRE_DEVICE = iproc_%numGPUs;
 HYPRE_DEVICE_COUNT = numGPUs;
       ierr = cudaSetDevice(iproc_ % numGPUs);
-printf("Hi i am rank %d Setting my GPUs to %d !\n",iproc_, iproc_%numGPUs);      
+//printf("Hi i am rank %d Setting my GPUs to %d !\n",iproc_, iproc_%numGPUs);      
 //END OF SUMMIT ONLY
 
 //  printf("COGMRES SETUP Hi i am rank %d Setting my GPUs to %d !\n",iproc_, iproc_%numGPUs);      
 #else
-prinf("init using uni memory\n");
+//prinf("init using uni memory\n");
   //end of KS code
   char pciBusId[80];
   hypre_int myid;
