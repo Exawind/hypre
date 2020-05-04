@@ -1210,8 +1210,10 @@ hypre_CSRMatrixMatvecMultDevice( HYPRE_Complex    alpha,
 
 	if (b!=y){
 		PUSH_RANGE_PAYLOAD("MEMCPY",1,y->size-offset);
-		//    VecCopy(y->data,b->data,(y->size-offset),HYPRE_STREAM(4));
-   hypre_SeqVectorCopyOneOfMult(b,k3, y, k2);
+	//	    VecCopy(y->data,b->data,(y->size-offset),HYPRE_STREAM(4));
+  //doestn change anything
+//hypre_SeqVectorCopyDataCPUtoGPU(b);
+ hypre_SeqVectorCopyOneOfMult(b,k3, y, k2);
 	
 	//HYPRE_Complex * bddata =  b->d_data;
 //	cudaMemcpy( yddata, bddata, y->size, cudaMemcpyDeviceToDevice);

@@ -177,14 +177,14 @@ hypre_ParKrylovMatvecCreate( void   *A,
 
   HYPRE_Int num_sends = hypre_ParCSRCommPkgNumSends(comm_pkg);
   AA->x_tmp = hypre_SeqVectorCreate( num_cols_offd );
-
   hypre_SeqVectorInitialize(AA->x_tmp);
 
   AA->x_buf = hypre_CTAlloc(HYPRE_Complex,  hypre_ParCSRCommPkgSendMapStart
       (comm_pkg,  num_sends), HYPRE_MEMORY_DEVICE);
 //round 2 of new code
 //
-
+AA->x_buf_size = hypre_ParCSRCommPkgSendMapStart
+      (comm_pkg,  num_sends);
  HYPRE_Int begin = hypre_ParCSRCommPkgSendMapStart(comm_pkg, 0);
  HYPRE_Int end   = hypre_ParCSRCommPkgSendMapStart(comm_pkg, num_sends);
   AA->comm_d =  hypre_CTAlloc(HYPRE_Int,  (end-begin), HYPRE_MEMORY_DEVICE);;
@@ -192,6 +192,13 @@ if ((end-begin) != 0)
 {
   cudaMemcpy(AA->comm_d,hypre_ParCSRCommPkgSendMapElmts(comm_pkg),  (end-begin) * sizeof(HYPRE_Int),cudaMemcpyHostToDevice  );
 }
+
+#if 0
+HYPRE_Int my_id;
+hypre_MPI_Comm_rank(hypre_ParCSRMatrixComm(AA),&my_id);
+printf("THIS IS INIT INIT INITi: I am rank %d number of cols offd is %d  and x_buf size is %d commd size %d \n",my_id, num_cols_offd,  hypre_ParCSRCommPkgSendMapStart
+      (comm_pkg,  num_sends), end-begin);
+#endif
 if (AA->w == NULL) {
 AA->w =  hypre_ParVectorCreate(hypre_ParCSRMatrixComm(AA),
       hypre_ParCSRMatrixGlobalNumRows(AA),

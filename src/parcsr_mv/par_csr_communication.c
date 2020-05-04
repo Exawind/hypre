@@ -278,7 +278,9 @@ hypre_ParCSRCommHandleCreate_mpiTag ( HYPRE_Int            job,
 	 *--------------------------------------------------------------------*/
 
 	num_requests = num_sends + num_recvs;
-	//   requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+
+	requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+	hypre_MPI_Status* stats  = hypre_CTAlloc(hypre_MPI_Status,  num_requests, HYPRE_MEMORY_HOST);
 
 	hypre_MPI_Comm_size(comm,&num_procs);
 	hypre_MPI_Comm_rank(comm,&my_id);
@@ -289,77 +291,134 @@ hypre_ParCSRCommHandleCreate_mpiTag ( HYPRE_Int            job,
 
 		case  111:
 			{
-				//double t1, t2;
-				//t1 = hypre_MPI_Wtime();
-//DO NOT CHANGE
-#if 1	
-	HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
-
-				HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
-				MPI_Request * requestR;
-
-				requestR = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
-				j=0;
-
-				for (i = 0; i < num_sends; i++)
-				{
-					vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
-					vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1)-vec_start;
-					ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
-					//if(vec_len<100) printf("KASIA GPU COMM: I am rank %d trying to send message size %d to rank %d\n",my_id, vec_len, ip );
 #if 1
-					hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
-							ip, 
-							mpiTag, comm, &requestR[j]);
-		//			MPI_Barrier(comm);				
-					j++;
-#endif            
-				}
-				for (i = 0; i < num_recvs; i++)
-				{
-					ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
-					vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
-					vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
-					hypre_MPI_Status statusR;
-					//if(vec_len<100) printf("KASIA GPU COMM: I am rank %d trying to receive message size %d from rank %d\n",my_id, vec_len, ip );
-#if 1 
-					hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
-							ip, 
-							mpiTag, comm, &requestR[j]);
-//THIS WAIT IS NEEDED DO NOT DELETE		
-			hypre_MPI_Wait(&requestR[j], &statusR);
-					j++;         
-#endif
-				}
-				break;
-#endif
-			}
-		case 222:
-			{
-
-
-				requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
-
+				//	printf("ParCycle: 111 communication, tag %d \n", mpiTag);	
 				HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
 				HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
 				for (i = 0; i < num_recvs; i++)
 				{
 					ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
 					vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
+
 					vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
-					hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
-							ip, mpiTag, comm, &requests[j++]);
+					//printf("I am expecting message size %d from %d, , j = %d, max %d \n", vec_len, ip, j, num_requests);
+					//requests[j++] =  MPI_REQUEST_NULL;
+					if (vec_len >0 ){ 
+						hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
+								ip, mpiTag, comm, &requests[j++]);
+						//deadlocks					
+						//hypre_MPI_Wait(&requests[j-1], &stats[j-1]);
+					}	else {
+						printf("111, I recv. Message size %d. Message tag %d \n", vec_len, mpiTag);
+						requests[j++] =  MPI_REQUEST_NULL;
+					}
+				}
+				for (i = 0; i < num_sends; i++)
+				{
+					vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
+					vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1)-vec_start;
+					ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
+
+					//printf("I am sending message size %d to %d, , j = %d, max %d \n", vec_len, ip, j, num_requests);
+					//requests[j++] =  MPI_REQUEST_NULL;
+					if(vec_len>0)	{
+						hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
+								ip, mpiTag, comm, &requests[j++]);
+						//if wait is here, seg faults
+					}	else {
+						printf("111, I send. Message size %d. Message tag %d \n", vec_len, mpiTag);
+						requests[j++] =  MPI_REQUEST_NULL;
+					}
+
+				}
+				//deadlocks anyways
+#else
+
+				//	printf("ParCycle: 111 communication, tag %d \n", mpiTag);	
+				HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
+				HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
+				for (i = 0; i < num_sends; i++)
+				{
+					vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
+					vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1)-vec_start;
+					ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
+
+					//printf("I am sending message size %d to %d, , j = %d, max %d \n", vec_len, ip, j, num_requests);
+					//requests[j++] =  MPI_REQUEST_NULL;
+					if(vec_len>0)	{
+						hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
+								ip, mpiTag, comm, &requests[j++]);
+						//if wait is here, seg faults
+					}	else {
+						printf("111, I send. Message size %d. Message tag %d \n", vec_len, mpiTag);
+						requests[j++] =  MPI_REQUEST_NULL;
+					}
+
 				}
 
+				for (i = 0; i < num_recvs; i++)
+				{
+					ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
+					vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
+
+					vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
+					if (vec_len >0 ){ 
+						hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
+								ip, mpiTag, comm, &requests[j++]);
+						//deadlocks					
+						//hypre_MPI_Wait(&requests[j], &stats[j]);
+					}	else {
+						printf("111, I recv. Message size %d. Message tag %d \n", vec_len, mpiTag);
+						requests[j++] =  MPI_REQUEST_NULL;
+					}
+				}
+				//deadlocks anyways
+
+				if (num_requests <= 0) printf("expecting %d requests, j = %d \n", num_requests, j);
+				else  hypre_MPI_Waitall(num_requests, requests, stats);
+
+
+#endif
+				break;
+
+			}
+		case 222:
+			{
+
+
+#if 1
+				HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
+				HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
+
+				//	printf("ParCycle: 222 communication, tag %d \n", mpiTag);	
 				for (i = 0; i < num_sends; i++)
 				{
 					vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
 					vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1) - vec_start;
 					ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
-					hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
+					if (vec_len>0)				hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
 							ip, mpiTag, comm, &requests[j++]);
-}
+					else {
+						printf("222, I recv. Message size %d. Message tag %d \n", vec_len, mpiTag);
+						requests[j++] =  MPI_REQUEST_NULL;}
+				}
 
+				for (i = 0; i < num_recvs; i++)
+				{
+					ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
+					vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
+					vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
+					if(vec_len>0)hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
+							ip, mpiTag, comm, &requests[j++]);
+					else {
+						printf("222, I send. Message size %d. Message tag %d \n", vec_len, mpiTag);
+						requests[j++] =  MPI_REQUEST_NULL;}
+				}
+				//if (num_requests>0)
+				//      hypre_MPI_Waitall(num_requests, requests, stats);
+				//	MPI_Barrier(comm);				
+				//deadlock if barrier both after 111and 222	
+#endif
 				break;
 			}
 	}
@@ -369,8 +428,12 @@ hypre_ParCSRCommHandleCreate_mpiTag ( HYPRE_Int            job,
 	hypre_ParCSRCommHandleSendData(comm_handle)    = send_data;
 	hypre_ParCSRCommHandleRecvData(comm_handle)    = recv_data;
 	hypre_ParCSRCommHandleNumRequests(comm_handle) = num_requests;
-	if (job !=111)   hypre_ParCSRCommHandleRequests(comm_handle)    = requests;
-	else hypre_ParCSRCommHandleRequests(comm_handle)  = NULL;
+	hypre_ParCSRCommHandleRequests(comm_handle)    = requests;
+	//hypre_ParCSRCommHandleRequests(comm_handle)  = NULL;
+
+	//hypre_TFree(requests, HYPRE_MEMORY_HOST);
+	hypre_TFree(stats, HYPRE_MEMORY_HOST);
+
 	return ( comm_handle );
 }
 
@@ -434,8 +497,10 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 				//double t1, t2;
 				//t1 = hypre_MPI_Wtime();
 				requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+				hypre_MPI_Status* stats  = hypre_CTAlloc(hypre_MPI_Status,  num_requests, HYPRE_MEMORY_HOST);
 				HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
 				HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
+				//	printf("Normal: 1 communication, tag %d \n", 0);	
 				for (i = 0; i < num_recvs; i++)
 				{
 					ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
@@ -445,7 +510,7 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 					//if (num_sends==0) printf("NORMAL COMMM I am process %d trying to receive vector size %d from process %d it starts at %d , requestR[%d] \n",my_id, vec_len, ip, vec_start, j+1);
 					//if(vec_len<100) printf("NORMAL COMM: I am rank %d trying to receive message size %d from rank %d\n",my_id, vec_len, ip );
 					hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
-							ip, 0, comm, &requests[j++]);
+							ip, 30001, comm, &requests[j++]);
 				}
 				for (i = 0; i < num_sends; i++)
 				{
@@ -455,11 +520,12 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 					//if(vec_len<100) printf("NORMAL COMM: I am rank %d trying to send message size %d to rank %d\n",my_id, vec_len, ip );
 					//printf("Normal comm: trying to send to %d, message size %d\n", ip, vec_len);	
 					hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
-							ip, 0, comm, &requests[j++]);
+							ip, 30001, comm, &requests[j++]);
 				}
 				//t2 = hypre_MPI_Wtime();
 				//if (my_id == 0)
 				//{printf("one MPI send/recv (CPU) took %16.16f seconds\n", t2-t1);}
+				//  hypre_MPI_Waitall(num_requests, requests, stats);
 				break;
 			}
 		case  111:
@@ -470,40 +536,50 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 
 				HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
 				MPI_Request * requestR;
+				requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
 
-				requestR = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+				hypre_MPI_Status* stats  = hypre_CTAlloc(hypre_MPI_Status,  num_requests, HYPRE_MEMORY_HOST);
+				//				requestR = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
 				j=0;
 
+				//printf("MV: 111 communication, tag %d \n", 5555);	
 				for (i = 0; i < num_sends; i++)
 				{
+					hypre_MPI_Status statusR;
 					vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
 					vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1)-vec_start;
 					ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
+			//printf("KASIA GPU COMM: I am rank %d trying to send message size %d to rank %d\n",my_id, vec_len, ip );
 					//if(vec_len<100) printf("KASIA GPU COMM: I am rank %d trying to send message size %d to rank %d\n",my_id, vec_len, ip );
 #if 1
 					hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
 							ip, 
-							0, comm, &requestR[j]);
-				//	MPI_Barrier(comm);				
+							0, comm, &requests[j]);
+					//hypre_MPI_Wait(&requests[j], &stats[j]);
+					//	MPI_Barrier(comm);				
 					j++;
 #endif            
 				}
+
 				for (i = 0; i < num_recvs; i++)
 				{
 					ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
 					vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
 					vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
-					hypre_MPI_Status statusR;
-					//if(vec_len<100) printf("KASIA GPU COMM: I am rank %d trying to receive message size %d from rank %d\n",my_id, vec_len, ip );
+				//	printf("KASIA GPU COMM: I am rank %d trying to receive message size %d from rank %d\n",my_id, vec_len, ip );
 #if 1 
 					hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
 							ip, 
-							0, comm, &requestR[j]);
-					hypre_MPI_Wait(&requestR[j], &statusR);
-					j++;         
+							0, comm, &requests[j]);
+hypre_MPI_Wait(&requests[j], &stats[j]);  	
+				j++;         
 #endif
 				}
+//				hypre_MPI_Waitall(num_requests, requests, stats);
 
+
+				hypre_TFree(requests, HYPRE_MEMORY_HOST);
+				hypre_TFree(stats, HYPRE_MEMORY_HOST);
 				break;
 			}
 
@@ -513,6 +589,7 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 
 				requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
 
+				hypre_MPI_Status* stats  = hypre_CTAlloc(hypre_MPI_Status,  num_requests, HYPRE_MEMORY_HOST);
 				HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
 				HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
 				for (i = 0; i < num_sends; i++)
@@ -521,7 +598,7 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 					vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1) - vec_start;
 					ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
 					hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
-							ip, 0, comm, &requests[j++]);
+							ip, 30003, comm, &requests[j++]);
 				}
 				for (i = 0; i < num_recvs; i++)
 				{
@@ -529,95 +606,60 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 					vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
 					vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
 					hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
-							ip, 0, comm, &requests[j++]);
+							ip, 30003, comm, &requests[j++]);
+				}
+				// hypre_MPI_Waitall(num_requests, requests, stats);
+				break;
+			}
+		case  11:
+			{
+				requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+
+
+				HYPRE_Int *i_send_data = (HYPRE_Int *) send_data;
+				HYPRE_Int *i_recv_data = (HYPRE_Int *) recv_data;
+				for (i = 0; i < num_recvs; i++)
+				{
+					ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
+					vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
+					vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
+					hypre_MPI_Irecv(&i_recv_data[vec_start], vec_len, HYPRE_MPI_INT,
+							ip, 30004, comm, &requests[j++]);
+				}
+				for (i = 0; i < num_sends; i++)
+				{
+					vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
+					vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1)-vec_start;
+					ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
+					hypre_MPI_Isend(&i_send_data[vec_start], vec_len, HYPRE_MPI_INT,
+							ip, 30004, comm, &requests[j++]);
 				}
 				break;
 			}
-		case 222:{
-							 //GPU communication for matvecT, written by KS
-							 //NEED TO SEND BEFORE YOU RECEIVE OR HELLO DEADLOCK
-
-							 requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
-
-							 HYPRE_Complex *d_send_data = (HYPRE_Complex *) send_data;
-							 HYPRE_Complex *d_recv_data = (HYPRE_Complex *) recv_data;
-
-							 MPI_Request * requestR;
-
-							 requestR = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
-							 for (i = 0; i < num_recvs; i++)
-							 {
-								 ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
-								 vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
-								 vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
-
-								 hypre_MPI_Isend(&d_send_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
-										 ip, 0, comm, &requestR[i]);
-
-							 }
-
-							 for (i = 0; i < num_sends; i++)
-							 {
-								 vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
-								 vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1) - vec_start;
-								 ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
-								 hypre_MPI_Status statusR;
-								 hypre_MPI_Irecv(&d_recv_data[vec_start], vec_len, HYPRE_MPI_COMPLEX,
-										 ip, 0, comm, &requestR[i]);
-								 hypre_MPI_Wait(&requestR[i], &statusR);         
-							 }
-
-							 break;
-						 }
-		case  11:
-						 {
-							 requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
-
-
-							 HYPRE_Int *i_send_data = (HYPRE_Int *) send_data;
-							 HYPRE_Int *i_recv_data = (HYPRE_Int *) recv_data;
-							 for (i = 0; i < num_recvs; i++)
-							 {
-								 ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
-								 vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
-								 vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
-								 hypre_MPI_Irecv(&i_recv_data[vec_start], vec_len, HYPRE_MPI_INT,
-										 ip, 0, comm, &requests[j++]);
-							 }
-							 for (i = 0; i < num_sends; i++)
-							 {
-								 vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
-								 vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1)-vec_start;
-								 ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
-								 hypre_MPI_Isend(&i_send_data[vec_start], vec_len, HYPRE_MPI_INT,
-										 ip, 0, comm, &requests[j++]);
-							 }
-							 break;
-						 }
 		case  12:
-						 {requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
+			{requests = hypre_CTAlloc(hypre_MPI_Request,  num_requests, HYPRE_MEMORY_HOST);
 
 
-							 HYPRE_Int *i_send_data = (HYPRE_Int *) send_data;
-							 HYPRE_Int *i_recv_data = (HYPRE_Int *) recv_data;
-							 for (i = 0; i < num_sends; i++)
-							 {
-								 vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
-								 vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1) - vec_start;
-								 ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
-								 hypre_MPI_Irecv(&i_recv_data[vec_start], vec_len, HYPRE_MPI_INT,
-										 ip, 0, comm, &requests[j++]);
-							 }
-							 for (i = 0; i < num_recvs; i++)
-							 {
-								 ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
-								 vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
-								 vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
-								 hypre_MPI_Isend(&i_send_data[vec_start], vec_len, HYPRE_MPI_INT,
-										 ip, 0, comm, &requests[j++]);
-							 }
-							 break;
-						 }
+				HYPRE_Int *i_send_data = (HYPRE_Int *) send_data;
+				HYPRE_Int *i_recv_data = (HYPRE_Int *) recv_data;
+				for (i = 0; i < num_sends; i++)
+				{
+					vec_start = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i);
+					vec_len = hypre_ParCSRCommPkgSendMapStart(comm_pkg, i+1) - vec_start;
+					ip = hypre_ParCSRCommPkgSendProc(comm_pkg, i); 
+					hypre_MPI_Irecv(&i_recv_data[vec_start], vec_len, HYPRE_MPI_INT,
+							ip, 30005, comm, &requests[j++]);
+				}
+				for (i = 0; i < num_recvs; i++)
+				{
+					ip = hypre_ParCSRCommPkgRecvProc(comm_pkg, i); 
+					vec_start = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i);
+					vec_len = hypre_ParCSRCommPkgRecvVecStart(comm_pkg,i+1)-vec_start;
+					hypre_MPI_Isend(&i_send_data[vec_start], vec_len, HYPRE_MPI_INT,
+							ip, 30005, comm, &requests[j++]);
+				}
+				break;
+			}
 	}
 	/*--------------------------------------------------------------------
 	 * set up comm_handle and return
@@ -629,8 +671,8 @@ hypre_ParCSRCommHandleCreate ( HYPRE_Int            job,
 	hypre_ParCSRCommHandleSendData(comm_handle)    = send_data;
 	hypre_ParCSRCommHandleRecvData(comm_handle)    = recv_data;
 	hypre_ParCSRCommHandleNumRequests(comm_handle) = num_requests;
-	if (job !=111)   hypre_ParCSRCommHandleRequests(comm_handle)    = requests;
-	else hypre_ParCSRCommHandleRequests(comm_handle)  = NULL;
+	hypre_ParCSRCommHandleRequests(comm_handle)    = requests;
+	//	else hypre_ParCSRCommHandleRequests(comm_handle)  = NULL;
 	return ( comm_handle );
 }
 

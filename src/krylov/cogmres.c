@@ -574,11 +574,11 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 
 	//printf("Starting VERY BEGINNING norm x %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
 	//printf("Starting VERY BEGINNING norm b %16.16f \n", sqrt((*(cogmres_functions->InnerProd))(b,0,b, 0)));
-	//	void         *w                 = (cogmres_data -> w);
-	//	void         *w_2               = (cogmres_data -> w_2); 
+		void         *w                 = (cogmres_data -> w);
+		void         *w_2               = (cogmres_data -> w_2); 
 	//CHANGING APRIL 2020
-	void         *w                 =  (*(cogmres_functions->GetAuxVector))(A, 0);
-	void         *w_2               =   (*(cogmres_functions->GetAuxVector))(A, 1);
+//	void         *w                 =  (*(cogmres_functions->GetAuxVector))(A, 0);
+//	void         *w_2               =   (*(cogmres_functions->GetAuxVector))(A, 1);
 
 	void        *p                 = (cogmres_data -> p);
 	void        *z                 = (cogmres_data -> z);
@@ -612,7 +612,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	}
 
 	//  if (usePrecond){
-#if 0
+#if 1
 	(cogmres_data -> w_2) = (*(cogmres_functions->CreateVector))(b);
 	w_2 = cogmres_data -> w_2;
 	// }
@@ -621,7 +621,6 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	w = cogmres_data -> w;
 #endif
 	//CHANGING APRIL 2020
-
 
 	//CreateVecrtie in this case will initialize it too  
 	//r = (*(cogmres_functions->CreateVector))(b);
@@ -681,10 +680,10 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 
 	iter = 0;
 	//works
-
 	while (iter < max_iter)
 	{
 
+#if 1
 		if (iter == 0){
 			if (solverTimers){
 				time1 = MPI_Wtime();
@@ -726,10 +725,9 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 			}
 
 		}
-		/*******************************************************************
+	/*******************************************************************
 		 * RESTART, PRECON IS RIGHT
 		 * *****************************************************************/    
-
 		if ((usePrecond)&&(!leftPrecond)){
 			if(!flexiblePrecond){
 				if (solverTimers)
@@ -741,6 +739,8 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 				//not true if restarting
 				if(iter!=0){
 					(*(cogmres_functions->UpdateVectorCPU))(x);
+			  // printf("ITER %d, norm BEFORE precon %16.16f\n ",iter, sqrt((*(cogmres_functions->InnerProd))(x,0,x, 0)));
+
 				}	
 				//w = Mx
 				//CHANGING April 17th 2020				
@@ -756,6 +756,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 				//			precond(precond_data, A, w_2,w );
 				//CHANGING April 17th 2020				
 				precond(precond_data, A, x,w );
+			   //if(iter!=0)printf("ITER %d, norm after  precon %16.16f\n ",iter,sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
 				POP_RANGE;
 
 				//	if (iter==0) printf("ITER 0, norm after applying precon %16.16f\n ",sqrt((*(cogmres_functions->InnerProd))(w,0,w, 0)));
@@ -1510,8 +1511,10 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 			time2 = MPI_Wtime();
 			remainingTime += (time2-time1);
 		}
-	}
-	if ((usePrecond)&&(!leftPrecond)){
+#endif
+	}//while
+#if 1	
+if ((usePrecond)&&(!leftPrecond)){
 
 		if (!flexiblePrecond){
 			if (solverTimers){
@@ -1584,7 +1587,10 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	//	cudaFree(b_GPUonly);
 
 
-
+if(my_id == 0)
+{
+hypre_printf("ITERS: %d \n", iter);
+}
 	if ((my_id == 0)&& (solverTimers)){
 		hypre_printf("\n\nitersAll(%d,%d)                = %d \n", GSoption+1, k_dim/5, iter);
 		hypre_printf("timeGSAll(%d,%d)                = %16.16f \n",GSoption+1, k_dim/5, gsTime);
@@ -1619,7 +1625,7 @@ HYPRE_Int hypre_COGMRESSolve(void  *cogmres_vdata,
 	//cudaMemGetInfo(&mf, &ma);
 	//printf("starting de-allocation, free memory %zu allocated memory %zu \n", mf, ma);
 	//printf("\n ENDING COGMRES(solve), free memory %zu total memory %zu percentage of allocated %f \n", mf, ma, (double)mf/ma);
-
+#endif
 	return 0;
 
 }//Solve

@@ -37,6 +37,9 @@ hypre_BoomerAMGCycle( void              *amg_vdata,
                       hypre_ParVector  **F_array,
                       hypre_ParVector  **U_array   )
 {
+
+HYPRE_Int tag=1;
+if (tag ==20048) tag =1;
 HYPRE_Complex t1,t2, t3, t4;
    hypre_ParAMGData *amg_data = (hypre_ParAMGData*) amg_vdata;
 
@@ -256,7 +259,6 @@ Rtemp             = hypre_ParAMGDataRtemp(amg_data);
 #ifdef HYPRE_USING_CALIPER
    cali_set_int(iter_attr, level);
 #endif
-HYPRE_Int tag = 1;
    while (Not_Finished)
    {
       if (num_levels > 1)
@@ -550,6 +552,7 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
 //t3 =hypre_MPI_Wtime();
 //timeCopy += (t3-t1);
 //t1= hypre_MPI_Wtime();
+#if 1
   Solve_err_flag = hypre_BoomerAMGRelaxIF(A_array[level],
                                                           Aux_F,
                                                           CF_marker_array[level],
@@ -562,6 +565,7 @@ hypre_ParCSRMatrixMatvecOutOfPlace(alpha, A_array[level],
                                                           Aux_U,
                                                           Vtemp,
                                                           Ztemp);
+#endif
 //t2= hypre_MPI_Wtime();
 //timeRelax += (t2-t1);
                  }

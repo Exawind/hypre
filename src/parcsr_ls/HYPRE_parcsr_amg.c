@@ -77,10 +77,12 @@ sqrt(hypre_ParVectorInnerProd(x,x)),
 sqrt(hypre_ParKrylovInnerProdOneOfMult(b,0, b, 0)), 
 sqrt(hypre_ParKrylovInnerProdOneOfMult(x, 0, x,0))  );
 #endif
+#if 1
  HYPRE_Int ret = ( hypre_BoomerAMGSolve( (void *) solver,
                                  (hypre_ParCSRMatrix *) A,
                                  (hypre_ParVector *) b,
                                  (hypre_ParVector *) x ) );
+#endif
 #if 0
 printf("Inner prod of the result (inside precon)%16.16fi, input %16.16f GPU  %16.16f and %16.16f \n",
  sqrt(hypre_ParVectorInnerProd(x,x)), 
@@ -91,9 +93,8 @@ sqrt(hypre_ParKrylovInnerProdOneOfMult(b, 0, b,0)));
 //hypre_ParVectorCopyDataCPUtoGPU(x);
 //printf("copying vector to GPU!\n");
 
-	//hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
-		//comm_pkg = hypre_ParCSRMatrixCommPkg(A);
-	//hypre_MPI_Barrier(comm_pkg->comm);
+//	hypre_ParCSRCommPkg *comm_pkg = hypre_ParCSRMatrixCommPkg(A);
+		//comm_pkg = hypre_ParCSRMatrixCommPkg(A);/	hypre_MPI_Barrier(comm_pkg->comm);
 return ret;
 }
 

@@ -30,7 +30,6 @@ static double allocTime;
 /*--------------------------------------------------------------------------
  * hypre_BoomerAMGRelax
  *--------------------------------------------------------------------------*/
-
 HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 		hypre_ParVector    *f,
 		HYPRE_Int                *cf_marker,
@@ -43,6 +42,10 @@ HYPRE_Int  hypre_BoomerAMGRelax( hypre_ParCSRMatrix *A,
 		hypre_ParVector    *Vtemp,
 		hypre_ParVector    *Ztemp )
 {
+
+HYPRE_Int relaxTag=20050;
+//if (relaxTag == 0) relaxTag = 3001;
+if (relaxTag == 30000) relaxTag = 20050;
 #if 0
 double t1,t2, t3, t4;
 t1=hypre_MPI_Wtime();
@@ -525,8 +528,11 @@ t3 = hypre_MPI_Wtime();
 #ifdef HYPRE_USING_PERSISTENT_COMM
 					hypre_ParCSRPersistentCommHandleStart(persistent_comm_handle);
 #else
-					comm_handle = hypre_ParCSRCommHandleCreate( 1, comm_pkg, v_buf_data, 
-							Vext_data);
+			//		comm_handle = hypre_ParCSRCommHandleCreate( 1, comm_pkg, v_buf_data, 
+				//			Vext_data);
+relaxTag++; 
+comm_handle = hypre_ParCSRCommHandleCreate_mpiTag
+   ( 111, comm_pkg, v_buf_data, Vext_data, relaxTag );
 #endif
 
 					/*-----------------------------------------------------------------
